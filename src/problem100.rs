@@ -1,5 +1,8 @@
 use std::collections::{HashMap, HashSet};
 
+/*
+* p1 two sum
+*/
 pub fn two_sum(nums: Vec<i32>, target: i32) -> Vec<i32> {
     let mut register: HashMap<i32, i32> = HashMap::new();
     let mut location: Vec<i32> = vec![];
@@ -23,6 +26,9 @@ pub fn test_two_sum() {
     assert_eq!(vec![1, 2], two_sum(vec![3, 2, 4], 6));
 }
 
+/*
+* p2 add number
+*/
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct ListNode {
     pub val: i32,
@@ -124,6 +130,9 @@ pub fn test_add_two_numbers() {
     );
 }
 
+/*
+* p3 longest substring
+*/
 pub fn length_of_longest_substring(s: String) -> i32 {
     let mut left = 0;
     let mut right = 0;
