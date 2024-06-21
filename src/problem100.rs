@@ -1,8 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-/*
-* p1 two sum
-*/
+///p1 two sum
 pub fn two_sum(nums: Vec<i32>, target: i32) -> Vec<i32> {
     let mut register: HashMap<i32, i32> = HashMap::new();
     let mut location: Vec<i32> = vec![];
@@ -26,9 +24,7 @@ pub fn test_two_sum() {
     assert_eq!(vec![1, 2], two_sum(vec![3, 2, 4], 6));
 }
 
-/*
-* p2 add number
-*/
+///p2 add number
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct ListNode {
     pub val: i32,
@@ -130,9 +126,7 @@ pub fn test_add_two_numbers() {
     );
 }
 
-/*
-* p3 longest substring
-*/
+///p3 longest substring
 pub fn length_of_longest_substring(s: String) -> i32 {
     let mut left = 0;
     let mut right = 0;
@@ -169,4 +163,46 @@ pub fn length_of_longest_substring(s: String) -> i32 {
 fn test_length_of_longest_substring() {
     assert_eq!(3, length_of_longest_substring("abcabcbb".to_string()));
     assert_eq!(3, length_of_longest_substring("pwwkew".to_string()));
+}
+
+///p4 median of two sorted arrays
+pub fn find_median_sorted_arrays(nums1: Vec<i32>, nums2: Vec<i32>) -> f64 {
+    let mut combine: Vec<i32> = Vec::new();
+    let len = nums1.len() + nums2.len();
+    let mut p1 = 0;
+    let mut p2 = 0;
+    for _ in 0..len {
+        match (nums1.get(p1), nums2.get(p2)) {
+            (Some(val1), Some(val2)) => {
+                if val1 <= val2 {
+                    combine.push(*val1);
+                    p1 = p1 + 1;
+                } else {
+                    combine.push(*val2);
+                    p2 = p2 + 1;
+                }
+            }
+            (Some(val1), None) => {
+                combine.push(*val1);
+                p1 = p1 + 1;
+            }
+            (None, Some(val2)) => {
+                combine.push(*val2);
+                p2 = p2 + 1;
+            }
+            (None, None) => {}
+        }
+    }
+
+    if len % 2 == 0 {
+        return (combine[len / 2 - 1] as f64 + combine[len / 2] as f64) / 2.0;
+    } else {
+        return combine[len / 2] as f64;
+    }
+}
+
+#[test]
+fn test_find_median_sorted_arrays() {
+    assert_eq!(2.0, find_median_sorted_arrays(vec![1, 3], vec![2]));
+    assert_eq!(2.5, find_median_sorted_arrays(vec![1, 2, 3, 4], vec![]));
 }
