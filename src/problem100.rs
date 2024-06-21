@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 pub fn two_sum(nums: Vec<i32>, target: i32) -> Vec<i32> {
     let mut register: HashMap<i32, i32> = HashMap::new();
@@ -122,4 +122,42 @@ pub fn test_add_two_numbers() {
             Some(Box::new(ListNode { val: 9, next: None }))
         )
     );
+}
+
+pub fn length_of_longest_substring(s: String) -> i32 {
+    let mut left = 0;
+    let mut right = 0;
+    let mut max = 0;
+    let mut collection = HashSet::<char>::new();
+    let char_vec = s.chars().collect::<Vec<char>>();
+    while right < char_vec.len() {
+        match char_vec.get(right) {
+            None => (),
+            Some(char) => match collection.get(char) {
+                None => {
+                    collection.insert(*char);
+                    max = collection.len().max(max);
+                    right = right + 1;
+                }
+                Some(_) => {
+                    while collection.get(char).is_some() {
+                        match char_vec.get(left) {
+                            None => (),
+                            Some(val) => {
+                                collection.remove(&val);
+                            }
+                        }
+                        left = left + 1;
+                    }
+                }
+            },
+        }
+    }
+    return max as i32;
+}
+
+#[test]
+fn test_length_of_longest_substring() {
+    assert_eq!(3, length_of_longest_substring("abcabcbb".to_string()));
+    assert_eq!(3, length_of_longest_substring("pwwkew".to_string()));
 }
