@@ -206,3 +206,76 @@ fn test_find_median_sorted_arrays() {
     assert_eq!(2.0, find_median_sorted_arrays(vec![1, 3], vec![2]));
     assert_eq!(2.5, find_median_sorted_arrays(vec![1, 2, 3, 4], vec![]));
 }
+
+///p7
+pub fn reverse(x: i32) -> i32 {
+    let mut x = x;
+    let mut result = 0;
+    while x != 0 {
+        if result > i32::MAX / 10 || result < i32::MIN / 10 {
+            return 0;
+        }
+        result = result * 10 + x % 10;
+        x = x / 10;
+    }
+    return result;
+}
+
+#[test]
+fn test_reverse() {
+    assert_eq!(-321, reverse(-123));
+    assert_eq!(21, reverse(120));
+}
+
+///p8
+pub fn my_atoi(s: String) -> i32 {
+    let mut sign = '+';
+    let mut val: i64 = 0;
+    let mut has_content = false;
+    for char in s.chars().into_iter() {
+        match char.to_digit(10) {
+            Some(digit) => {
+                val = val * 10 + (digit as i64);
+                has_content = true;
+                if sign == '-' {
+                    if -val < i32::MIN as i64 {
+                        return i32::MIN;
+                    }
+                } else {
+                    if val > i32::MAX as i64 {
+                        return i32::MAX;
+                    }
+                }
+            }
+            None => {
+                if char.is_whitespace() {
+                    if has_content {
+                        break;
+                    } else {
+                        continue;
+                    }
+                } else if char == '-' || char == '+' {
+                    if has_content {
+                        break;
+                    } else {
+                        has_content = true;
+                        sign = char;
+                    }
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+    if sign == '-' {
+        return (val as i32) * -1;
+    } else {
+        return val as i32;
+    }
+}
+
+#[test]
+fn test_my_atoi() {
+    assert_eq!(-42, my_atoi(" -042".to_string()));
+    assert_eq!(1337, my_atoi("1337c0d3".to_string()));
+}
