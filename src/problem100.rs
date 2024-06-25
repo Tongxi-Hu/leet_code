@@ -279,3 +279,68 @@ fn test_my_atoi() {
     assert_eq!(-42, my_atoi(" -042".to_string()));
     assert_eq!(1337, my_atoi("1337c0d3".to_string()));
 }
+
+///p9
+pub fn is_palindrome(x: i32) -> bool {
+    if x < 0 {
+        return false;
+    }
+    let reverse = x
+        .to_string()
+        .chars()
+        .rev()
+        .collect::<String>()
+        .parse::<i32>();
+    match reverse {
+        Ok(val) => {
+            return val == x;
+        }
+        Err(_) => return false,
+    }
+}
+
+///p10
+pub fn is_match(s: String, p: String) -> bool {
+    let s: Vec<char> = s.chars().collect();
+    let p: Vec<char> = p.chars().collect();
+    let match_c = |i, j| -> bool { i != 0 && (p[j - 1] == '.' || s[i - 1] == p[j - 1]) };
+    let mut dp = vec![vec![false; p.len() + 1]; s.len() + 1];
+    dp[0][0] = true;
+    (0..=s.len()).for_each(|i| {
+        (1..=p.len()).for_each(|j| {
+            dp[i][j] = if p[j - 1] == '*' {
+                match_c(i, j - 1) && dp[i - 1][j] || dp[i][j - 2]
+            } else {
+                match_c(i, j) && dp[i - 1][j - 1]
+            };
+        })
+    });
+    dp[s.len()][p.len()]
+}
+
+///p11
+pub fn max_area(height: Vec<i32>) -> i32 {
+    let mut left = 0;
+    let mut right = height.len() - 1;
+    let mut vol = 0;
+    while left < right {
+        let left_height = height.get(left).unwrap_or(&0);
+        let right_height = height.get(right).unwrap_or(&0);
+        let new_vol = (right - left) * (*std::cmp::min(left_height, right_height) as usize);
+        if new_vol > vol {
+            vol = new_vol;
+        };
+        if left_height <= right_height {
+            left = left + 1;
+        } else {
+            right = right - 1;
+        }
+    }
+    return vol as i32;
+}
+
+#[test]
+fn test_max_area() {
+    assert_eq!(49, max_area(vec![1, 8, 6, 2, 5, 4, 8, 3, 7]));
+    assert_eq!(1, max_area(vec![1, 1]))
+}
