@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{btree_set::Range, HashMap, HashSet};
 
 ///p1 two sum
 pub fn two_sum(nums: Vec<i32>, target: i32) -> Vec<i32> {
@@ -343,4 +343,81 @@ pub fn max_area(height: Vec<i32>) -> i32 {
 fn test_max_area() {
     assert_eq!(49, max_area(vec![1, 8, 6, 2, 5, 4, 8, 3, 7]));
     assert_eq!(1, max_area(vec![1, 1]))
+}
+
+///p12
+pub fn int_to_roman(num: i32) -> String {
+    const I: [&'static str; 10] = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"];
+    const X: [&'static str; 10] = ["", "X", "XX", "XXX", "XL", "L", "LX", "LXX", "LXXX", "XC"];
+    const C: [&'static str; 10] = ["", "C", "CC", "CCC", "CD", "D", "DC", "DCC", "DCCC", "CM"];
+    const M: [&'static str; 4] = ["", "M", "MM", "MMM"];
+
+    let n = num as usize;
+    let mut s = M[n / 1000].to_string();
+    s.push_str(C[(n % 1000) / 100]);
+    s.push_str(X[(n % 100) / 10]);
+    s.push_str(I[n % 10]);
+    s
+}
+
+///p13
+pub fn roman_to_int(s: String) -> i32 {
+    s.chars()
+        .fold((0, ' '), |res, ch| match (res.1, ch) {
+            ('I', 'V') => (res.0 + 3, 'V'),
+            ('I', 'X') => (res.0 + 8, 'X'),
+            ('X', 'L') => (res.0 + 30, 'L'),
+            ('X', 'C') => (res.0 + 80, 'C'),
+            ('C', 'D') => (res.0 + 300, 'D'),
+            ('C', 'M') => (res.0 + 800, 'M'),
+            (_, 'I') => (res.0 + 1, 'I'),
+            (_, 'V') => (res.0 + 5, 'V'),
+            (_, 'X') => (res.0 + 10, 'X'),
+            (_, 'L') => (res.0 + 50, 'L'),
+            (_, 'C') => (res.0 + 100, 'C'),
+            (_, 'D') => (res.0 + 500, 'D'),
+            (_, 'M') => (res.0 + 1000, 'M'),
+            (_, _) => unreachable!(),
+        })
+        .0
+}
+
+///p14
+pub fn longest_common_prefix(strs: Vec<String>) -> String {
+    let mut ans = Vec::<char>::new();
+    for (i, str) in strs.iter().enumerate() {
+        if i == 0 {
+            str.chars().for_each(|char| ans.push(char));
+            continue;
+        } else {
+            if str.len() < ans.len() {
+                ans.drain(str.len()..ans.len());
+            }
+            'inner: for (j, char) in str.chars().enumerate() {
+                match ans.get(j) {
+                    None => {
+                        break 'inner;
+                    }
+                    Some(val) => match val == &char {
+                        true => {
+                            continue;
+                        }
+                        false => {
+                            ans.drain(j..ans.len());
+                            break;
+                        }
+                    },
+                }
+            }
+        }
+    }
+    return ans.iter().collect::<String>();
+}
+
+#[test]
+fn test_longest_common_prefix() {
+    assert_eq!(
+        "a".to_string(),
+        longest_common_prefix(vec!["ab".to_string(), "a".to_string()])
+    )
 }
