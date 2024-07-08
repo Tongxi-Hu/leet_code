@@ -1,3 +1,4 @@
+use core::num;
 use std::collections::{btree_set::Range, HashMap, HashSet};
 
 ///p1 two sum
@@ -420,4 +421,99 @@ fn test_longest_common_prefix() {
         "a".to_string(),
         longest_common_prefix(vec!["ab".to_string(), "a".to_string()])
     )
+}
+
+///P15
+pub fn three_sum(nums: Vec<i32>) -> Vec<Vec<i32>> {
+    let mut nums = nums;
+    nums.sort();
+    let mut lists: Vec<Vec<i32>> = Vec::new();
+    for (i, _) in nums.iter().enumerate() {
+        if nums[i] > 0 {
+            return lists;
+        }
+        if i > 0 && nums[i] == nums[i - 1] {
+            continue;
+        }
+        let mut l = i + 1;
+        let mut r = nums.len() - 1;
+        while l < r {
+            let sum = nums[i] + nums[l] + nums[r];
+            match sum {
+                0 => {
+                    lists.push(Vec::from([nums[i], nums[l], nums[r]]));
+                    while l < r && nums[l + 1] == nums[l] {
+                        l = l + 1;
+                    }
+                    while l < r && nums[r - 1] == nums[r] {
+                        r = r - 1;
+                    }
+                    l = l + 1;
+                    r = r - 1;
+                }
+                i32::MIN..=-1 => {
+                    l = l + 1;
+                }
+                1..=i32::MAX => {
+                    r = r - 1;
+                }
+            }
+        }
+    }
+    return lists;
+}
+
+///p16
+pub fn three_sum_closest(nums: Vec<i32>, target: i32) -> i32 {
+    let mut nums = nums;
+    nums.sort();
+    let mut sum = nums[0] + nums[1] + nums[2];
+    for (i, _) in nums.iter().enumerate() {
+        let mut l = i + 1;
+        let mut r = nums.len() - 1;
+        while l < r {
+            let temp = nums[i] + nums[l] + nums[r];
+            if (temp - target).abs() < (sum - target).abs() {
+                sum = temp;
+            }
+            if temp > target {
+                r = r - 1;
+            } else if temp < target {
+                l = l + 1;
+            } else {
+                return sum;
+            }
+        }
+    }
+    return sum;
+}
+
+///p17
+pub fn letter_combinations(digits: String) -> Vec<String> {
+    const RANGE: [(usize, usize); 8] = [
+        (0, 3),
+        (3, 6),
+        (6, 9),
+        (9, 12),
+        (12, 15),
+        (15, 19),
+        (19, 22),
+        (22, 26),
+    ];
+
+    let acc = match digits.is_empty() {
+        false => vec![String::new()],
+        true => vec![],
+    };
+
+    digits.as_bytes().iter().fold(acc, |acc, c| {
+        let (min, max) = RANGE[usize::from(c - 50)];
+        acc.iter()
+            .flat_map(|x| {
+                std::iter::repeat(x)
+                    .zip(min..max)
+                    .map(|(x, n)| format!("{}{}", x, (97u8 + n as u8) as char))
+            })
+            .collect::<Vec<String>>()
+    })
 }
