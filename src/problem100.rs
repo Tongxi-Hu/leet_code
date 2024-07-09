@@ -1,5 +1,4 @@
-use core::num;
-use std::collections::{btree_set::Range, HashMap, HashSet};
+use std::collections::{HashMap, HashSet};
 
 ///p1 two sum
 pub fn two_sum(nums: Vec<i32>, target: i32) -> Vec<i32> {
@@ -516,4 +515,158 @@ pub fn letter_combinations(digits: String) -> Vec<String> {
             })
             .collect::<Vec<String>>()
     })
+}
+
+///p18
+pub fn four_sum(nums: Vec<i32>, target: i32) -> Vec<Vec<i32>> {
+    let mut result: Vec<Vec<i32>> = Vec::new();
+    let mut nums = nums;
+    nums.sort();
+    let len = nums.len();
+    for k in 0..len {
+        // 剪枝
+        if nums[k] > target && (nums[k] > 0 || target > 0) {
+            break;
+        }
+        // 去重
+        if k > 0 && nums[k] == nums[k - 1] {
+            continue;
+        }
+        for i in (k + 1)..len {
+            // 剪枝
+            if nums[k] + nums[i] > target && (nums[k] + nums[i] >= 0 || target >= 0) {
+                break;
+            }
+            // 去重
+            if i > k + 1 && nums[i] == nums[i - 1] {
+                continue;
+            }
+            let (mut left, mut right) = (i + 1, len - 1);
+            while left < right {
+                if nums[k] + nums[i] > target - (nums[left] + nums[right]) {
+                    right -= 1;
+                    // 去重
+                    while left < right && nums[right] == nums[right + 1] {
+                        right -= 1;
+                    }
+                } else if nums[k] + nums[i] < target - (nums[left] + nums[right]) {
+                    left += 1;
+                    // 去重
+                    while left < right && nums[left] == nums[left - 1] {
+                        left += 1;
+                    }
+                } else {
+                    result.push(vec![nums[k], nums[i], nums[left], nums[right]]);
+                    // 去重
+                    while left < right && nums[right] == nums[right - 1] {
+                        right -= 1;
+                    }
+                    while left < right && nums[left] == nums[left + 1] {
+                        left += 1;
+                    }
+                    left += 1;
+                    right -= 1;
+                }
+            }
+        }
+    }
+    result
+}
+
+///p19
+pub fn remove_nth_from_end(head: Option<Box<ListNode>>, n: i32) -> Option<Box<ListNode>> {
+    let mut head = head;
+    let mut length = 0;
+    let mut pointer = &head;
+    while pointer != &None {
+        match pointer {
+            Some(ref val) => {
+                length = length + 1;
+                pointer = &val.next;
+            }
+            None => {
+                break;
+            }
+        }
+    }
+    if length > n {
+        let from_heads = length - n;
+        let mut index = 0;
+        let mut pointer = &mut head;
+        while index < from_heads - 1 {
+            match pointer {
+                Some(ref mut val) => {
+                    pointer = &mut val.next;
+                    index = index + 1;
+                }
+                None => (),
+            }
+        }
+        match pointer {
+            Some(ref mut val) => {
+                let to_remove = &mut val.next;
+                match to_remove {
+                    Some(ctx) => {
+                        let tail = std::mem::replace(&mut ctx.next, None);
+                        val.next = tail;
+                    }
+                    None => (),
+                }
+            }
+            None => (),
+        }
+    } else if length == n {
+        match head {
+            Some(mut val) => head = std::mem::replace(&mut val.next, None),
+            None => (),
+        }
+    }
+    return head;
+}
+
+///p20
+pub fn is_valid(s: String) -> bool {
+    let mut dict = std::collections::HashMap::<char, char>::new();
+    dict.insert(')', '(');
+    dict.insert(']', '[');
+    dict.insert('}', '{');
+    let keys = dict
+        .keys()
+        .into_iter()
+        .collect::<std::collections::HashSet<&char>>();
+    let values = dict
+        .values()
+        .into_iter()
+        .collect::<std::collections::HashSet<&char>>();
+    let mut stack = Vec::<char>::new();
+    for c in s.chars() {
+        if !keys.contains(&c) && !values.contains(&c) {
+            return false;
+        } else if values.contains(&c) {
+            stack.push(c)
+        } else if keys.contains(&c) {
+            let last = stack.pop();
+            match last {
+                None => {
+                    return false;
+                }
+                Some(val) => {
+                    if &val == dict.get(&c).unwrap() {
+                        continue;
+                    } else {
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+    if stack.len() == 0 {
+        return true;
+    }
+    return false;
+}
+
+#[test]
+fn test_close() {
+    assert_eq!(true, is_valid("()".to_string()))
 }
