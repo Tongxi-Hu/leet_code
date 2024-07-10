@@ -670,3 +670,69 @@ pub fn is_valid(s: String) -> bool {
 fn test_close() {
     assert_eq!(true, is_valid("()".to_string()))
 }
+
+///p21
+pub fn merge_two_lists(
+    list1: Option<Box<ListNode>>,
+    list2: Option<Box<ListNode>>,
+) -> Option<Box<ListNode>> {
+    let mut pointer1 = &list1;
+    let mut pointer2 = &list2;
+    let mut head: Option<Box<ListNode>> = Some(Box::new(ListNode::new(-1)));
+    let mut pointer = &mut head;
+    loop {
+        let next: Box<ListNode>;
+        match (pointer1, pointer2) {
+            (Some(node1), Some(node2)) => {
+                if node1.val <= node2.val {
+                    next = Box::new(ListNode::new(node1.val));
+                    pointer1 = &node1.next;
+                } else {
+                    next = Box::new(ListNode::new(node2.val));
+                    pointer2 = &node2.next;
+                }
+            }
+            (Some(node1), None) => {
+                next = Box::new(ListNode::new(node1.val));
+                pointer1 = &node1.next;
+            }
+            (None, Some(node2)) => {
+                next = Box::new(ListNode::new(node2.val));
+                pointer2 = &node2.next;
+            }
+            (None, None) => {
+                break;
+            }
+        }
+        match pointer {
+            Some(node) => {
+                (*node).next = Some(next);
+                pointer = &mut (*node).next;
+            }
+            _ => (),
+        }
+    }
+    return head.unwrap().next;
+}
+
+///p22
+pub fn generate_parenthesis(n: i32) -> Vec<String> {
+    let mut ans = Vec::<String>::new();
+    if n <= 0 {
+        let mut zero = Vec::<String>::new();
+        zero.push("".to_string());
+        return zero;
+    } else {
+        for i in 0..=n - 1 {
+            let left = generate_parenthesis(i);
+            let right = generate_parenthesis(n - 1 - i);
+            for s1 in left.iter() {
+                for s2 in right.iter() {
+                    let new = "(".to_string() + s1 + ")" + &s2;
+                    ans.push(new)
+                }
+            }
+        }
+        return ans;
+    }
+}
