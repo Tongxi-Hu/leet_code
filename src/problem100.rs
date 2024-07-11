@@ -736,3 +736,47 @@ pub fn generate_parenthesis(n: i32) -> Vec<String> {
         return ans;
     }
 }
+
+///p23
+pub fn merge_k_lists(lists: Vec<Option<Box<ListNode>>>) -> Option<Box<ListNode>> {
+    let mut pure_value = Vec::<i32>::new();
+    for list in lists {
+        let mut pointer = &list;
+        loop {
+            match pointer {
+                Some(val) => {
+                    pure_value.push(val.val);
+                    pointer = &val.next
+                }
+                None => {
+                    break;
+                }
+            }
+        }
+    }
+    pure_value.sort();
+    let mut head = Some(Box::new(ListNode::new(-1)));
+    let mut pointer = &mut head;
+    for val in pure_value {
+        match pointer {
+            None => (),
+            Some(node) => {
+                node.next = Some(Box::new(ListNode::new(val)));
+                pointer = &mut node.next;
+            }
+        }
+    }
+    return head.unwrap().next;
+}
+
+///p24
+pub fn swap_pairs(head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
+    head.and_then(|mut first| match first.next {
+        None => Some(first),
+        Some(mut second) => {
+            first.next = swap_pairs(second.next);
+            second.next = Some(first);
+            Some(second)
+        }
+    })
+}
