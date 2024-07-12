@@ -780,3 +780,55 @@ pub fn swap_pairs(head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
         }
     })
 }
+
+///p25
+pub fn reverse_k_group(mut head: Option<Box<ListNode>>, k: i32) -> Option<Box<ListNode>> {
+    let mut next_head = &mut head;
+    // 获取下一轮头结点
+    for _ in 0..k {
+        if let Some(node) = next_head.as_mut() {
+            next_head = &mut node.next;
+        } else {
+            return head;
+        }
+    }
+    // 获取除本轮结果
+    let mut new_head = reverse_k_group(next_head.take(), k);
+    // 翻转本轮k个节点
+    for _ in 0..k {
+        if let Some(mut node) = head {
+            head = node.next.take();
+            node.next = new_head.take();
+            new_head = Some(node);
+        }
+    }
+    new_head
+}
+
+///p26
+pub fn remove_duplicates(nums: &mut Vec<i32>) -> i32 {
+    if nums.len() == 0 || nums.len() == 1 {
+        return nums.len() as i32;
+    }
+    let (mut fast, mut slow) = (1, 1);
+    while fast < nums.len() {
+        if nums[fast] != nums[fast - 1] {
+            nums[slow] = nums[fast];
+            slow = slow + 1;
+        }
+        fast = fast + 1;
+    }
+    return slow as i32;
+}
+
+///p27
+pub fn remove_element(nums: &mut Vec<i32>, val: i32) -> i32 {
+    let mut pointer = 0;
+    for i in 0..nums.len() {
+        if nums[i] != val {
+            nums[pointer] = nums[i];
+            pointer = pointer + 1;
+        }
+    }
+    return pointer as _;
+}
