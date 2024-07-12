@@ -1,4 +1,7 @@
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    str::pattern::{Pattern, Searcher},
+};
 
 ///p1 two sum
 pub fn two_sum(nums: Vec<i32>, target: i32) -> Vec<i32> {
@@ -831,4 +834,13 @@ pub fn remove_element(nums: &mut Vec<i32>, val: i32) -> i32 {
         }
     }
     return pointer as _;
+}
+
+///p28
+pub fn str_str(haystack: String, needle: String) -> i32 {
+    let res = haystack.find(&needle);
+    return match res {
+        None => -1,
+        Some(val) => val as i32,
+    };
 }
