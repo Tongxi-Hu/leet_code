@@ -1,7 +1,4 @@
-use std::{
-    collections::{HashMap, HashSet},
-    str::pattern::{Pattern, Searcher},
-};
+use std::collections::{HashMap, HashSet};
 
 ///p1 two sum
 pub fn two_sum(nums: Vec<i32>, target: i32) -> Vec<i32> {
@@ -843,4 +840,50 @@ pub fn str_str(haystack: String, needle: String) -> i32 {
         None => -1,
         Some(val) => val as i32,
     };
+}
+
+///p29
+pub fn divide(dividend: i32, divisor: i32) -> i32 {
+    dividend.saturating_div(divisor)
+}
+
+///p30
+pub fn find_substring(s: String, words: Vec<String>) -> Vec<i32> {
+    macro_rules! helper {
+        // 哈希统计，为 0 时移除
+        ($diff:expr, $s:expr, $cnt:expr) => {
+            let t = $s as &str;
+            *$diff.entry(t).or_insert(0) += $cnt;
+            if *$diff.get(t).unwrap() == 0 {
+                $diff.remove(t);
+            }
+        };
+    }
+    let mut diff = HashMap::new();
+    let (m, n) = (words.len(), words[0].len());
+    let mut ans = vec![];
+    for idx in 0..n {
+        // 仅需要分为 n 组
+        if idx + m * n > s.len() {
+            break;
+        }
+        for i in (idx..idx + m * n).step_by(n) {
+            helper!(diff, &s[i..i + n], 1);
+        }
+        for w in words.iter() {
+            helper!(diff, w, -1);
+        }
+        if diff.is_empty() {
+            ans.push(idx as i32)
+        }
+        for i in (idx + n..s.len() - m * n + 1).step_by(n) {
+            helper!(diff, &s[i - n..i], -1); // 移除左边
+            helper!(diff, &s[i + (m - 1) * n..i + m * n], 1); // 添加右边
+            if diff.is_empty() {
+                ans.push(i as i32)
+            }
+        }
+        diff.clear();
+    }
+    ans
 }
