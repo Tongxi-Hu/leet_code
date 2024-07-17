@@ -887,3 +887,56 @@ pub fn find_substring(s: String, words: Vec<String>) -> Vec<i32> {
     }
     ans
 }
+
+///p31
+pub fn next_permutation(nums: &mut Vec<i32>) {
+    let length = nums.len();
+    if length <= 1 {
+        return;
+    }
+    for i in (0..length - 1).rev() {
+        if nums[i] < nums[i + 1] {
+            for j in (i + 1..length).rev() {
+                if nums[i] < nums[j] {
+                    nums.swap(i, j);
+                    nums[i + 1..].reverse();
+                    return;
+                }
+            }
+        }
+    }
+    nums.reverse()
+}
+
+///p32
+pub fn longest_valid_parentheses(s: String) -> i32 {
+    let chars = s.chars().into_iter().collect::<Vec<char>>();
+    let length = chars.len();
+    let mut dp = vec![0; length];
+    for (index, char) in chars.iter().enumerate() {
+        match char {
+            '(' => (),
+            ')' => {
+                let pre = chars.get(index - 1);
+                match pre {
+                    None => (),
+                    Some(val) if *val == '(' => {
+                        dp[index] = dp.get(index - 2).unwrap_or(&0) + 2;
+                    }
+                    Some(val) if *val == ')' => {
+                        let c = chars.get(index - dp.get(index - 1).unwrap_or(&0) - 1);
+                        if c == Some(&'(') {
+                            dp[index] = dp.get(index - 1).unwrap_or(&0)
+                                + dp.get(index - dp.get(index - 1).unwrap_or(&0) - 2)
+                                    .unwrap_or(&0)
+                                + 2;
+                        }
+                    }
+                    _ => (),
+                }
+            }
+            _ => (),
+        }
+    }
+    return *dp.iter().max().unwrap_or(&0) as i32;
+}
