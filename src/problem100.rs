@@ -940,3 +940,75 @@ pub fn longest_valid_parentheses(s: String) -> i32 {
     }
     return *dp.iter().max().unwrap_or(&0) as i32;
 }
+
+///p33
+pub fn search_in_rotated(nums: Vec<i32>, target: i32) -> i32 {
+    let length = nums.len();
+    if length == 0 {
+        return -1;
+    }
+    if length == 1 {
+        if nums[0] == target {
+            return 0;
+        } else {
+            return -1;
+        }
+    }
+    let (mut left, mut right) = (0, length - 1);
+    while left <= right {
+        let mid = (right + left) / 2;
+        if nums[mid] == target {
+            return mid as i32;
+        }
+        if nums[0] <= nums[mid] {
+            if nums[0] <= target && target < nums[mid] {
+                right = mid - 1;
+            } else {
+                left = mid + 1;
+            }
+        } else {
+            if nums[mid] < target && target <= nums[length - 1] {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+    }
+    return -1;
+}
+
+///p34
+pub fn search_range(nums: Vec<i32>, target: i32) -> Vec<i32> {
+    fn bsearch(nums: &[i32], target: i32, offset: usize) -> (i32, i32) {
+        let len = nums.len();
+
+        if len == 0 {
+            (-1, -1)
+        } else {
+            let mid = len >> 1;
+            if nums[mid] < target {
+                bsearch(&nums[mid + 1..len], target, offset + mid + 1)
+            } else if nums[mid] > target {
+                bsearch(&nums[0..mid], target, offset)
+            } else {
+                let l_res = bsearch(&nums[0..mid], target, offset);
+                let r_res = bsearch(&nums[mid + 1..len], target, offset + mid + 1);
+                (
+                    if l_res.0 == -1 {
+                        (mid + offset) as i32
+                    } else {
+                        l_res.0
+                    },
+                    if r_res.1 == -1 {
+                        (mid + offset) as i32
+                    } else {
+                        r_res.1
+                    },
+                )
+            }
+        }
+    }
+
+    let res = bsearch(&nums, target, 0);
+    vec![res.0, res.1]
+}
