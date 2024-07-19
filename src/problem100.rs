@@ -1012,3 +1012,15 @@ pub fn search_range(nums: Vec<i32>, target: i32) -> Vec<i32> {
     let res = bsearch(&nums, target, 0);
     vec![res.0, res.1]
 }
+
+///p35
+pub fn search_insert(nums: Vec<i32>, target: i32) -> i32 {
+    for (index, num) in nums.iter().enumerate() {
+        if *num < target {
+            continue;
+        } else if *num >= target {
+            return index as i32;
+        }
+    }
+    return nums.len() as i32;
+}
