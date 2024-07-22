@@ -1116,3 +1116,39 @@ pub fn solve_sudoku(board: &mut Vec<Vec<char>>) {
     });
     dfs(&spaces[..], &mut msg, board);
 }
+
+///p38
+pub fn count_and_say(n: i32) -> String {
+    match n {
+        1 => {
+            return "1".to_string();
+        }
+        val if val > 1 => {
+            let last = count_and_say(n - 1);
+            let mut ans: Vec<char> = Vec::new();
+            let mut last_char: char = ' ';
+            let mut len = 0;
+            for char in last.chars().into_iter() {
+                if char == last_char {
+                    len = len + 1;
+                    continue;
+                } else {
+                    if len != 0 {
+                        len.to_string().chars().for_each(|item| ans.push(item));
+                        ans.push(last_char);
+                    }
+                    len = 1;
+                    last_char = char;
+                }
+            }
+            if len != 0 {
+                len.to_string().chars().for_each(|item| ans.push(item));
+                ans.push(last_char);
+            }
+            return ans.iter().collect::<String>();
+        }
+        _ => {
+            return "".to_string();
+        }
+    }
+}
