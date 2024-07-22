@@ -1024,3 +1024,95 @@ pub fn search_insert(nums: Vec<i32>, target: i32) -> i32 {
     }
     return nums.len() as i32;
 }
+
+///p36
+pub fn is_valid_sudoku(board: Vec<Vec<char>>) -> bool {
+    let mut rows: Vec<Vec<usize>> = vec![vec![0; 9]; 9];
+    let mut cols: Vec<Vec<usize>> = vec![vec![0; 9]; 9];
+    let mut boxes: Vec<Vec<Vec<usize>>> = vec![vec![vec![0; 9]; 3]; 3];
+    for (row, content) in board.iter().enumerate() {
+        for (col, c) in content.iter().enumerate() {
+            match c {
+                '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => {
+                    let index = c.to_digit(10).unwrap_or(0) as usize - 1;
+                    let location = (row / 3, col / 3);
+                    rows[row][index] = rows[row][index] + 1;
+                    cols[col][index] = cols[col][index] + 1;
+                    boxes[location.0][location.1][index] = boxes[location.0][location.1][index] + 1;
+                    if rows[row][index] > 1
+                        || cols[col][index] > 1
+                        || boxes[location.0][location.1][index] > 1
+                    {
+                        return false;
+                    }
+                }
+                _ => (),
+            }
+        }
+    }
+    return true;
+}
+
+///p37
+struct Msg {
+    rows: [u16; 9],
+    cols: [u16; 9],
+    blks: [[u16; 3]; 3],
+    ok: bool,
+}
+impl Msg {
+    fn new() -> Self {
+        Self {
+            rows: [0u16; 9],
+            cols: [0u16; 9],
+            blks: [[0u16; 3]; 3],
+            ok: false,
+        }
+    }
+    fn flip(&mut self, i: usize, j: usize, d: u8) {
+        let d = d - 1;
+        self.rows[i] ^= 1 << d;
+        self.cols[j] ^= 1 << d;
+        self.blks[i / 3][j / 3] ^= 1 << d;
+    }
+    fn valid_nums(&self, i: usize, j: usize) -> Vec<u8> {
+        let mut ans = vec![];
+        let mut b = !(self.rows[i] | self.cols[j] | self.blks[i / 3][j / 3]) & 0x1ff;
+        while b > 0 {
+            ans.push(b.trailing_zeros() as u8 + 1);
+            b &= b - 1;
+        }
+        ans
+    }
+}
+pub fn solve_sudoku(board: &mut Vec<Vec<char>>) {
+    fn dfs(spaces: &[(usize, usize)], msg: &mut Msg, board: &mut Vec<Vec<char>>) {
+        if spaces.is_empty() {
+            msg.ok = true;
+            return;
+        }
+        let (i, j) = spaces[0];
+        for d in msg.valid_nums(i, j) {
+            if msg.ok {
+                break;
+            }
+            board[i][j] = (d + 0x30) as char;
+            msg.flip(i, j, d);
+            dfs(&spaces[1..], msg, board);
+            msg.flip(i, j, d);
+        }
+    }
+    let mut msg = Msg::new();
+    let mut spaces = vec![];
+    board.iter().enumerate().for_each(|(i, row)| {
+        row.iter().enumerate().for_each(|(j, &c)| {
+            if c == '.' {
+                spaces.push((i, j));
+            } else {
+                let d = c as u8 - '0' as u8;
+                msg.flip(i, j, d);
+            }
+        });
+    });
+    dfs(&spaces[..], &mut msg, board);
+}
