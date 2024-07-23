@@ -1152,3 +1152,81 @@ pub fn count_and_say(n: i32) -> String {
         }
     }
 }
+
+///P39
+pub fn combination_sum(candidates: Vec<i32>, target: i32) -> Vec<Vec<i32>> {
+    let mut combine: Vec<i32> = vec![];
+    let mut ans: Vec<Vec<i32>> = vec![];
+    dfs(&candidates, target, &mut combine, 0, &mut ans);
+    return ans;
+}
+pub fn dfs(
+    candidates: &Vec<i32>,
+    mut remain: i32,
+    combine: &mut Vec<i32>,
+    pointer: usize,
+    ans: &mut Vec<Vec<i32>>,
+) -> () {
+    let len = candidates.len();
+    if pointer == len {
+        return;
+    }
+    if remain == 0 {
+        ans.push(combine.to_vec());
+        return;
+    }
+    dfs(candidates, remain, combine, pointer + 1, ans);
+    if remain - candidates[pointer] >= 0 {
+        combine.push(candidates[pointer]);
+        dfs(
+            candidates,
+            remain - candidates[pointer],
+            combine,
+            pointer,
+            ans,
+        );
+        combine.pop();
+    }
+}
+
+///p40
+pub fn combination_sum2(mut candidates: Vec<i32>, target: i32) -> Vec<Vec<i32>> {
+    candidates.sort();
+    let mut combine: Vec<i32> = vec![];
+    let mut ans: Vec<Vec<i32>> = vec![];
+    dfs2(&candidates, target, &mut combine, 0, &mut ans);
+    return ans;
+}
+pub fn dfs2(
+    candidates: &Vec<i32>,
+    mut remain: i32,
+    combine: &mut Vec<i32>,
+    mut pointer: usize,
+    ans: &mut Vec<Vec<i32>>,
+) -> () {
+    let len = candidates.len();
+
+    if remain == 0 {
+        ans.push(combine.to_vec());
+        return;
+    }
+    while pointer < len {
+        let new_val = candidates[pointer];
+        if new_val > remain {
+            break;
+        }
+        combine.push(candidates[pointer]);
+        dfs2(
+            candidates,
+            remain - candidates[pointer],
+            combine,
+            pointer + 1,
+            ans,
+        );
+        combine.pop();
+        while pointer + 1 < len && candidates[pointer + 1] == candidates[pointer] {
+            pointer = pointer + 1;
+        }
+        pointer = pointer + 1;
+    }
+}
