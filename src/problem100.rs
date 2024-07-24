@@ -1,3 +1,4 @@
+use core::num;
 use std::collections::{HashMap, HashSet};
 
 ///p1 two sum
@@ -1229,4 +1230,78 @@ pub fn dfs2(
         }
         pointer = pointer + 1;
     }
+}
+
+///p41
+pub fn first_missing_positive(nums: Vec<i32>) -> i32 {
+    let mut nums = nums;
+    let l = nums.len() as i32;
+    for i in 0..nums.len() {
+        let mut n = nums[i];
+        while n > 0 && n <= l && nums[(n - 1) as usize] != n {
+            std::mem::swap(&mut nums[(n - 1) as usize], &mut n);
+        }
+    }
+    for i in 0..l {
+        if nums[i as usize] != i + 1 {
+            return i + 1;
+        }
+    }
+    l + 1
+}
+
+///p42
+pub fn trap(height: Vec<i32>) -> i32 {
+    let length = height.len();
+    let mut left_max = vec![0; length];
+    left_max[0] = height[0];
+    let mut right_max = vec![0; length];
+    right_max[length - 1] = height[length - 1];
+    let mut vol = vec![0; length];
+    for l in 0..length {
+        let r = length - 1 - l;
+        if r != length - 1 {
+            right_max[r] = right_max[r + 1].max(height[r]);
+        };
+        if l != 0 {
+            left_max[l] = left_max[l - 1].max(height[l])
+        }
+    }
+    for i in 0..length {
+        vol[i] = left_max[i].min(right_max[i]) - height[i];
+    }
+
+    return vol.into_iter().reduce(|acc, v| acc + v).unwrap_or(0);
+}
+
+///p43
+pub fn multiply(num1: String, num2: String) -> String {
+    let mut mul: Vec<i32> = vec![0; num1.len() + num2.len()];
+    let c1: Vec<i32> = num1
+        .chars()
+        .rev()
+        .map(|x| (x as u8 - '0' as u8) as i32)
+        .collect();
+    let c2: Vec<i32> = num2
+        .chars()
+        .rev()
+        .map(|x| (x as u8 - '0' as u8) as i32)
+        .collect();
+    for i in 0..c1.len() {
+        for j in 0..c2.len() {
+            mul[i + j] += c1[i] * c2[j];
+        }
+    }
+    let mut add = 0i32;
+    for i in 0..mul.len() {
+        let m = (mul[i] + add) % 10;
+        add = (mul[i] + add) / 10;
+        mul[i] = m;
+    }
+    mul.iter()
+        .rev()
+        .enumerate()
+        .skip_while(|(k, x)| x == &&0 && *k != mul.len() - 1)
+        .map(|(_, x)| (*x as u8 + '0' as u8) as char)
+        .collect()
 }
