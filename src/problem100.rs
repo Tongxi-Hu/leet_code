@@ -1,5 +1,7 @@
-use core::num;
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    i32,
+};
 
 ///p1 two sum
 pub fn two_sum(nums: Vec<i32>, target: i32) -> Vec<i32> {
@@ -1304,4 +1306,67 @@ pub fn multiply(num1: String, num2: String) -> String {
         .skip_while(|(k, x)| x == &&0 && *k != mul.len() - 1)
         .map(|(_, x)| (*x as u8 + '0' as u8) as char)
         .collect()
+}
+
+///p44
+pub fn is_match_str(s: String, p: String) -> bool {
+    let s = s.chars().collect::<Vec<char>>();
+    let p = p.chars().collect::<Vec<char>>();
+    let mut dp: Vec<Vec<bool>> = vec![vec![false; p.len() + 1]; s.len() + 1];
+    dp[0][0] = true;
+    for i in 1..=p.len() {
+        if p[i - 1] == '*' {
+            dp[0][i] = true;
+        } else {
+            break;
+        }
+    }
+    for i in 1..=s.len() {
+        for j in 1..=p.len() {
+            if p[j - 1] == '*' {
+                dp[i][j] = dp[i][j - 1] || dp[i - 1][j];
+            } else if p[j - 1] == '?' || s[i - 1] == p[j - 1] {
+                dp[i][j] = dp[i - 1][j - 1];
+            }
+        }
+    }
+    return dp[s.len()][p.len()];
+}
+
+///p45
+pub fn jump(nums: Vec<i32>) -> i32 {
+    let mut dp: Vec<i32> = vec![i32::MAX; nums.len()];
+    dp[0] = 0;
+    for i in 1..dp.len() {
+        for j in 0..i {
+            if j + nums[j] as usize >= i {
+                dp[i] = dp[i].min(dp[j] + 1);
+            }
+        }
+    }
+    return dp[nums.len() - 1];
+}
+
+///p46
+pub fn permute(nums: Vec<i32>) -> Vec<Vec<i32>> {
+    let mut ans: Vec<Vec<i32>> = vec![];
+    let mut temp: Vec<i32> = vec![];
+    fn dfs(nums: &Vec<i32>, temp: &mut Vec<i32>, ans: &mut Vec<Vec<i32>>) -> () {
+        let length = nums.len();
+        if temp.len() == length {
+            ans.push(temp.to_vec());
+            return;
+        }
+        for i in nums {
+            if temp.contains(i) {
+                continue;
+            } else {
+                temp.push(*i);
+                dfs(nums, temp, ans);
+                temp.pop();
+            }
+        }
+    }
+    dfs(&nums, &mut temp, &mut ans);
+    return ans;
 }
