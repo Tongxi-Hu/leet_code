@@ -1370,3 +1370,55 @@ pub fn permute(nums: Vec<i32>) -> Vec<Vec<i32>> {
     dfs(&nums, &mut temp, &mut ans);
     return ans;
 }
+
+///p47
+pub fn permute_unique(nums: Vec<i32>) -> Vec<Vec<i32>> {
+    let mut nums = nums;
+    nums.sort();
+    let mut ans: Vec<Vec<i32>> = vec![];
+    let mut temp: Vec<i32> = vec![];
+    fn dfs(
+        nums: &Vec<i32>,
+        used: &mut Vec<bool>,
+        temp: &mut Vec<i32>,
+        ans: &mut Vec<Vec<i32>>,
+    ) -> () {
+        let length = nums.len();
+        if temp.len() == length {
+            ans.push(temp.to_vec());
+            return;
+        }
+        for (i, &x) in nums.iter().enumerate() {
+            if used[i] || i > 0 && !used[i - 1] && nums[i] == nums[i - 1] {
+                continue;
+            }
+            temp.push(x);
+            used[i] = true;
+            dfs(nums, used, temp, ans);
+            used[i] = false;
+            temp.pop();
+        }
+    }
+    dfs(&nums, &mut vec![false; nums.len()], &mut temp, &mut ans);
+    return ans;
+}
+
+///p48
+/// [3,3]->[3,0] [2,2]->[2,1] [1,2]->[2,2] [0,1]->[1,3] [3,2]->[2,0] [3,1]->[1,0] [2,3]->[3,1]
+pub fn rotate(matrix: &mut Vec<Vec<i32>>) {
+    let length = matrix.len();
+    for i in 0..length / 2 {
+        for j in 0..length {
+            let temp = matrix[i][j];
+            matrix[i][j] = matrix[length - 1 - i][j];
+            matrix[length - 1 - i][j] = temp;
+        }
+    }
+    for i in 0..length {
+        for j in 0..i {
+            let temp = matrix[i][j];
+            matrix[i][j] = matrix[j][i];
+            matrix[j][i] = temp;
+        }
+    }
+}
