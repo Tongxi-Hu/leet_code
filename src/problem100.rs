@@ -1,4 +1,5 @@
 use std::{
+    any::Any,
     collections::{HashMap, HashSet},
     i32,
 };
@@ -1420,5 +1421,41 @@ pub fn rotate(matrix: &mut Vec<Vec<i32>>) {
             matrix[i][j] = matrix[j][i];
             matrix[j][i] = temp;
         }
+    }
+}
+
+///p49
+pub fn group_anagrams(strs: Vec<String>) -> Vec<Vec<String>> {
+    let mut dict: HashMap<String, Vec<String>> = HashMap::new();
+    for str in strs {
+        let mut chars = str.chars().collect::<Vec<char>>();
+        chars.sort();
+        let key = chars.iter().collect::<String>();
+        match dict.get_mut(&key) {
+            None => {
+                dict.insert(key, vec![str.clone()]);
+            }
+            Some(val) => val.push(str.clone()),
+        }
+    }
+    return dict.into_values().collect::<Vec<Vec<String>>>();
+}
+///p50
+pub fn my_pow(x: f64, n: i32) -> f64 {
+    fn quick_mul(x: f64, n: i32) -> f64 {
+        if n == 0 {
+            return 1.0;
+        }
+        let y = quick_mul(x, n / 2);
+        if n % 2 == 0 {
+            return y * y;
+        } else {
+            return y * y * x;
+        }
+    }
+    if n > 0 {
+        quick_mul(x, n)
+    } else {
+        1.0 / quick_mul(x, -n)
     }
 }
