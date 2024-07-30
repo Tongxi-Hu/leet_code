@@ -1459,3 +1459,129 @@ pub fn my_pow(x: f64, n: i32) -> f64 {
         1.0 / quick_mul(x, -n)
     }
 }
+
+///p51
+pub fn solve_n_queens(n: i32) -> Vec<Vec<String>> {
+    let n = n as usize;
+    let mut solutions: Vec<Vec<String>> = vec![];
+    let mut queens = vec![std::usize::MAX; n];
+    let mut col: Vec<usize> = vec![];
+    let mut diag1: Vec<usize> = vec![];
+    let mut diag2: Vec<usize> = vec![];
+
+    fn backtrack(
+        solutions: &mut Vec<Vec<String>>,
+        queens: &mut Vec<usize>,
+        n: usize,
+        row: usize,
+        col: &mut Vec<usize>,
+        diag1: &mut Vec<usize>,
+        diag2: &mut Vec<usize>,
+    ) -> () {
+        if row == n {
+            solutions.push(generate_board(queens, n))
+        } else {
+            for i in 0..n {
+                if col.contains(&i) {
+                    continue;
+                }
+                let diagonal1 = row - i;
+                if diag1.contains(&diagonal1) {
+                    continue;
+                }
+                let diagonal2 = row + i;
+                if diag2.contains(&diagonal2) {
+                    continue;
+                }
+                queens[row] = i;
+                col.push(i);
+                diag1.push(diagonal1);
+                diag2.push(diagonal2);
+                backtrack(solutions, queens, n, row + 1, col, diag1, diag2);
+                queens[row] = core::usize::MAX;
+                col.pop();
+                diag1.pop();
+                diag2.pop();
+            }
+        }
+    }
+
+    fn generate_board(queens: &mut Vec<usize>, n: usize) -> Vec<String> {
+        let mut board = vec![];
+        for i in 0..n {
+            let mut row: Vec<char> = vec!['.'; n];
+            row[queens[i]] = 'Q';
+            board.push(row.iter().collect::<String>())
+        }
+        return board;
+    }
+
+    backtrack(
+        &mut solutions,
+        &mut queens,
+        n,
+        0,
+        &mut col,
+        &mut diag1,
+        &mut diag2,
+    );
+    return solutions;
+}
+
+///p52
+pub fn total_n_queens(n: i32) -> i32 {
+    let n = n as usize;
+    let mut solutions: Vec<Vec<usize>> = vec![];
+    let mut queens = vec![std::usize::MAX; n];
+    let mut col: Vec<usize> = vec![];
+    let mut diag1: Vec<usize> = vec![];
+    let mut diag2: Vec<usize> = vec![];
+
+    fn backtrack(
+        solutions: &mut Vec<Vec<usize>>,
+        queens: &mut Vec<usize>,
+        n: usize,
+        row: usize,
+        col: &mut Vec<usize>,
+        diag1: &mut Vec<usize>,
+        diag2: &mut Vec<usize>,
+    ) -> () {
+        if row == n {
+            solutions.push(queens.to_vec())
+        } else {
+            for i in 0..n {
+                if col.contains(&i) {
+                    continue;
+                }
+                let diagonal1 = row - i;
+                if diag1.contains(&diagonal1) {
+                    continue;
+                }
+                let diagonal2 = row + i;
+                if diag2.contains(&diagonal2) {
+                    continue;
+                }
+                queens[row] = i;
+                col.push(i);
+                diag1.push(diagonal1);
+                diag2.push(diagonal2);
+                backtrack(solutions, queens, n, row + 1, col, diag1, diag2);
+                queens[row] = core::usize::MAX;
+                col.pop();
+                diag1.pop();
+                diag2.pop();
+            }
+        }
+    }
+
+    backtrack(
+        &mut solutions,
+        &mut queens,
+        n,
+        0,
+        &mut col,
+        &mut diag1,
+        &mut diag2,
+    );
+    return solutions.len() as i32;
+}
