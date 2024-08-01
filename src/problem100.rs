@@ -1585,3 +1585,61 @@ pub fn total_n_queens(n: i32) -> i32 {
     );
     return solutions.len() as i32;
 }
+
+///p53
+pub fn max_sub_array(nums: Vec<i32>) -> i32 {
+    let length = nums.len();
+    let mut max = vec![core::i32::MAX; length];
+    max[0] = nums[0];
+    for i in 1..length {
+        max[i] = nums[i].max(max[i - 1] + nums[i]);
+    }
+    return max.into_iter().reduce(|max, cur| max.max(cur)).unwrap_or(0);
+}
+
+///p54
+pub fn spiral_order(matrix: Vec<Vec<i32>>) -> Vec<i32> {
+    let mut res = Vec::new();
+    if matrix.len() == 0 {
+        return res;
+    }
+
+    let rows = matrix.len();
+    let cols = matrix[0].len();
+    let iter_num = std::cmp::min(rows, cols) / 2; //迭代次数  如果是奇数的话 最后一次就是一个行或列 单独考虑
+
+    for iter in 0..iter_num {
+        //上面遍历
+        for col_id in iter..(cols - iter - 1) {
+            res.push(matrix[iter][col_id]);
+        }
+        //右边遍历
+        for row_id in iter..(rows - iter - 1) {
+            res.push(matrix[row_id][cols - iter - 1]);
+        }
+        //下方遍历
+        for col_id in (iter + 1..cols - iter).rev() {
+            res.push(matrix[rows - iter - 1][col_id]);
+        }
+        //左边遍历
+        for row_id in (iter + 1..rows - iter).rev() {
+            res.push(matrix[row_id][iter]);
+        }
+    }
+
+    //考虑剩下单行的情况
+    if rows <= cols && (rows & 1 > 0) {
+        for col_id in iter_num..cols - iter_num {
+            res.push(matrix[iter_num][col_id]);
+        }
+    }
+
+    //考虑剩下单列的情况
+    if cols < rows && (cols & 1 > 0) {
+        for row_id in iter_num..rows - iter_num {
+            res.push(matrix[row_id][iter_num]);
+        }
+    }
+
+    res
+}
