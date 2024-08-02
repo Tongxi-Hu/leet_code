@@ -1643,3 +1643,41 @@ pub fn spiral_order(matrix: Vec<Vec<i32>>) -> Vec<i32> {
 
     res
 }
+
+///p55
+pub fn can_jump(nums: Vec<i32>) -> bool {
+    let mut max_range = 0;
+    for i in 0..nums.len() {
+        if i <= max_range && i + nums[i] as usize > max_range {
+            max_range = i + (nums[i] as usize);
+        }
+    }
+    return max_range >= nums.len() - 1;
+}
+
+///p56
+pub fn merge(intervals: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+    let mut intervals = intervals;
+    intervals.sort_by(|first, second| {
+        if first[0] > second[0] {
+            return std::cmp::Ordering::Greater;
+        } else if first[0] == second[0] {
+            return std::cmp::Ordering::Equal;
+        } else {
+            return std::cmp::Ordering::Less;
+        }
+    });
+
+    let mut ranges: Vec<Vec<i32>> = vec![intervals[0].to_vec()];
+    for range in intervals {
+        let cur = ranges.last_mut().unwrap();
+        if range[0] > cur[1] {
+            ranges.push(range.to_vec());
+        } else {
+            let new_last = range[1].max(cur[1]);
+            cur[1] = new_last
+        }
+    }
+
+    return ranges;
+}
