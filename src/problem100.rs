@@ -2,6 +2,7 @@ use std::{
     any::Any,
     collections::{HashMap, HashSet},
     i32,
+    ops::RangeInclusive,
 };
 
 ///p1 two sum
@@ -1714,4 +1715,106 @@ pub fn insert(intervals: Vec<Vec<i32>>, new_interval: Vec<i32>) -> Vec<Vec<i32>>
 ///p58
 pub fn length_of_last_word(s: String) -> i32 {
     s.split_whitespace().last().unwrap_or("").len() as i32
+}
+
+///p59
+pub fn generate_matrix(n: i32) -> Vec<Vec<i32>> {
+    let mut res = vec![vec![0; n as usize]; n as usize];
+    let (mut startX, mut startY, mut offset): (usize, usize, usize) = (0, 0, 1);
+    let mut loopIdx = n / 2;
+    let mid: usize = loopIdx as usize;
+    let mut count = 1;
+    let (mut i, mut j): (usize, usize) = (0, 0);
+    while loopIdx > 0 {
+        i = startX;
+        j = startY;
+
+        while j < (startY + (n as usize) - offset) {
+            res[i][j] = count;
+            count += 1;
+            j += 1;
+        }
+
+        while i < (startX + (n as usize) - offset) {
+            res[i][j] = count;
+            count += 1;
+            i += 1;
+        }
+
+        while j > startY {
+            res[i][j] = count;
+            count += 1;
+            j -= 1;
+        }
+
+        while i > startX {
+            res[i][j] = count;
+            count += 1;
+            i -= 1;
+        }
+
+        startX += 1;
+        startY += 1;
+        offset += 2;
+        loopIdx -= 1;
+    }
+
+    if n % 2 == 1 {
+        res[mid][mid] = count;
+    }
+    res
+}
+
+///p60
+pub fn get_permutation(n: i32, k: i32) -> String {
+    let n = n as usize;
+    let k = k as usize;
+    let elements = (1..=n).collect();
+    let mut all_permutation: Vec<Vec<usize>> = vec![];
+    let mut cur = vec![];
+    let mut used = vec![false; n];
+
+    fn generate_all_permutation(
+        ans: &mut Vec<Vec<usize>>,
+        elements: &Vec<usize>,
+        cur: &mut Vec<usize>,
+        used: &mut Vec<bool>,
+        limit: usize,
+    ) {
+        if ans.len() > limit {
+            return;
+        }
+        let index = used
+            .iter()
+            .enumerate()
+            .filter(|(_, val)| **val == false)
+            .map(|item| item.0)
+            .collect::<Vec<usize>>();
+
+        if index.len() == 0 {
+            ans.push(cur.to_vec());
+        } else {
+            for i in index {
+                used[i] = true;
+                cur.push(elements[i]);
+                generate_all_permutation(ans, elements, cur, used, limit);
+                cur.pop();
+                used[i] = false;
+            }
+        }
+    }
+
+    generate_all_permutation(&mut all_permutation, &elements, &mut cur, &mut used, k);
+
+    return all_permutation
+        .get(k - 1 as usize)
+        .unwrap()
+        .into_iter()
+        .map(|item| return item.to_string())
+        .collect::<String>();
+}
+
+#[test]
+fn test_get_permutation() {
+    assert_eq!("213".to_string(), get_permutation(3, 3))
 }
