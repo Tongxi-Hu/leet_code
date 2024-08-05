@@ -1681,3 +1681,37 @@ pub fn merge(intervals: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
 
     return ranges;
 }
+
+///p57
+pub fn insert(intervals: Vec<Vec<i32>>, new_interval: Vec<i32>) -> Vec<Vec<i32>> {
+    let mut new_intervals: Vec<Vec<i32>> = vec![];
+    let mut start = new_interval[0];
+    let mut end = new_interval[1];
+    for interval in intervals {
+        if interval[1] < new_interval[0] {
+            new_intervals.push(interval.to_vec());
+        } else if interval[0] > new_interval[1] {
+            if start != core::i32::MIN {
+                new_intervals.push(vec![start, end]);
+                start = core::i32::MIN
+            }
+            new_intervals.push(interval.to_vec());
+        } else {
+            if interval[0] < start {
+                start = interval[0]
+            }
+            if interval[1] > end {
+                end = interval[1];
+            }
+        }
+    }
+    if start != core::i32::MIN {
+        new_intervals.push(vec![start, end]);
+    }
+    return new_intervals;
+}
+
+///p58
+pub fn length_of_last_word(s: String) -> i32 {
+    s.split_whitespace().last().unwrap_or("").len() as i32
+}
