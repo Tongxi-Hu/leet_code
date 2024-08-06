@@ -2,7 +2,7 @@ use std::{
     any::Any,
     collections::{HashMap, HashSet},
     i32,
-    ops::RangeInclusive,
+    ops::{Deref, RangeInclusive},
 };
 
 ///p1 two sum
@@ -1817,4 +1817,97 @@ pub fn get_permutation(n: i32, k: i32) -> String {
 #[test]
 fn test_get_permutation() {
     assert_eq!("213".to_string(), get_permutation(3, 3))
+}
+
+///p61
+pub fn rotate_right(head: Option<Box<ListNode>>, k: i32) -> Option<Box<ListNode>> {
+    if head.is_none() || k == 0 {
+        return head;
+    }
+    let mut head = head;
+    let mut ptr = &head;
+    let mut len = 0;
+    while let Some(ref t) = ptr {
+        ptr = &t.next;
+        len += 1;
+    }
+    let k = k % len;
+    if k == 0 {
+        return head;
+    }
+    let mut ptr = &mut head;
+    for _ in 1..len - k {
+        ptr = &mut ptr.as_mut().unwrap().next;
+    }
+    let mut new_head = ptr.as_mut().unwrap().next.take();
+    let mut tail = &mut new_head;
+    while tail.is_some() && tail.as_ref().unwrap().next.is_some() {
+        tail = &mut tail.as_mut().unwrap().next;
+    }
+    tail.as_mut().unwrap().next = head;
+    new_head
+}
+
+///p62
+pub fn unique_paths(m: i32, n: i32) -> i32 {
+    let m = m as usize;
+    let n = n as usize;
+    let mut dp: Vec<Vec<usize>> = vec![vec![0; n]; m];
+    for l in 0..n {
+        dp[0][l] = 1;
+    }
+    for r in 0..m {
+        dp[r][0] = 1;
+    }
+    for r in 1..m {
+        for l in 1..n {
+            dp[r][l] = dp[r][l - 1] + dp[r - 1][l]
+        }
+    }
+    return dp[m - 1][n - 1] as i32;
+}
+
+///p63
+pub fn unique_paths_with_obstacles(obstacle_grid: Vec<Vec<i32>>) -> i32 {
+    let r = obstacle_grid.len();
+    let c = obstacle_grid[0].len();
+    let mut dp: Vec<Vec<usize>> = vec![vec![0; c]; r];
+    for i in 0..r {
+        for j in 0..c {
+            if obstacle_grid[i][j] == 1 {
+                dp[i][j] = 0;
+            } else {
+                if i == 0 {
+                    if j == 0 {
+                        dp[i][j] = 1;
+                    } else {
+                        dp[i][j] = dp[i][j - 1];
+                    }
+                } else if j == 0 {
+                    dp[i][j] = dp[i - 1][j];
+                } else {
+                    dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
+                }
+            }
+        }
+    }
+    return dp[r - 1][c - 1] as i32;
+}
+
+///p64
+pub fn min_path_sum(grid: Vec<Vec<i32>>) -> i32 {
+    let r = grid.len();
+    let c = grid[0].len();
+    let mut dp_min_sum = vec![vec![0; c]; r];
+    for i in 0..r {
+        for j in 0..c {
+            match (i, j) {
+                (0, 0) => dp_min_sum[i][j] = grid[i][j],
+                (0, _) => dp_min_sum[i][j] = grid[i][j] + dp_min_sum[i][j - 1],
+                (_, 0) => dp_min_sum[i][j] = grid[i][j] + dp_min_sum[i - 1][j],
+                _ => dp_min_sum[i][j] = grid[i][j] + dp_min_sum[i - 1][j].min(dp_min_sum[i][j - 1]),
+            }
+        }
+    }
+    return dp_min_sum[r - 1][c - 1];
 }
