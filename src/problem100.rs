@@ -1,7 +1,8 @@
 use std::{
     any::Any,
+    char,
     collections::{HashMap, HashSet},
-    i32,
+    i32, iter,
     ops::{Deref, RangeInclusive},
 };
 
@@ -1910,4 +1911,162 @@ pub fn min_path_sum(grid: Vec<Vec<i32>>) -> i32 {
         }
     }
     return dp_min_sum[r - 1][c - 1];
+}
+
+///p65
+enum State {
+    Start,
+    Sign,
+    Integer,
+    Dot,
+    InitialDot,
+    Decimal,
+    E,
+    ESign,
+    EInteger,
+    Illegal,
+}
+
+impl State {
+    fn next(&self, next: Input) -> Self {
+        match self {
+            State::Start => match next {
+                Input::Digit => State::Integer,
+                Input::Dot => State::InitialDot,
+                Input::Sign => State::Sign,
+                _ => State::Illegal,
+            },
+            State::Sign => match next {
+                Input::Digit => State::Integer,
+                Input::Dot => State::InitialDot,
+                _ => State::Illegal,
+            },
+            State::Integer => match next {
+                Input::Digit => State::Integer,
+                Input::Dot => State::Dot,
+                Input::E => State::E,
+                _ => State::Illegal,
+            },
+            State::Dot => match next {
+                Input::Digit => State::Decimal,
+                Input::E => State::E,
+                _ => State::Illegal,
+            },
+            State::InitialDot => match next {
+                Input::Digit => State::Decimal,
+                _ => State::Illegal,
+            },
+            State::Decimal => match next {
+                Input::Digit => State::Decimal,
+                Input::E => State::E,
+                _ => State::Illegal,
+            },
+            State::E => match next {
+                Input::Digit => State::EInteger,
+                Input::Sign => State::ESign,
+                _ => State::Illegal,
+            },
+            State::ESign => match next {
+                Input::Digit => State::EInteger,
+                _ => State::Illegal,
+            },
+            State::EInteger => match next {
+                Input::Digit => State::EInteger,
+                _ => State::Illegal,
+            },
+            _ => State::Illegal,
+        }
+    }
+
+    fn accept(&self) -> bool {
+        match self {
+            State::Integer | State::Dot | State::Decimal | State::EInteger => true,
+            _ => false,
+        }
+    }
+}
+
+enum Input {
+    Digit,
+    Sign,
+    Dot,
+    E,
+    Other,
+}
+
+impl<T: Into<char>> From<T> for Input {
+    fn from(c: T) -> Self {
+        match c.into() {
+            '0'..='9' => Input::Digit,
+            '.' => Input::Dot,
+            '+' | '-' => Input::Sign,
+            'e' | 'E' => Input::E,
+            _ => Input::Other,
+        }
+    }
+}
+
+pub fn is_number(s: String) -> bool {
+    let mut state = State::Start;
+    s.chars().for_each(|c| state = state.next(c.into()));
+    state.accept()
+}
+
+///p66
+pub fn plus_one(digits: Vec<i32>) -> Vec<i32> {
+    let mut digits = digits;
+    let mut header: i32 = 1;
+    digits.reverse();
+    for i in digits.iter_mut() {
+        let new = (*i) + header;
+        *i = new % 10;
+        header = new / 10;
+    }
+    digits.reverse();
+    if header != 0 {
+        digits.insert(0, header);
+    }
+    return digits;
+}
+
+///p67
+pub fn add_binary(a: String, b: String) -> String {
+    let char_a = a.chars().collect::<Vec<char>>();
+    let char_b = b.chars().collect::<Vec<char>>();
+    let mut header = '0';
+    let length = char_a.len().max(char_b.len());
+    let val = char_a
+        .iter()
+        .rev()
+        .chain(core::iter::repeat(&'0'))
+        .zip(char_b.iter().rev().chain(core::iter::repeat(&'0')))
+        .take(length)
+        .map(|(val_a, val_b)| match (val_a, val_b, &mut header) {
+            ('0', '0', '0') => {
+                header = '0';
+                return '0';
+            }
+            ('1', '1', '1') => {
+                header = '1';
+                return '1';
+            }
+            ('1', '1', '0') | ('1', '0', '1') | ('0', '1', '1') => {
+                header = '1';
+                return '0';
+            }
+            _ => {
+                header = '0';
+                return '1';
+            }
+        })
+        .collect::<String>()
+        .chars()
+        .rev()
+        .collect::<String>();
+
+    if header != '0' {
+        return header.to_string() + &val;
+    } else {
+        return val;
+    }
 }
