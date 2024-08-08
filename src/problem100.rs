@@ -2070,3 +2070,96 @@ pub fn add_binary(a: String, b: String) -> String {
         return val;
     }
 }
+
+///p68
+pub fn full_justify(words: Vec<String>, max_width: i32) -> Vec<String> {
+    let L = words.len();
+    let max_width = max_width as usize;
+    let mut queue = Vec::new();
+    let mut i = 0;
+    let mut count = 0;
+    let mut tmp = Vec::new();
+
+    while i < L {
+        count = 0;
+        tmp = Vec::new();
+
+        while i < L && count < max_width {
+            // 按max_with将单词分组
+            if count + words[i].len() > max_width {
+                break;
+            }
+
+            count += (words[i].len() + 1);
+            tmp.push(words[i].clone());
+            i += 1;
+        }
+
+        if i == L {
+            // 最后一行，在单词后增加空格
+            let last_line = tmp[..].join(&" ");
+            let len = last_line.len();
+            queue.push(last_line + &" ".repeat(max_width - len));
+            break;
+        }
+
+        if tmp.len() == 1 {
+            // 分组长度为1，在单词后增加空格
+            queue.push(tmp[..].join(&"") + &" ".repeat(max_width - count + 1));
+        } else {
+            let T = tmp.len() - 1;
+            let paddings = max_width - (count - T - 1);
+            let space = paddings / T; // 每个单词后应该增加的平均空格数
+            let mut extra = (paddings % T) as i32; // 如果每个单词后增加的空格数不能被平均，将额外空格分摊到前几个单词后面
+            let res = tmp
+                .into_iter()
+                .enumerate()
+                .map(|(i, x)| {
+                    let times = space + if extra <= 0 { 0 } else { 1 };
+                    extra -= 1;
+
+                    if i == T {
+                        x
+                    } else {
+                        x + &" ".repeat(times)
+                    }
+                })
+                .collect::<String>();
+            queue.push(res);
+        }
+    }
+
+    queue
+}
+
+///p69
+pub fn my_sqrt(x: i32) -> i32 {
+    let x = x as usize;
+    let (mut l, mut r) = (0, x);
+    let mut ans: i32 = -1;
+    while l <= r {
+        let mid = (l + r) / 2;
+        if mid * mid <= x {
+            ans = mid as i32;
+            l = mid + 1;
+        } else {
+            r = mid - 1;
+        }
+    }
+    return ans;
+}
+
+///p70
+pub fn climb_stairs(n: i32) -> i32 {
+    let n = n as usize;
+    if n == 1 {
+        return 1;
+    }
+    let mut dp = vec![0; n];
+    dp[0] = 1;
+    dp[1] = 2;
+    for step in 2..n {
+        dp[step] = dp[step - 1] + dp[step - 2];
+    }
+    return dp[n - 1];
+}
