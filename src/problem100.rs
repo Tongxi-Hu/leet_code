@@ -2223,3 +2223,70 @@ pub fn min_distance(word1: String, word2: String) -> i32 {
     }
     return dp[n][m] as i32;
 }
+
+///p73
+pub fn set_zeroes(matrix: &mut Vec<Vec<i32>>) {
+    use std::collections::HashSet;
+    let mut rows: HashSet<usize> = HashSet::new();
+    let mut cols: HashSet<usize> = HashSet::new();
+    for (row, item) in matrix.iter().enumerate() {
+        for (col, val) in item.iter().enumerate() {
+            if *val == 0 {
+                rows.insert(row);
+                cols.insert(col);
+            }
+        }
+    }
+    for row in rows.iter() {
+        matrix[*row].iter_mut().for_each(|val| {
+            *val = 0;
+        })
+    }
+
+    for col in cols.iter() {
+        matrix.iter_mut().for_each(|item| item[*col] = 0)
+    }
+}
+
+///p74
+pub fn search_matrix(matrix: Vec<Vec<i32>>, target: i32) -> bool {
+    use std::collections::HashSet;
+    let mut pool: HashSet<(usize, usize)> = HashSet::new();
+    pool.insert((0, 0));
+
+    fn has_target(
+        pool: &HashSet<(usize, usize)>,
+        matrix: &Vec<Vec<i32>>,
+        target: i32,
+    ) -> (bool, HashSet<(usize, usize)>) {
+        let rows = matrix.len();
+        let cols = matrix[0].len();
+        let mut new_pool: HashSet<(usize, usize)> = HashSet::new();
+        for location in pool.iter() {
+            if matrix[location.0][location.1] == target {
+                return (true, HashSet::new());
+            } else if matrix[location.0][location.1] < target {
+                if location.1 + 1 < cols {
+                    new_pool.insert((location.0, location.1 + 1));
+                }
+                if location.0 + 1 < rows {
+                    new_pool.insert((location.0 + 1, location.1));
+                }
+            }
+        }
+        return (false, new_pool);
+    }
+
+    while pool.len() != 0 {
+        let (has, new_pool) = has_target(&pool, &matrix, target);
+        if has == true {
+            return true;
+        }
+        if new_pool.len() == 0 {
+            return false;
+        }
+        pool = new_pool;
+    }
+
+    return false;
+}
