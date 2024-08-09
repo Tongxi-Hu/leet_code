@@ -2163,3 +2163,63 @@ pub fn climb_stairs(n: i32) -> i32 {
     }
     return dp[n - 1];
 }
+
+///71
+pub fn simplify_path(path: String) -> String {
+    let paths = path
+        .split('/')
+        .map(|item| item.to_string())
+        .collect::<Vec<String>>();
+    let mut stack: Vec<String> = vec![];
+    for item in paths {
+        match item.as_str() {
+            "" => (),
+            ".." => {
+                stack.pop();
+            }
+            "." => (),
+            val => {
+                stack.push(val.to_string());
+            }
+        }
+    }
+    if stack.len() == 0 {
+        return "/".to_owned();
+    }
+    return stack
+        .into_iter()
+        .map(|item| return "/".to_string() + &item)
+        .collect::<String>();
+}
+
+///p72
+pub fn min_distance(word1: String, word2: String) -> i32 {
+    let n = word1.len();
+    let m = word2.len();
+    if n * m == 0 {
+        return (m + n) as i32;
+    }
+
+    let mut dp: Vec<Vec<usize>> = vec![vec![0; m + 1]; n + 1];
+
+    for i in 0..n + 1 {
+        dp[i][0] = i;
+    }
+
+    for j in 0..m + 1 {
+        dp[0][j] = j;
+    }
+
+    for i in 1..n + 1 {
+        for j in 1..m + 1 {
+            let left = dp[i - 1][j] + 1;
+            let down = dp[i][j - 1] + 1;
+            let mut left_down = dp[i - 1][j - 1];
+            if word1.chars().nth(i - 1) != word2.chars().nth(j - 1) {
+                left_down = left_down + 1;
+            }
+            dp[i][j] = left.min(down.min(left_down));
+        }
+    }
+    return dp[n][m] as i32;
+}
