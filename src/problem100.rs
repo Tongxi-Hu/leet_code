@@ -2290,3 +2290,71 @@ pub fn search_matrix(matrix: Vec<Vec<i32>>, target: i32) -> bool {
 
     return false;
 }
+
+///p75
+pub fn sort_colors(nums: &mut Vec<i32>) {
+    if nums.len() <= 1 {
+        return;
+    }
+    let mut eq_l = 0;
+    let mut eq_r = 0;
+    for i in 0..nums.len() {
+        if nums[i] < 1 {
+            nums.swap(i, eq_l);
+            if eq_l < eq_r {
+                nums.swap(eq_r, i);
+            }
+            eq_l += 1;
+            eq_r += 1;
+        } else if nums[i] == 1 {
+            nums.swap(i, eq_r);
+            eq_r += 1;
+        }
+    }
+}
+
+///p76
+pub fn min_window(S: String, t: String) -> String {
+    let s = S.as_bytes();
+    let m = s.len();
+    let mut ans_left = 0;
+    let mut ans_right = m;
+    let mut left = 0;
+    let mut less = 0;
+    let mut cnt_s = [0; 128]; // s 子串字母的出现次数
+    let mut cnt_t = [0; 128]; // t 中字母的出现次数
+    for c in t.bytes() {
+        let c = c as usize;
+        if cnt_t[c] == 0 {
+            less += 1; // 有 less 种字母的出现次数 < t 中的字母出现次数
+        }
+        cnt_t[c] += 1;
+    }
+    for (right, &c) in s.iter().enumerate() {
+        // 移动子串右端点
+        let c = c as usize;
+        cnt_s[c] += 1; // 右端点字母移入子串
+        if cnt_s[c] == cnt_t[c] {
+            less -= 1; // c 的出现次数从 < 变成 >=
+        }
+        while less == 0 {
+            // 涵盖：所有字母的出现次数都是 >=
+            if right - left < ans_right - ans_left {
+                // 找到更短的子串
+                ans_left = left; // 记录此时的左右端点
+                ans_right = right;
+            }
+            let x = s[left] as usize; // 左端点字母
+            if cnt_s[x] == cnt_t[x] {
+                less += 1; // x 的出现次数从 >= 变成 <
+            }
+            cnt_s[x] -= 1; // 左端点字母移出子串
+            left += 1;
+        }
+    }
+    if ans_right < m {
+        unsafe { String::from_utf8_unchecked(s[ans_left..=ans_right].to_vec()) }
+    } else {
+        String::new()
+    }
+}
