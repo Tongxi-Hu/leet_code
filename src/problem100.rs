@@ -2358,3 +2358,116 @@ pub fn min_window(S: String, t: String) -> String {
         String::new()
     }
 }
+
+///p77
+pub fn combine(n: i32, k: i32) -> Vec<Vec<i32>> {
+    let mut result: Vec<Vec<i32>> = vec![];
+    let mut current: Vec<i32> = vec![];
+
+    fn dfs(begin: i32, n: i32, k: i32, current: &mut Vec<i32>, result: &mut Vec<Vec<i32>>) {
+        if current.len() + ((n - begin + 1) as usize) < k as usize {
+            return;
+        }
+        if current.len() as i32 == k {
+            result.push(current.clone());
+            return;
+        }
+        current.push(begin);
+        dfs(begin + 1, n, k, current, result);
+        current.pop();
+        dfs(begin + 1, n, k, current, result);
+    }
+    dfs(1, n, k, &mut current, &mut result);
+    return result;
+}
+
+///p78
+pub fn subsets(nums: Vec<i32>) -> Vec<Vec<i32>> {
+    let mut result: Vec<Vec<i32>> = vec![];
+    let mut pointer: usize = 0;
+    let length = nums.len();
+    let mut current: Vec<i32> = vec![];
+
+    fn dfs(
+        pointer: usize,
+        length: usize,
+        nums: &Vec<i32>,
+        current: &mut Vec<i32>,
+        result: &mut Vec<Vec<i32>>,
+    ) {
+        if pointer >= length {
+            result.push(current.to_vec());
+            return;
+        }
+        current.push(nums[pointer]);
+        dfs(pointer + 1, length, nums, current, result);
+        current.pop();
+        dfs(pointer + 1, length, nums, current, result)
+    }
+
+    dfs(0, length, &nums, &mut current, &mut result);
+    return result;
+}
+
+///p79
+pub fn exist(board: Vec<Vec<char>>, word: String) -> bool {
+    let chars: Vec<char> = word.chars().collect();
+    fn check(
+        i: usize,
+        j: usize,
+        board: &Vec<Vec<char>>,
+        visited: &mut Vec<Vec<bool>>,
+        chars: &Vec<char>,
+        k: usize,
+    ) -> bool {
+        if board[i][j] != chars[k] {
+            return false;
+        } else if chars.len() - 1 == k {
+            return true;
+        }
+        visited[i][j] = true;
+        let direction: [(i32, i32); 4] = [(0, 1), (0, -1), (1, 0), (-1, 0)];
+        let mut result = false;
+        for dir in direction {
+            let (new_i, new_j) = (i + dir.0 as usize, j + dir.1 as usize);
+            if new_i >= 0 && new_i < board.len() && new_j >= 0 && new_j < board[0].len() {
+                if visited[new_i][new_j] != true {
+                    let next_result = check(new_i, new_j, board, visited, chars, k + 1);
+                    if next_result == true {
+                        result = true;
+                        break;
+                    }
+                }
+            }
+        }
+        visited[i][j] = false;
+        return result;
+    }
+    let mut visited = vec![vec![false; board[0].len()]; board.len()];
+    for i in 0..board.len() {
+        for j in 0..board[0].len() {
+            let flag = check(i, j, &board, &mut visited, &chars, 0);
+            if flag == true {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+///p80
+pub fn remove_duplicates_2(nums: &mut Vec<i32>) -> i32 {
+    let length = nums.len();
+    if length <= 2 {
+        return length as i32;
+    }
+    let (mut slow, mut fast) = (2, 2);
+    while fast < length {
+        if nums[slow - 2] != nums[fast] {
+            nums[slow] = nums[fast];
+            slow = slow + 1;
+        }
+        fast = fast + 1;
+    }
+    return slow as i32;
+}
