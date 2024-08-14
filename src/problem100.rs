@@ -2471,3 +2471,47 @@ pub fn remove_duplicates_2(nums: &mut Vec<i32>) -> i32 {
     }
     return slow as i32;
 }
+
+///p81
+pub fn search(nums: Vec<i32>, target: i32) -> bool {
+    for i in 0..nums.len() {
+        if nums[i] == target {
+            return true;
+        }
+    }
+    return false;
+}
+
+///p82
+pub fn delete_duplicates(mut head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
+    let mut res = Some(Box::new(ListNode::new(0)));
+    let mut p = res.as_mut().unwrap();
+    let mut pre = 101;
+    while let Some(mut node) = head {
+        head = node.next.take();
+        if (head.is_some() && head.as_ref().unwrap().val == node.val) || node.val == pre {
+            pre = node.val;
+        } else {
+            pre = node.val;
+            p.next = Some(node);
+            p = p.next.as_mut().unwrap();
+        }
+    }
+    res.and_then(|node| node.next)
+}
+
+///p83
+pub fn delete_duplicates_2(mut head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
+    let mut dummy = Some(Box::new(ListNode { val: 0, next: None }));
+    let mut p = &mut dummy;
+    let mut pre_val = core::i32::MAX;
+    while let Some(mut node) = head {
+        head = node.next.take();
+        if node.val != pre_val {
+            pre_val = node.val;
+            p.as_mut().unwrap().next = Some(node);
+            p = &mut p.as_mut().unwrap().next;
+        }
+    }
+    return dummy.and_then(|node| node.next);
+}
