@@ -1,9 +1,6 @@
 use std::{
-    any::Any,
-    char,
     collections::{HashMap, HashSet},
-    i32, iter,
-    ops::{Deref, RangeInclusive},
+    i32,
 };
 
 ///p1 two sum
@@ -2514,4 +2511,82 @@ pub fn delete_duplicates_2(mut head: Option<Box<ListNode>>) -> Option<Box<ListNo
         }
     }
     return dummy.and_then(|node| node.next);
+}
+
+///p84
+pub fn largest_rectangle_area(heights: Vec<i32>) -> i32 {
+    let mut left: Vec<i32> = vec![-1; heights.len()];
+    let mut mono_stack: Vec<usize> = vec![];
+    for i in 0..heights.len() {
+        while !mono_stack.is_empty() && heights[*mono_stack.last().unwrap()] >= heights[i] {
+            mono_stack.pop();
+        }
+        if !mono_stack.is_empty() {
+            left[i] = *mono_stack.last().unwrap() as i32;
+        }
+        mono_stack.push(i);
+    }
+    let mut right: Vec<i32> = vec![heights.len() as i32; heights.len()];
+    mono_stack = vec![];
+    for i in (0..heights.len()).rev() {
+        while !mono_stack.is_empty() && heights[*mono_stack.last().unwrap()] >= heights[i] {
+            mono_stack.pop();
+        }
+        if !mono_stack.is_empty() {
+            right[i] = *mono_stack.last().unwrap() as i32;
+        }
+        mono_stack.push(i);
+    }
+    return left
+        .iter()
+        .zip(right.iter())
+        .zip(heights.iter())
+        .fold(0, |acc, cur| {
+            return acc.max(cur.1 * (cur.0 .1 - cur.0 .0 - 1));
+        });
+}
+
+///p85
+pub fn maximal_rectangle(matrix: Vec<Vec<char>>) -> i32 {
+    let row = matrix.len();
+    let column = matrix[0].len();
+    let mut res = i32::MIN;
+
+    let mut horizon = vec![vec![0; column + 1]; row + 1];
+    for i in 1..=row {
+        for j in 1..=column {
+            if matrix[i - 1][j - 1] == '1' {
+                horizon[i][j] = horizon[i - 1][j] + 1;
+            }
+        }
+    }
+
+    for i in 1..=row {
+        let mut stack: Vec<usize> = Vec::new();
+        let mut left: Vec<usize> = (0..=column).collect(); // left[j] 存以horizon[i][j]为最小值的最长子数组的最左端
+        for j in 1..=column {
+            let mut left_limit = j; // 表示以*stack.last().unwrap()为最小值的最左边的idx
+            while !stack.is_empty() && horizon[i][*stack.last().unwrap()] >= horizon[i][j] {
+                // 递增栈
+                left_limit = stack.pop().unwrap();
+            }
+            left[j] = left[left_limit];
+            stack.push(j);
+        }
+        let mut right: Vec<usize> = (0..=column).collect(); // 存以horizon[i][j]为最小值的最长子数组的最右端
+        let mut stack: Vec<usize> = Vec::new();
+        for j in (1..=column).rev() {
+            let mut right_limit = j; // 表示以*stack.last().unwrap()为最小值的最左边的idx
+            while !stack.is_empty() && horizon[i][*stack.last().unwrap()] >= horizon[i][j] {
+                // 递增栈
+                right_limit = stack.pop().unwrap();
+            }
+            right[j] = right[right_limit];
+            stack.push(j);
+        }
+        for j in 1..=column {
+            res = res.max((right[j] - left[j] + 1) as i32 * horizon[i][j]);
+        }
+    }
+    res
 }
