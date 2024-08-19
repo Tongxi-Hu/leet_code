@@ -2663,17 +2663,16 @@ pub fn is_scramble(s1: String, s2: String) -> bool {
 
 ///p88
 pub fn merge_2(nums1: &mut Vec<i32>, m: i32, nums2: &mut Vec<i32>, n: i32) {
-    if (m == 0 && n == 0) {
+    if m == 0 && n == 0 {
         return;
     }
 
     let mut idx = (m + n - 1) as usize;
-    let mut i = m - 1; // 不能在这里转 usize，不然 -1 变成一个超级大数
+    let mut i = m - 1;
     let mut j = n - 1;
 
-    // 从后面开始，把大数放到数组1 最后面
-    while (i >= 0 && j >= 0) {
-        if (nums1[i as usize] < nums2[j as usize]) {
+    while i >= 0 && j >= 0 {
+        if nums1[i as usize] < nums2[j as usize] {
             nums1[idx] = nums2[j as usize];
             j -= 1;
         } else {
@@ -2683,14 +2682,7 @@ pub fn merge_2(nums1: &mut Vec<i32>, m: i32, nums2: &mut Vec<i32>, n: i32) {
         idx -= 1;
     }
 
-    // 可以优化掉，不需要自己般自己
-    // while (i >= 0) {
-    //     nums1[idx] = nums1[i as usize];
-    //     idx -= 1;
-    //     i -= 1;
-    // }
-
-    while (j >= 0) {
+    while j >= 0 {
         nums1[idx] = nums2[j as usize];
         idx -= 1;
         j -= 1;
