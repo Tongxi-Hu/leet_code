@@ -2660,3 +2660,72 @@ pub fn is_scramble(s1: String, s2: String) -> bool {
 
     check(&s1, 0, n, &s2, 0, n, &mut records)
 }
+
+///p88
+pub fn merge_2(nums1: &mut Vec<i32>, m: i32, nums2: &mut Vec<i32>, n: i32) {
+    if (m == 0 && n == 0) {
+        return;
+    }
+
+    let mut idx = (m + n - 1) as usize;
+    let mut i = m - 1; // 不能在这里转 usize，不然 -1 变成一个超级大数
+    let mut j = n - 1;
+
+    // 从后面开始，把大数放到数组1 最后面
+    while (i >= 0 && j >= 0) {
+        if (nums1[i as usize] < nums2[j as usize]) {
+            nums1[idx] = nums2[j as usize];
+            j -= 1;
+        } else {
+            nums1[idx] = nums1[i as usize];
+            i -= 1;
+        }
+        idx -= 1;
+    }
+
+    // 可以优化掉，不需要自己般自己
+    // while (i >= 0) {
+    //     nums1[idx] = nums1[i as usize];
+    //     idx -= 1;
+    //     i -= 1;
+    // }
+
+    while (j >= 0) {
+        nums1[idx] = nums2[j as usize];
+        idx -= 1;
+        j -= 1;
+    }
+}
+
+///p89
+pub fn gray_code(n: i32) -> Vec<i32> {
+    let mut ans: Vec<i32> = vec![0; 1 << n];
+    for i in 0..ans.len() {
+        ans[i] = ((i >> 1) ^ i) as i32;
+    }
+    return ans;
+}
+
+///p90
+/// Input: nums = [1,2,2]
+/// Output: [[],[1],[1,2],[1,2,2],[2],[2,2]]
+pub fn subsets_with_dup(nums: Vec<i32>) -> Vec<Vec<i32>> {
+    let mut nums = nums;
+    nums.sort();
+    let mut ans: Vec<Vec<i32>> = vec![];
+    let mut cur: Vec<i32> = vec![];
+    fn dfs(option: &Vec<i32>, p: usize, chosen: bool, cur: &mut Vec<i32>, ans: &mut Vec<Vec<i32>>) {
+        if p == option.len() {
+            ans.push(cur.clone());
+            return;
+        }
+        if chosen || (p > 0 && option[p - 1] != option[p]) {
+            cur.push(option[p]);
+            dfs(option, p + 1, true, cur, ans);
+            cur.pop();
+        }
+        dfs(option, p + 1, false, cur, ans);
+    }
+    dfs(&nums, 0, true, &mut cur, &mut ans);
+    return ans;
+}
