@@ -2590,3 +2590,73 @@ pub fn maximal_rectangle(matrix: Vec<Vec<char>>) -> i32 {
     }
     res
 }
+
+///p86
+pub fn partition(head: Option<Box<ListNode>>, x: i32) -> Option<Box<ListNode>> {
+    let mut head = &head;
+    let mut small_head = Some(Box::new(ListNode {
+        val: core::i32::MIN,
+        next: None,
+    }));
+    let mut small = &mut small_head;
+    let mut large_head = Some(Box::new(ListNode { val: x, next: None }));
+    let mut large = &mut large_head;
+    while let Some(ref node) = head {
+        if node.val < x {
+            small.as_mut().unwrap().next = Some(Box::new(ListNode {
+                val: node.val,
+                next: None,
+            }));
+            small = &mut small.as_mut().unwrap().next;
+        } else {
+            large.as_mut().unwrap().next = Some(Box::new(ListNode {
+                val: node.val,
+                next: None,
+            }));
+            large = &mut large.as_mut().unwrap().next;
+        }
+        head = &head.as_ref().unwrap().next;
+    }
+
+    if large_head.as_ref().unwrap().next.is_some() {
+        small.as_mut().unwrap().next = large_head.as_mut().unwrap().next.take();
+    }
+
+    return small_head.as_mut().unwrap().next.take();
+}
+
+///p87
+pub fn is_scramble(s1: String, s2: String) -> bool {
+    let n = s1.len();
+    let mut records = vec![vec![vec![None; n + 1]; n]; n];
+    fn check(
+        s1: &str,
+        beg1: usize,
+        end1: usize,
+        s2: &str,
+        beg2: usize,
+        end2: usize,
+        records: &mut Vec<Vec<Vec<Option<bool>>>>,
+    ) -> bool {
+        let len = end1 - beg1;
+        if records[beg1][beg2][len].is_some() {
+            return records[beg1][beg2][len].unwrap();
+        }
+
+        let flag = if len == 1 {
+            &s1[beg1..end1] == &s2[beg2..end2]
+        } else {
+            (1..len).any(|i| {
+                (check(s1, beg1, beg1 + i, s2, beg2, beg2 + i, records)
+                    && check(s1, beg1 + i, end1, s2, beg2 + i, end2, records))
+                    || (check(s1, beg1, beg1 + i, s2, end2 - i, end2, records)
+                        && check(s1, beg1 + i, end1, s2, beg2, end2 - i, records))
+            })
+        };
+
+        records[beg1][beg2][len] = Some(flag);
+        flag
+    }
+
+    check(&s1, 0, n, &s2, 0, n, &mut records)
+}
