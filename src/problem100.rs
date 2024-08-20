@@ -2721,3 +2721,111 @@ pub fn subsets_with_dup(nums: Vec<i32>) -> Vec<Vec<i32>> {
     dfs(&nums, 0, true, &mut cur, &mut ans);
     return ans;
 }
+
+///p91
+/// "1" -> 'A'
+/// "2" -> 'B'
+/// ...
+/// "25" -> 'Y'
+/// "26" -> 'Z'
+pub fn num_decodings(s: String) -> i32 {
+    let (mut alone, mut combine) = (0, 0);
+    let char_vec = s.chars().collect::<Vec<char>>();
+    for (index, char) in char_vec.iter().enumerate() {
+        if index == 0 {
+            match char_vec[index] {
+                '0' => {
+                    alone = 0;
+                    combine = 0;
+                }
+                _ => {
+                    alone = 1;
+                    combine = 0;
+                }
+            }
+            continue;
+        }
+        match char {
+            '0' => match char_vec[index - 1] {
+                '0' => {
+                    combine = 0;
+                    alone = 0;
+                }
+                '1'..='2' => {
+                    combine = alone;
+                    alone = 0;
+                }
+                _ => {
+                    combine = 0;
+                    alone = 0;
+                }
+            },
+            '1'..='6' => match char_vec[index - 1] {
+                '0' => {
+                    alone = combine;
+                    combine = 0;
+                }
+                '1'..='2' => {
+                    let temp = combine;
+                    combine = alone;
+                    alone = temp + alone;
+                }
+                _ => {
+                    alone = combine + alone;
+                    combine = 0;
+                }
+            },
+            '7'..='9' => match char_vec[index - 1] {
+                '0' => {
+                    alone = combine;
+                    combine = 0;
+                }
+                '1' => {
+                    let temp = combine;
+                    combine = alone;
+                    alone = temp + alone;
+                }
+                _ => {
+                    alone = combine + alone;
+                    combine = 0;
+                }
+            },
+            _ => (),
+        }
+    }
+    return alone + combine;
+}
+
+///p92
+/// Input: head = [1,2,3,4,5], left = 2, right = 4
+/// Output: [1,4,3,2,5]
+pub fn reverse_between(
+    head: Option<Box<ListNode>>,
+    left: i32,
+    right: i32,
+) -> Option<Box<ListNode>> {
+    let mut dummy = Some(Box::new(ListNode {
+        val: -1,
+        next: head,
+    }));
+    let mut ptr = &mut dummy;
+    let mut cnt = 0;
+    while cnt < left - 1 {
+        ptr = &mut ptr.as_mut().unwrap().next;
+        cnt += 1;
+    }
+    let mut curr = ptr.as_mut().unwrap().next.take();
+    let mut next;
+    for i in left..right {
+        next = curr.as_mut().unwrap().next.take();
+        curr.as_mut().unwrap().next = next.as_mut().unwrap().next.take();
+        next.as_mut().unwrap().next = ptr.as_mut().unwrap().next.take();
+        ptr.as_mut().unwrap().next = next.take();
+    }
+    while ptr.as_mut().unwrap().next.is_some() {
+        ptr = &mut ptr.as_mut().unwrap().next;
+    }
+    //重新接上
+    ptr.as_mut().unwrap().next = curr.take();
+    dummy.unwrap().next
+}
