@@ -2873,3 +2873,39 @@ pub fn inorder_traversal(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<i32> {
     pre(&root, &mut ans);
     return ans;
 }
+
+///p95
+pub fn generate_trees(n: i32) -> Vec<Option<Rc<RefCell<TreeNode>>>> {
+    if n < 0 {
+        return vec![];
+    }
+    fn generate_in_range(start: usize, end: usize) -> Vec<Option<Rc<RefCell<TreeNode>>>> {
+        if start > end {
+            return vec![None];
+        } else if start == end {
+            return vec![Some(Rc::new(RefCell::new(TreeNode {
+                val: start as i32,
+                left: None,
+                right: None,
+            })))];
+        } else {
+            let mut all: Vec<Option<Rc<RefCell<TreeNode>>>> = vec![];
+            for i in start..=end {
+                let left = generate_in_range(start, i - 1);
+                let right = generate_in_range(i + 1, end);
+                for l in left.iter() {
+                    for r in right.iter() {
+                        all.push(Some(Rc::new(RefCell::new(TreeNode {
+                            val: i as i32,
+                            left: l.clone(),
+                            right: r.clone(),
+                        }))))
+                    }
+                }
+            }
+            return all;
+        }
+    }
+
+    return generate_in_range(1, n as usize);
+}
