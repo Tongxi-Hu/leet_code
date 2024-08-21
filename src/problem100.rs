@@ -1,7 +1,11 @@
 use std::{
+    cell::RefCell,
     collections::{HashMap, HashSet},
     i32,
+    rc::Rc,
 };
+
+use crate::common::{ListNode, TreeNode};
 
 ///p1 two sum
 pub fn two_sum(nums: Vec<i32>, target: i32) -> Vec<i32> {
@@ -28,18 +32,6 @@ pub fn test_two_sum() {
 }
 
 ///p2 add number
-#[derive(PartialEq, Eq, Clone, Debug)]
-pub struct ListNode {
-    pub val: i32,
-    pub next: Option<Box<ListNode>>,
-}
-
-impl ListNode {
-    fn new(val: i32) -> Self {
-        ListNode { next: None, val }
-    }
-}
-
 pub fn add_two_numbers(
     l1: Option<Box<ListNode>>,
     l2: Option<Box<ListNode>>,
@@ -2828,4 +2820,56 @@ pub fn reverse_between(
     //重新接上
     ptr.as_mut().unwrap().next = curr.take();
     dummy.unwrap().next
+}
+
+///p93
+pub fn restore_ip_addresses(s: String) -> Vec<String> {
+    fn is_valid(s: &str) -> bool {
+        if s.chars().nth(0) == Some('0') && s.len() > 1 {
+            return false;
+        }
+        match s.parse::<u8>() {
+            Ok(_) => true,
+            _ => false,
+        }
+    }
+    fn dfs(s: &str, addr: &mut Vec<String>, ans: &mut Vec<String>) {
+        if s.len() > 12 - addr.len() * 3 || s.len() < 4 - addr.len() {
+            return;
+        }
+        if addr.len() == 3 && is_valid(s) {
+            addr.push(s[..].to_string());
+            ans.push(addr.join(".").to_string());
+            addr.pop();
+            return;
+        }
+
+        for end in 1..s.len() {
+            if !is_valid(&s[0..end]) {
+                break;
+            }
+            addr.push(s[..end].to_string());
+            dfs(&s[end..], addr, ans);
+            addr.pop();
+        }
+    }
+    let mut ans = vec![];
+    dfs(&s, &mut vec![], &mut ans);
+    ans
+}
+
+///p94
+pub fn inorder_traversal(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<i32> {
+    let mut ans: Vec<i32> = vec![];
+    fn pre(root: &Option<Rc<RefCell<TreeNode>>>, ans: &mut Vec<i32>) {
+        if root.is_none() {
+            return;
+        }
+        let node = root.as_ref().unwrap().borrow();
+        pre(&node.left, ans);
+        ans.push(node.val);
+        pre(&node.right, ans);
+    }
+    pre(&root, &mut ans);
+    return ans;
 }
