@@ -2909,3 +2909,19 @@ pub fn generate_trees(n: i32) -> Vec<Option<Rc<RefCell<TreeNode>>>> {
 
     return generate_in_range(1, n as usize);
 }
+
+///p96
+pub fn num_trees(n: i32) -> i32 {
+    let n = n as usize;
+    let mut total: Vec<i32> = vec![0; n + 1];
+    total[0] = 1;
+    total[1] = 1;
+
+    for i in 2..=n {
+        for j in 1..=i {
+            total[i] = total[i] + total[j - 1] * total[i - j]
+        }
+    }
+
+    return total[n];
+}
