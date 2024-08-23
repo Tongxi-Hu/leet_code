@@ -1,5 +1,5 @@
 mod common;
-mod problem100;
+mod problem_100;
 
 fn main() {
     println!("Hello, world!");
