@@ -2,7 +2,8 @@ use std::{cell::RefCell, rc::Rc};
 
 use crate::common::TreeNode;
 
-///101
+///p101
+///
 /// Given the root of a binary tree, check whether it is a mirror of itself (i.e., symmetric around its center).
 pub fn is_symmetric(root: Option<Rc<RefCell<TreeNode>>>) -> bool {
     fn check(left: &Option<Rc<RefCell<TreeNode>>>, right: &Option<Rc<RefCell<TreeNode>>>) -> bool {
@@ -24,6 +25,7 @@ pub fn is_symmetric(root: Option<Rc<RefCell<TreeNode>>>) -> bool {
 }
 
 /// p102
+///
 /// Given the root of a binary tree, return the level order traversal of its nodes' values. (i.e., from left to right, level by level).
 pub fn level_order(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<Vec<i32>> {
     let mut val: Vec<Vec<i32>> = vec![];
