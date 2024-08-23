@@ -2986,3 +2986,71 @@ pub fn is_valid_bst(root: Option<Rc<RefCell<TreeNode>>>) -> bool {
         })
         .1;
 }
+
+///p99
+pub fn recover_tree(root: &mut Option<Rc<RefCell<TreeNode>>>) {
+    let mut nums: Vec<i32> = Vec::new();
+    inorder(root, &mut nums);
+    let swapped = find_two_swapped(&nums);
+    recover(root, 2, swapped.0, swapped.1);
+}
+
+fn inorder(root: &Option<Rc<RefCell<TreeNode>>>, nums: &mut Vec<i32>) {
+    if let Some(node) = root {
+        inorder(&node.borrow().left, nums);
+        nums.push(node.borrow().val);
+        inorder(&node.borrow().right, nums);
+    }
+}
+
+fn find_two_swapped(nums: &Vec<i32>) -> (i32, i32) {
+    let mut index1 = -1;
+    let mut index2 = -1;
+    let n = nums.len();
+
+    for i in 0..n - 1 {
+        if nums[i + 1] < nums[i] {
+            index2 = (i + 1) as i32;
+            if index1 == -1 {
+                index1 = i as i32;
+            } else {
+                break;
+            }
+        }
+    }
+
+    (nums[index1 as usize], nums[index2 as usize])
+}
+
+fn recover(root: &mut Option<Rc<RefCell<TreeNode>>>, mut count: i32, x: i32, y: i32) {
+    if let Some(node) = root {
+        recover(&mut node.borrow_mut().right, count, x, y);
+        if node.borrow().val == x || node.borrow().val == y {
+            node.borrow_mut().val = if node.borrow().val == x { y } else { x };
+            count -= 1;
+            if count == 0 {
+                return;
+            }
+        }
+        recover(&mut node.borrow_mut().left, count, x, y);
+    }
+}
+
+///p100
+pub fn is_same_tree(p: Option<Rc<RefCell<TreeNode>>>, q: Option<Rc<RefCell<TreeNode>>>) -> bool {
+    fn is_same(p: &Option<Rc<RefCell<TreeNode>>>, q: &Option<Rc<RefCell<TreeNode>>>) -> bool {
+        match (p, q) {
+            (None, None) => true,
+            (Some(_), None) => false,
+            (None, Some(_)) => false,
+            (Some(left), Some(right)) => {
+                if left.borrow().val != right.borrow().val {
+                    return false;
+                }
+                return is_same(&left.borrow().left, &right.borrow().left)
+                    && is_same(&left.borrow().right, &right.borrow().right);
+            }
+        }
+    }
+    return is_same(&p, &q);
+}
