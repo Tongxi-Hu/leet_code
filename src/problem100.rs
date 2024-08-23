@@ -2925,3 +2925,64 @@ pub fn num_trees(n: i32) -> i32 {
 
     return total[n];
 }
+
+///97
+pub fn is_interleave(s1: String, s2: String, s3: String) -> bool {
+    let len1 = s1.len();
+    let len2 = s2.len();
+    let len3 = s3.len();
+    if len1 + len2 != len3 {
+        return false;
+    }
+    let mut dp: Vec<Vec<bool>> = vec![vec![false; len2 + 1]; len1 + 1];
+    dp[0][0] = true;
+    for i in 1..=len1 {
+        dp[i][0] = dp[i - 1][0] && s1.chars().nth(i - 1) == s3.chars().nth(i - 1);
+    }
+    for j in 1..=len2 {
+        dp[0][j] = dp[0][j - 1] && s2.chars().nth(j - 1) == s3.chars().nth(j - 1);
+    }
+    for i in 1..=len1 {
+        for j in 1..=len2 {
+            let k = i + j - 1;
+            dp[i][j] = (s1.chars().nth(i - 1) == s3.chars().nth(k) && dp[i - 1][j])
+                || (s2.chars().nth(j - 1) == s3.chars().nth(k) && dp[i][j - 1])
+        }
+    }
+    return dp[len1][len2];
+}
+
+///p98
+pub fn is_valid_bst(root: Option<Rc<RefCell<TreeNode>>>) -> bool {
+    let mut val: Vec<i32> = vec![];
+    fn pre_traverse(root: &Option<Rc<RefCell<TreeNode>>>, val: &mut Vec<i32>) {
+        match root {
+            None => return,
+            Some(node) => {
+                let left = &node.borrow().left;
+                pre_traverse(left, val);
+                val.push(node.borrow().val);
+                let right = &node.borrow().right;
+                pre_traverse(right, val);
+            }
+        }
+    }
+    pre_traverse(&root, &mut val);
+    return val
+        .iter()
+        .fold((-1, true), |acc, cur| {
+            if acc.1 == false {
+                return (acc.0 + 1, false);
+            }
+            if acc.0 == -1 {
+                return (0, true);
+            } else {
+                if *cur <= val[acc.0 as usize] {
+                    return (acc.0 + 1, false);
+                } else {
+                    return (acc.0 + 1, true);
+                }
+            }
+        })
+        .1;
+}
