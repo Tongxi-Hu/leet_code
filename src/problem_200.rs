@@ -99,3 +99,98 @@ pub fn max_depth(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
     }
     return depth;
 }
+
+///p105
+///
+///Given two integer arrays preorder and inorder where preorder is the preorder traversal of a binary tree and inorder is the inorder traversal of the same tree, construct and return the binary tree.
+pub fn build_tree(preorder: Vec<i32>, inorder: Vec<i32>) -> Option<Rc<RefCell<TreeNode>>> {
+    if preorder.is_empty() {
+        return None;
+    }
+    if let Some(index) = inorder.iter().position(|item| *item == preorder[0]) {
+        let left_pre = preorder[1..1 + index].to_vec();
+        let right_pre = preorder[1 + index..].to_vec();
+        let left_in = inorder[..index].to_vec();
+        let right_in = inorder[index + 1..].to_vec();
+        let left_node = build_tree(left_pre, left_in);
+        let right_node = build_tree(right_pre, right_in);
+        return Some(Rc::new(RefCell::new(TreeNode {
+            val: preorder[0],
+            left: left_node,
+            right: right_node,
+        })));
+    }
+    return None;
+}
+
+///p106
+///
+/// Given two integer arrays inorder and postorder where inorder is the inorder traversal of a binary tree and postorder is the postorder traversal of the same tree, construct and return the binary tree.
+pub fn build_tree_2(inorder: Vec<i32>, postorder: Vec<i32>) -> Option<Rc<RefCell<TreeNode>>> {
+    if inorder.is_empty() {
+        return None;
+    }
+    if let Some(index) = inorder
+        .iter()
+        .position(|item| item == postorder.last().unwrap())
+    {
+        let left_post = postorder[0..index].to_vec();
+        let right_post = postorder[index..postorder.len() - 1].to_vec();
+        let left_in = inorder[..index].to_vec();
+        let right_in = inorder[index + 1..].to_vec();
+        let left_node = build_tree_2(left_in, left_post);
+        let right_node = build_tree_2(right_in, right_post);
+        return Some(Rc::new(RefCell::new(TreeNode {
+            val: *postorder.last().unwrap(),
+            left: left_node,
+            right: right_node,
+        })));
+    }
+    return None;
+}
+
+///p107
+///
+///Given the root of a binary tree, return the bottom-up level order traversal of its nodes' values. (i.e., from left to right, level by level from leaf to root).
+pub fn level_order_bottom(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<Vec<i32>> {
+    let mut val: Vec<Vec<i32>> = vec![];
+    let mut current_level: Vec<Rc<RefCell<TreeNode>>> = vec![];
+    if let Some(node) = root {
+        current_level.push(node);
+    }
+    while !current_level.is_empty() {
+        let mut next = vec![];
+        let mut values = vec![];
+        for cur in current_level {
+            let mut node = cur.borrow_mut();
+            values.push(node.val);
+            if let Some(left) = node.left.take() {
+                next.push(left);
+            }
+            if let Some(right) = node.right.take() {
+                next.push(right);
+            }
+        }
+        val.push(values);
+        current_level = next;
+    }
+    val.reverse();
+    return val;
+}
+
+///p108
+///
+/// Given an integer array nums where the elements are sorted in ascending order, convert it to a height-balanced binary search tree.
+pub fn sorted_array_to_bst(nums: Vec<i32>) -> Option<Rc<RefCell<TreeNode>>> {
+    if nums.is_empty() {
+        return None;
+    }
+    let mid = (nums.len() - 1) / 2;
+    let left = sorted_array_to_bst(nums[0..mid].to_vec());
+    let right = sorted_array_to_bst(nums[mid + 1..].to_vec());
+    return Some(Rc::new(RefCell::new(TreeNode {
+        val: nums[mid],
+        left,
+        right,
+    })));
+}
