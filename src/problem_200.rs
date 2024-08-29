@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::common::TreeNode;
+use crate::common::{ListNode, TreeNode};
 
 ///p101
 ///
@@ -193,4 +193,85 @@ pub fn sorted_array_to_bst(nums: Vec<i32>) -> Option<Rc<RefCell<TreeNode>>> {
         left,
         right,
     })));
+}
+
+///p109
+///
+///Given the head of a singly linked list where elements are sorted in ascending order, convert it to a height-balanced binary search tree.
+pub fn sorted_list_to_bst(head: Option<Box<ListNode>>) -> Option<Rc<RefCell<TreeNode>>> {
+    let mut head = head;
+    let mut nums: Vec<i32> = vec![];
+    while let Some(mut node) = head {
+        nums.push(node.val);
+        head = node.next.take();
+    }
+    fn sorted_array_to_bst(nums: Vec<i32>) -> Option<Rc<RefCell<TreeNode>>> {
+        if nums.is_empty() {
+            return None;
+        }
+        let mid = (nums.len() - 1) / 2;
+        let left = sorted_array_to_bst(nums[0..mid].to_vec());
+        let right = sorted_array_to_bst(nums[mid + 1..].to_vec());
+        return Some(Rc::new(RefCell::new(TreeNode {
+            val: nums[mid],
+            left,
+            right,
+        })));
+    }
+    return sorted_array_to_bst(nums);
+}
+
+///p110
+///
+///Given a binary tree, determine if it is height-balanced.
+pub fn is_balanced(root: Option<Rc<RefCell<TreeNode>>>) -> bool {
+    fn is_balanced_and_depth(root: Option<Rc<RefCell<TreeNode>>>) -> (bool, usize) {
+        let root = root;
+        match root {
+            None => return (true, 0),
+            Some(node) => {
+                let left = is_balanced_and_depth(node.borrow_mut().left.take());
+                let right = is_balanced_and_depth(node.borrow_mut().right.take());
+                return (
+                    left.0 && right.0 && left.1.abs_diff(right.1) <= 1,
+                    left.1.max(right.1) + 1,
+                );
+            }
+        };
+    }
+    return is_balanced_and_depth(root).0;
+}
+
+///p111
+///
+/// Given a binary tree, find its minimum depth.
+///The minimum depth is the number of nodes along the shortest path from the root node down to the nearest leaf node.
+pub fn min_depth(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    if let Some(node) = root {
+        let mut node = node.borrow_mut();
+        if node.right.is_none() {
+            return min_depth(node.left.take()) + 1;
+        }
+        if node.left.is_none() {
+            return min_depth(node.right.take()) + 1;
+        }
+        return min_depth(node.left.take()).min(min_depth(node.right.take())) + 1;
+    }
+    return 0;
+}
+
+///p112
+///
+///Given the root of a binary tree and an integer targetSum, return true if the tree has a root-to-leaf path such that adding up all the values along the path equals targetSum.
+pub fn has_path_sum(root: Option<Rc<RefCell<TreeNode>>>, target_sum: i32) -> bool {
+    if let Some(node) = root {
+        let mut node = node.borrow_mut();
+        let target_sum = target_sum - node.val;
+        if node.left.is_none() && node.right.is_none() {
+            return target_sum == 0;
+        }
+        return has_path_sum(node.left.take(), target_sum)
+            || has_path_sum(node.right.take(), target_sum);
+    }
+    return false;
 }
