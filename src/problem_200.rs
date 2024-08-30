@@ -275,3 +275,60 @@ pub fn has_path_sum(root: Option<Rc<RefCell<TreeNode>>>, target_sum: i32) -> boo
     }
     return false;
 }
+
+///p113
+///
+/// Given the root of a binary tree and an integer targetSum, return all root-to-leaf paths where the sum of the node values in the path equals targetSum. Each path should be returned as a list of the node values, not node references. A root-to-leaf path is a path starting from the root and ending at any leaf node. A leaf is a node with no children.
+pub fn path_sum(root: Option<Rc<RefCell<TreeNode>>>, target_sum: i32) -> Vec<Vec<i32>> {
+    let mut all_path: Vec<Vec<i32>> = vec![];
+    let mut cur_path: Vec<i32> = vec![];
+    fn dfs(
+        root: &Option<Rc<RefCell<TreeNode>>>,
+        cur_path: &mut Vec<i32>,
+        all_path: &mut Vec<Vec<i32>>,
+        target_sum: i32,
+    ) {
+        match root {
+            None => return,
+            Some(val) => {
+                let node = val.borrow_mut();
+                cur_path.push(node.val);
+                if node.left.is_none() && node.right.is_none() {
+                    let cur_sum = cur_path.iter().fold(0, |acc, cur| acc + *cur);
+                    if cur_sum == target_sum {
+                        all_path.push(cur_path.to_vec());
+                    }
+                } else {
+                    dfs(&node.left, cur_path, all_path, target_sum);
+                    dfs(&node.right, cur_path, all_path, target_sum);
+                }
+                cur_path.pop();
+            }
+        }
+    }
+    dfs(&root, &mut cur_path, &mut all_path, target_sum);
+    return all_path;
+}
+
+///p114
+///
+/// Given the root of a binary tree, flatten the tree into a "linked list":
+/// The "linked list" should use the same TreeNode class where the right child pointer points to the next node in the list and the left child pointer is always null.
+/// The "linked list" should be in the same order as a pre-order traversal of the binary tree.
+pub fn flatten(root: &mut Option<Rc<RefCell<TreeNode>>>) {
+    let mut curr = root.as_ref().map(|n| n.clone());
+    while let Some(curr_node) = curr {
+        let mut curr_node = curr_node.borrow_mut();
+        if let Some(next_node) = curr_node.left.take() {
+            let mut predecessor = next_node.clone();
+            let mut predecessor_right = predecessor.borrow().right.clone();
+            while let Some(node) = predecessor_right {
+                predecessor_right = node.borrow().right.clone();
+                predecessor = node;
+            }
+            predecessor.borrow_mut().right = curr_node.right.take();
+            curr_node.right = Some(next_node);
+        }
+        curr = curr_node.right.clone();
+    }
+}
