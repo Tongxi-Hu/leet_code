@@ -332,3 +332,104 @@ pub fn flatten(root: &mut Option<Rc<RefCell<TreeNode>>>) {
         curr = curr_node.right.clone();
     }
 }
+
+///p115
+///
+/// Given two strings s and t, return the number of distinct subsequences of s which equals t. The test cases are generated so that the answer fits on a 32-bit signed integer.
+pub fn num_distinct(s: String, t: String) -> i32 {
+    let s_char = s.chars().collect::<Vec<char>>();
+    let s_len = s_char.len();
+    let t_char = t.chars().collect::<Vec<char>>();
+    let t_len = t_char.len();
+    if s_char.len() < t_char.len() {
+        return 0;
+    }
+    let mut dp: Vec<Vec<usize>> = vec![vec![0; t_len + 1]; s_len + 1];
+    for i in 0..=s_len {
+        dp[i][t_len] = 1;
+    }
+    for i in (0..=s_len - 1).rev() {
+        for j in (0..=t_len - 1).rev() {
+            if s_char[i] == t_char[j] {
+                dp[i][j] = dp[i + 1][j + 1] + dp[i + 1][j];
+            } else {
+                dp[i][j] = dp[i + 1][j];
+            }
+        }
+    }
+    return dp[0][0] as i32;
+}
+
+///p118
+///
+///Given an integer numRows, return the first numRows of Pascal's triangle.
+pub fn generate(num_rows: i32) -> Vec<Vec<i32>> {
+    let num_rows = num_rows as usize;
+    let mut ans: Vec<Vec<i32>> = vec![vec![1]];
+    if num_rows == 1 {
+        return ans;
+    }
+    ans.push(vec![1, 1]);
+    if num_rows == 2 {
+        return ans;
+    }
+    for i in 3..=num_rows {
+        let mut temp = vec![0; i];
+        let last = ans.last().unwrap();
+        temp[0] = 1;
+        temp[i - 1] = 1;
+        for j in 1..=i - 2 {
+            temp[j] = last[j - 1] + last[j]
+        }
+        ans.push(temp);
+    }
+    return ans;
+}
+
+///p119
+///
+/// Given an integer rowIndex, return the rowIndexth (0-indexed) row of the Pascal's triangle.
+pub fn get_row(row_index: i32) -> Vec<i32> {
+    let row_index: usize = row_index as usize;
+    if row_index == 0 {
+        return vec![1];
+    };
+    if row_index == 1 {
+        return vec![1, 1];
+    }
+    let last = get_row((row_index - 1) as i32);
+    let mut ans = vec![0; row_index + 1];
+    ans[0] = 1;
+    ans[row_index] = 1;
+    for i in 1..=row_index - 1 {
+        ans[i] = last[i - 1] + last[i]
+    }
+    return ans;
+}
+
+///p120
+///
+///Given a triangle array, return the minimum path sum from top to bottom.
+///For each step, you may move to an adjacent number of the row below. More formally, if you are on index i on the current row, you may move to either index i or index i + 1 on the next row.
+pub fn minimum_total(triangle: Vec<Vec<i32>>) -> i32 {
+    let mut min_sum: Vec<Vec<i32>> = vec![];
+    min_sum.push(triangle[0].to_vec());
+    for i in 1..triangle.len() {
+        let mut temp = vec![];
+        for j in 0..triangle[i].len() {
+            if j == 0 {
+                temp.push(triangle[i][j] + min_sum[i - 1][j]);
+            } else if j == triangle[i].len() - 1 {
+                temp.push(triangle[i][j] + min_sum[i - 1][j - 1]);
+            } else {
+                temp.push(triangle[i][j] + min_sum[i - 1][j - 1].min(min_sum[i - 1][j]));
+            }
+        }
+        min_sum.push(temp.to_vec())
+    }
+    return min_sum
+        .last()
+        .unwrap()
+        .into_iter()
+        .fold(core::i32::MAX, |acc, cur| acc.min(*cur));
+}
