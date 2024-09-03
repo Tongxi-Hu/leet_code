@@ -433,3 +433,94 @@ pub fn minimum_total(triangle: Vec<Vec<i32>>) -> i32 {
         .into_iter()
         .fold(core::i32::MAX, |acc, cur| acc.min(*cur));
 }
+
+///p121
+///
+///You are given an array prices where prices[i] is the price of a given stock on the ith day. You want to maximize your profit by choosing a single day to buy one stock and choosing a different day in the future to sell that stock. Find and return the maximum profit you can achieve.
+pub fn max_profit(prices: Vec<i32>) -> i32 {
+    let mut min = core::i32::MAX;
+    let mut max_profit = 0;
+    for &price in prices.iter() {
+        if price < min {
+            min = price;
+        } else {
+            max_profit = max_profit.max(price - min);
+        }
+    }
+    return max_profit;
+}
+
+///p122
+///
+/// You are given an integer array prices where prices[i] is the price of a given stock on the ith day. On each day, you may decide to buy and/or sell the stock. You can only hold at most one share of the stock at any time. However, you can buy it then immediately sell it on the same day. Find and return the maximum profit you can achieve.
+pub fn max_profit_2(prices: Vec<i32>) -> i32 {
+    let mut dp: Vec<(i32, i32)> = vec![];
+    dp.push((0, -prices[0]));
+    for i in 1..prices.len() {
+        dp.push((
+            dp[i - 1].0.max(dp[i - 1].1 + prices[i]),
+            dp[i - 1].1.max(dp[i - 1].0 - prices[i]),
+        ))
+    }
+    return dp[prices.len() - 1].0;
+}
+
+///p123
+///
+/// You are given an array prices where prices[i] is the price of a given stock on the ith day. Find the maximum profit you can achieve. You may complete at most two transactions. Note: You may not engage in multiple transactions simultaneously (i.e., you must sell the stock before you buy again).
+pub fn max_profit_3(prices: Vec<i32>) -> i32 {
+    let length = prices.len();
+    let (mut buy_1, mut sell_1, mut buy_2, mut sell_2) = (-prices[0], 0, -prices[0], 0);
+    for i in 0..length {
+        buy_1 = buy_1.max(-prices[i]);
+        sell_1 = sell_1.max(buy_1 + prices[i]);
+        buy_2 = buy_2.max(sell_1 - prices[i]);
+        sell_2 = sell_2.max(buy_2 + prices[i]);
+    }
+    return sell_2;
+}
+
+///p124
+///
+///A path in a binary tree is a sequence of nodes where each pair of adjacent nodes in the sequence has an edge connecting them. A node can only appear in the sequence at most once. Note that the path does not need to pass through the root. The path sum of a path is the sum of the node's values in the path. Given the root of a binary tree, return the maximum path sum of any non-empty path.
+pub fn max_path_sum(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    let mut max_path = core::i32::MIN;
+    fn max_gain(root: &Option<Rc<RefCell<TreeNode>>>, max_path: &mut i32) -> i32 {
+        if let Some(node) = root {
+            let left_gain = max_gain(&node.borrow().left, max_path).max(0);
+            let right_gain = max_gain(&node.borrow().right, max_path).max(0);
+            let new_path = node.borrow().val + left_gain + right_gain;
+            *max_path = (*max_path).max(new_path);
+            return node.borrow().val + left_gain.max(right_gain);
+        }
+        return 0;
+    }
+    max_gain(&root, &mut max_path);
+    return max_path;
+}
+
+///p125
+/// Given a string s, return true if it is a palindrome, or false otherwise.
+///A phrase is a palindrome if, after converting all uppercase letters into lowercase letters and removing all non-alphanumeric characters, it reads the same forward and backward. Alphanumeric characters include letters and numbers.
+pub fn is_palindrome(s: String) -> bool {
+    let chars: Vec<char> = s.chars().collect();
+    let (mut left, mut right) = (0, chars.len() - 1);
+    while left < right {
+        while left < right && !chars[left].is_alphanumeric() {
+            left = left + 1;
+        }
+        while left < right && !chars[right].is_alphanumeric() {
+            right = right - 1;
+        }
+        if left < right {
+            if chars[left].to_lowercase().cmp(chars[right].to_lowercase())
+                != core::cmp::Ordering::Equal
+            {
+                return false;
+            }
+            left = left + 1;
+            right = right - 1;
+        }
+    }
+    return true;
+}
