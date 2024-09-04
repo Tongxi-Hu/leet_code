@@ -524,3 +524,148 @@ pub fn is_palindrome(s: String) -> bool {
     }
     return true;
 }
+
+///p126
+
+///p127
+
+///p128
+///
+/// Given an unsorted array of integers nums, return the length of the longest consecutive elements sequence.
+pub fn longest_consecutive(nums: Vec<i32>) -> i32 {
+    let mut record = 0;
+    let nums_set: std::collections::HashSet<&i32> =
+        std::collections::HashSet::from_iter(nums.iter());
+    for &item in nums_set.iter() {
+        if let Some(_) = nums_set.get(&(item - 1)) {
+            continue;
+        } else {
+            let mut this_record = 1;
+            let mut target = item + 1;
+            while let Some(_) = nums_set.get(&target) {
+                target = target + 1;
+                this_record = this_record + 1;
+            }
+            record = record.max(this_record);
+        }
+    }
+    return record;
+}
+
+///p129
+///
+/// You are given the root of a binary tree containing digits from 0 to 9 only.
+/// Each root-to-leaf path in the tree represents a number.
+/// For example, the root-to-leaf path 1 -> 2 -> 3 represents the number 123.
+/// Return the total sum of all root-to-leaf numbers.
+pub fn sum_numbers(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    fn path(root: &Option<Rc<RefCell<TreeNode>>>) -> Vec<String> {
+        if let Some(node) = root {
+            let left_path = path(&node.borrow().left);
+            let right_path = path(&node.borrow().right);
+            let mut new_left: Vec<String> = left_path
+                .into_iter()
+                .map(|mut val| {
+                    val.insert_str(0, &node.borrow().val.to_string());
+                    return val;
+                })
+                .collect();
+            let mut new_right: Vec<String> = right_path
+                .into_iter()
+                .map(|mut val| {
+                    val.insert_str(0, &node.borrow().val.to_string());
+                    return val;
+                })
+                .collect();
+            new_left.append(&mut new_right);
+            if new_left.len() == 0 {
+                return vec![node.borrow().val.to_string()];
+            } else {
+                return new_left;
+            }
+        }
+        return vec![];
+    }
+    let all_path = path(&root);
+    return all_path
+        .iter()
+        .fold(0, |acc, cur| acc + cur.parse::<i32>().unwrap_or(0));
+}
+
+///p130
+///
+/// You are given an m x n matrix board containing letters 'X' and 'O', capture regions that are surrounded:
+pub fn solve(board: &mut Vec<Vec<char>>) {
+    let rows = board.len();
+    let cols = board[0].len();
+    let mut mark = vec![vec![false; cols]; rows];
+    fn mark_neighbors(
+        rows: i32,
+        cols: i32,
+        row: i32,
+        col: i32,
+        mark: &mut Vec<Vec<bool>>,
+        board: &mut Vec<Vec<char>>,
+    ) {
+        let range: [i32; 2] = [-1, 1];
+        for ver in range {
+            let location = [row + ver, col];
+            if location[0] < rows && location[0] > -1 && location[1] < cols && location[1] > -1 {
+                if board[location[0] as usize][location[1] as usize] == 'O'
+                    && mark[location[0] as usize][location[1] as usize] == false
+                {
+                    mark[location[0] as usize][location[1] as usize] = true;
+                    mark_neighbors(rows, cols, location[0], location[1], mark, board)
+                }
+            }
+        }
+        for hor in range {
+            let location = [row, col + hor];
+            if location[0] < rows && location[0] > -1 && location[1] < cols && location[1] > -1 {
+                if board[location[0] as usize][location[1] as usize] == 'O'
+                    && mark[location[0] as usize][location[1] as usize] == false
+                {
+                    mark[location[0] as usize][location[1] as usize] = true;
+                    mark_neighbors(rows, cols, location[0], location[1], mark, board)
+                }
+            }
+        }
+    }
+    for row in vec![0, rows - 1] {
+        for col in 0..cols {
+            if board[row][col] == 'O' {
+                mark[row][col] = true;
+                mark_neighbors(
+                    rows as i32,
+                    cols as i32,
+                    row as i32,
+                    col as i32,
+                    &mut mark,
+                    board,
+                )
+            }
+        }
+    }
+    for col in vec![0, cols - 1] {
+        for row in 0..rows {
+            if board[row][col] == 'O' {
+                mark[row][col] = true;
+                mark_neighbors(
+                    rows as i32,
+                    cols as i32,
+                    row as i32,
+                    col as i32,
+                    &mut mark,
+                    board,
+                )
+            }
+        }
+    }
+    for r in 0..rows {
+        for c in 0..cols {
+            if mark[r][c] == false && board[r][c] == 'O' {
+                board[r][c] = 'X'
+            }
+        }
+    }
+}
