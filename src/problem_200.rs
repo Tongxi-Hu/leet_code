@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, path, rc::Rc};
 
 use crate::common::{ListNode, TreeNode};
 
@@ -668,4 +668,70 @@ pub fn solve(board: &mut Vec<Vec<char>>) {
             }
         }
     }
+}
+
+///p131
+///
+/// Given a string s, partition s such that every substring of the partition is a palindrome. Return all possible palindrome partitioning of s.
+pub fn partition(s: String) -> Vec<Vec<String>> {
+    let chars: Vec<char> = s.chars().collect();
+    let length = chars.len();
+    let mut ans: Vec<Vec<String>> = vec![];
+    let mut current: Vec<String> = vec![];
+    fn dfs(
+        current: &mut Vec<String>,
+        ans: &mut Vec<Vec<String>>,
+        chars: &Vec<char>,
+        length: usize,
+        index: usize,
+    ) {
+        if index == length {
+            ans.push(current.to_vec());
+            return;
+        } else {
+            for j in index..length {
+                let in_order = Vec::from_iter(chars[index..=j].iter().cloned());
+                let rev_order = Vec::from_iter(chars[index..=j].iter().rev().cloned());
+                if in_order == rev_order {
+                    current.push(in_order.into_iter().collect::<String>());
+                    dfs(current, ans, chars, length, j + 1);
+                    current.pop();
+                }
+            }
+        }
+    }
+
+    dfs(&mut current, &mut ans, &chars, length, 0);
+    return ans;
+}
+
+///p132
+///
+/// Return the minimum cuts needed for a palindrome partitioning of s.
+pub fn min_cut(s: String) -> i32 {
+    let chars: Vec<char> = s.chars().collect();
+    let length = chars.len();
+    let mut measure: Vec<Vec<bool>> = vec![vec![true; length]; length];
+    for i in (0..length).rev() {
+        for j in 0..length {
+            if i >= j {
+                measure[i][j] = true;
+            } else {
+                measure[i][j] = chars[i] == chars[j] && measure[i + 1][j - 1];
+            }
+        }
+    }
+    let mut cuts: Vec<usize> = vec![length; length];
+    for i in 0..length {
+        if measure[0][i] == true {
+            cuts[i] = 0;
+        } else {
+            for k in 0..i {
+                if measure[k + 1][i] == true {
+                    cuts[i] = cuts[i].min(cuts[k] + 1);
+                }
+            }
+        }
+    }
+    return cuts[length - 1] as i32;
 }
