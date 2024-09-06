@@ -1,4 +1,4 @@
-use std::{cell::RefCell, path, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
 use crate::common::{ListNode, TreeNode};
 
@@ -786,4 +786,17 @@ pub fn candy(ratings: Vec<i32>) -> i32 {
         .iter()
         .zip(right)
         .fold(0, |acc, cur| acc + cur.0.max(&cur.1));
+}
+
+///p136
+pub fn single_number(nums: Vec<i32>) -> i32 {
+    let mut record: std::collections::HashSet<i32> = std::collections::HashSet::new();
+    for i in nums {
+        if let Some(_) = record.get(&i) {
+            record.remove(&i);
+        } else {
+            record.insert(i);
+        }
+    }
+    *record.iter().collect::<Vec<&i32>>()[0]
 }
