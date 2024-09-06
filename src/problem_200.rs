@@ -735,3 +735,55 @@ pub fn min_cut(s: String) -> i32 {
     }
     return cuts[length - 1] as i32;
 }
+
+///p133
+
+///p134
+///
+/// Given two integer arrays gas and cost, return the starting gas station's index if you can travel around the circuit once in the clockwise direction, otherwise return -1. If there exists a solution, it is guaranteed to be unique.
+pub fn can_complete_circuit(gas: Vec<i32>, cost: Vec<i32>) -> i32 {
+    let mut cur = 0;
+    let (mut sum, mut pre) = (0, 0);
+    let retain: Vec<i32> = gas.iter().zip(cost).map(|(&x, y)| x - y).collect();
+
+    for (i, &n) in retain.iter().enumerate() {
+        sum += n;
+        if sum < 0 {
+            pre += sum;
+            sum = 0;
+            cur = i + 1;
+        }
+    }
+    if pre + sum < 0 {
+        -1
+    } else {
+        cur as i32
+    }
+}
+
+///p135
+///
+/// There are n children standing in a line. Each child is assigned a rating value given in the integer array ratings.
+/// You are giving candies to these children subjected to the following requirements:
+/// Each child must have at least one candy.
+/// Children with a higher rating get more candies than their neighbors.
+/// Return the minimum number of candies you need to have to distribute the candies to the children.
+pub fn candy(ratings: Vec<i32>) -> i32 {
+    let length = ratings.len();
+    let mut left = vec![1; length];
+    for i in 1..length {
+        if ratings[i] > ratings[i - 1] {
+            left[i] = left[i - 1] + 1;
+        }
+    }
+    let mut right = vec![1; length];
+    for i in (0..length - 1).rev() {
+        if ratings[i] > ratings[i + 1] {
+            right[i] = right[i + 1] + 1;
+        }
+    }
+    return left
+        .iter()
+        .zip(right)
+        .fold(0, |acc, cur| acc + cur.0.max(&cur.1));
+}
