@@ -800,3 +800,85 @@ pub fn single_number(nums: Vec<i32>) -> i32 {
     }
     *record.iter().collect::<Vec<&i32>>()[0]
 }
+
+///p137
+///
+/// Given an integer array nums where every element appears three times except for one, which appears exactly once. Find the single element and return it.
+/// You must implement a solution with a linear runtime complexity and use only constant extra space.
+pub fn single_number_2(nums: Vec<i32>) -> i32 {
+    let mut record: std::collections::HashMap<i32, usize> = std::collections::HashMap::new();
+    for i in nums {
+        match record.get(&i) {
+            None => {
+                record.insert(i, 1);
+            }
+            Some(1) => {
+                record.insert(i, 2);
+            }
+            Some(2) => {
+                record.remove(&i);
+            }
+            Some(_) => {}
+        }
+    }
+    return record.iter().map(|item| *(item.0)).collect::<Vec<i32>>()[0];
+}
+
+///p138
+
+///p139
+///
+///Given a string s and a dictionary of strings wordDict, return true if s can be segmented into a space-separated sequence of one or more dictionary words.
+pub fn word_break(s: String, word_dict: Vec<String>) -> bool {
+    let chars: Vec<char> = s.chars().collect();
+    let mut dp = vec![false; chars.len() + 1];
+    dp[0] = true;
+    for i in 1..=chars.len() {
+        for j in 0..i {
+            if dp[j] == true && word_dict.contains(&s[j..i].to_string()) {
+                dp[i] = true;
+                break;
+            }
+        }
+    }
+    return dp[chars.len()];
+}
+
+///p140
+///
+/// Given a string s and a dictionary of strings wordDict, add spaces in s to construct a sentence where each word is a valid dictionary word. Return all such possible sentences in any order.
+pub fn word_break_2(s: String, word_dict: Vec<String>) -> Vec<String> {
+    let mut solutions = Vec::new();
+    let mut solution = Vec::new();
+    let g = word_dict
+        .into_iter()
+        .collect::<std::collections::HashSet<_>>();
+    fn dfs(
+        s: &str,
+        g: &std::collections::HashSet<String>,
+        solutions: &mut Vec<String>,
+        solution: &mut Vec<String>,
+        pos: usize,
+    ) {
+        let length = s.len();
+
+        if pos == length {
+            solutions.push(solution.join(" "));
+            return;
+        }
+
+        for i in (pos + 1)..=length {
+            let w = s[pos..i].to_string();
+
+            if g.contains(&w) {
+                solution.push(w);
+                dfs(s, g, solutions, solution, i);
+                solution.pop();
+            }
+        }
+    }
+
+    dfs(&s, &g, &mut solutions, &mut solution, 0);
+
+    solutions
+}
