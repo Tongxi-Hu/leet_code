@@ -882,3 +882,76 @@ pub fn word_break_2(s: String, word_dict: Vec<String>) -> Vec<String> {
 
     solutions
 }
+
+///p141
+
+///p142
+
+///p143  
+///
+///   
+pub fn reorder_list(head: &mut Option<Box<ListNode>>) {
+    let mut list: Vec<Box<ListNode>> = vec![];
+    let mut pointer = head.clone();
+    while let Some(mut node) = pointer {
+        let next = node.next.take();
+        list.push(node.clone());
+        pointer = next;
+    }
+
+    let cnt = list.len();
+    if cnt < 3 {
+        return;
+    }
+
+    let mut end = None;
+    if cnt & 1 == 1 {
+        end = Some(list[cnt / 2].clone());
+    }
+    for i in (cnt + 1) / 2..cnt {
+        let mut one = list[cnt - 1 - i].clone();
+        let mut two = list[i].clone();
+        two.next = end.take();
+
+        one.next.replace(two);
+
+        end.replace(one);
+    }
+    head.replace(end.unwrap());
+}
+
+///p144
+///
+///Given the root of a binary tree, return the preorder traversal of its nodes' values.
+pub fn preorder_traversal(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<i32> {
+    let mut ans = vec![];
+    match root {
+        None => {}
+        Some(node) => {
+            ans.push(node.borrow().val);
+            let mut left = preorder_traversal(node.borrow().left.clone());
+            let mut right = preorder_traversal(node.borrow().right.clone());
+            ans.append(&mut left);
+            ans.append(&mut right);
+        }
+    }
+    return ans;
+}
+
+///p145
+///
+///Given the root of a binary tree, return the postorder traversal of its nodes' values.
+pub fn postorder_traversal(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<i32> {
+    let mut ans = vec![];
+    match root {
+        None => {}
+        Some(node) => {
+            let mut left = postorder_traversal(node.borrow_mut().left.take());
+            let mut right = postorder_traversal(node.borrow_mut().right.take());
+            ans.append(&mut left);
+            ans.append(&mut right);
+            ans.push(node.borrow().val);
+        }
+    }
+    return ans;
+}
