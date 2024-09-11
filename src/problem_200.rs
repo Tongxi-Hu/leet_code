@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, num::NonZero, rc::Rc};
 
 use crate::common::{ListNode, TreeNode};
 
@@ -954,4 +954,59 @@ pub fn postorder_traversal(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<i32> {
         }
     }
     return ans;
+}
+
+///p146
+
+///p147
+///
+pub fn insertion_sort_list(head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
+    let mut anchor = Some(Box::new(ListNode::new(0)));
+    let mut head = head;
+
+    while let Some(mut node) = head {
+        head = node.next.take();
+
+        let mut tail = &mut anchor;
+        while tail.as_ref().unwrap().next.is_some()
+            && (tail.as_ref().unwrap().next.as_ref().unwrap().val < node.val)
+        {
+            tail = &mut tail.as_mut().unwrap().next;
+        }
+
+        let half2 = tail.as_mut().unwrap().next.take();
+        node.next = half2;
+        tail.as_mut().unwrap().next = Some(node);
+    }
+
+    match anchor {
+        Some(x) => x.next,
+        None => None,
+    }
+}
+
+///p148
+///
+/// Given the head of a linked list, return the list after sorting it in ascending order.
+pub fn sort_list(head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
+    let mut values: Vec<i32> = vec![];
+    let mut pointer = &head;
+    while let Some(node) = pointer {
+        values.push(node.val);
+        pointer = &node.next;
+    }
+    values.sort();
+    if values.len() == 0 {
+        return None;
+    } else {
+        let mut head = Some(Box::new(ListNode::new(values[0])));
+        let mut pointer = &mut head;
+        for i in 1..values.len() {
+            if let Some(node) = pointer {
+                node.next = Some(Box::new(ListNode::new(values[i])));
+                pointer = &mut node.next;
+            }
+        }
+        return head;
+    }
 }
