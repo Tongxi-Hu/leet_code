@@ -1095,26 +1095,26 @@ pub fn eval_rpn(tokens: Vec<String>) -> i32 {
     return number_stack[0];
 }
 
-
 /// p151
-/// 
+///
 /// Return a string of the words in reverse order concatenated by a single space.
 pub fn reverse_words(s: String) -> String {
-    let mut words:Vec<&str>=s.split(' ').collect::<Vec<&str>>();
+    let mut words: Vec<&str> = s.split(' ').collect::<Vec<&str>>();
     words.reverse();
-    return words.into_iter().filter(|item|{
-        *item!=""
-    }).fold("".to_owned(), |mut acc,cur|{
-        if acc!=""{
-        acc.push_str(" ");
-    }
-        acc.push_str(cur);
-        return acc
-    })
+    return words
+        .into_iter()
+        .filter(|item| *item != "")
+        .fold("".to_owned(), |mut acc, cur| {
+            if acc != "" {
+                acc.push_str(" ");
+            }
+            acc.push_str(cur);
+            return acc;
+        });
 }
 
 /// p152
-/// 
+///
 /// Given an integer array nums, find a subarray that has the largest product, and return the product.
 pub fn max_product(nums: Vec<i32>) -> i32 {
     let (mut mx, mut mn, mut ans) = (nums[0], nums[0], nums[0]);
@@ -1130,4 +1130,3 @@ pub fn max_product(nums: Vec<i32>) -> i32 {
     }
     ans
 }
-
