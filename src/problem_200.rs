@@ -1130,3 +1130,79 @@ pub fn max_product(nums: Vec<i32>) -> i32 {
     }
     ans
 }
+
+/// p153
+///
+/// Given the sorted rotated array nums of unique elements, return the minimum element of this array.
+pub fn find_min(nums: Vec<i32>) -> i32 {
+    let mut low = 0;
+    let mut high = nums.len() - 1;
+    while low < high {
+        let pivot = (high + low) / 2;
+        if nums[pivot] < nums[high] {
+            high = pivot;
+        } else {
+            low = pivot + 1;
+        }
+    }
+    return nums[low];
+}
+
+/// p154
+pub fn find_min_2(nums: Vec<i32>) -> i32 {
+    return *nums.iter().min().unwrap();
+}
+
+///p155
+struct MinStack {
+    stk: Vec<i32>,
+    min: Vec<i32>,
+}
+
+impl MinStack {
+    fn new() -> Self {
+        Self {
+            stk: vec![],
+            min: vec![],
+        }
+    }
+
+    fn push(&mut self, val: i32) {
+        self.stk.push(val);
+        if self.min.is_empty() || val <= *self.min.last().unwrap() {
+            self.min.push(val);
+        }
+    }
+
+    fn pop(&mut self) {
+        if self.stk.pop().unwrap() == *self.min.last().unwrap() {
+            self.min.pop();
+        }
+    }
+
+    fn top(&self) -> i32 {
+        *self.stk.last().unwrap()
+    }
+
+    fn get_min(&self) -> i32 {
+        *self.min.last().unwrap()
+    }
+}
+
+///p162
+///
+/// Given a 0-indexed integer array nums, find a peak element, and return its index. If the array contains multiple peaks, return the index to any of the peaks.
+pub fn find_peak_element(nums: Vec<i32>) -> i32 {
+    let n = nums.len();
+    let mut l = 0;
+    let mut r = n;
+    while l != r {
+        let mid = l + r >> 1;
+        if mid + 1 != n && nums[mid] <= nums[mid + 1] {
+            l = mid + 1; // discard
+        } else {
+            r = mid;
+        }
+    }
+    l as i32
+}
