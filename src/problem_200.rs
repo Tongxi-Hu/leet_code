@@ -1206,3 +1206,44 @@ pub fn find_peak_element(nums: Vec<i32>) -> i32 {
     }
     l as i32
 }
+
+/// p164
+///
+/// Given an integer array nums, return the maximum difference between two successive elements in its sorted form. If the array contains less than two elements, return 0.
+pub fn maximum_gap(mut nums: Vec<i32>) -> i32 {
+    let length = nums.len();
+    if length < 2 {
+        return 0;
+    }
+    nums.sort();
+    let mut max = 0;
+    for i in 0..length - 1 {
+        let gap = nums[i + 1] - nums[i];
+        if gap > max {
+            max = gap;
+        }
+    }
+    return max;
+}
+
+///p165
+pub fn compare_version(version1: String, version2: String) -> i32 {
+    let mut a = version1.split('.');
+    let mut b = version2.split('.');
+
+    let f = |s: Option<&str>| s.map_or(0, |x| x.parse::<i32>().unwrap());
+
+    loop {
+        let (s1, s2) = (a.next(), b.next());
+        if s1.is_none() && s2.is_none() {
+            return 0;
+        }
+
+        let (n1, n2) = (f(s1), f(s2));
+        if n1 < n2 {
+            return -1;
+        } else if n1 > n2 {
+            return 1;
+        }
+    }
+}
