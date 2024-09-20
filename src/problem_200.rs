@@ -1247,3 +1247,117 @@ pub fn compare_version(version1: String, version2: String) -> i32 {
         }
     }
 }
+
+/// p166
+pub fn fraction_to_decimal(numerator: i32, denominator: i32) -> String {
+    let (n, d) = (numerator, denominator);
+    let mut r = if n == 0 || (n > 0) == (d > 0) {
+        ""
+    } else {
+        "-"
+    }
+    .to_string();
+    let (mut n, mut d) = ((n as i64).abs(), (d as i64).abs());
+    r.push_str(&(n / d).to_string());
+    if {
+        n %= d;
+        n == 0
+    } {
+        return r;
+    }
+    r.push('.');
+    while n != 0
+        && match d % 10 {
+            0 => {
+                d /= 10;
+                true
+            }
+            5 => {
+                d /= 5;
+                n *= 2;
+                true
+            }
+            2 | 4 | 6 | 8 => {
+                d /= 2;
+                n *= 5;
+                true
+            }
+            _ => false,
+        }
+    {
+        r.push((b'0' + (n / d) as u8) as char);
+        n %= d
+    }
+    if n % d == 0 {
+        return r;
+    }
+    r.push('(');
+    let mut t = 1;
+    while {
+        n *= 10;
+        t = (t * 10) % d;
+        r.push((b'0' + (n / d) as u8) as char);
+        n %= d;
+        t != 1
+    } {}
+    r.push(')');
+    r
+}
+
+/// p167
+pub fn two_sum(numbers: Vec<i32>, target: i32) -> Vec<i32> {
+    let mut pointers: Vec<i32> = vec![1, numbers.len() as i32];
+    while pointers[0] < pointers[1] {
+        let sum = numbers[pointers[0] as usize - 1] + numbers[pointers[1] as usize - 1];
+        if sum == target {
+            return pointers;
+        } else if sum < target {
+            pointers[0] = pointers[0] + 1;
+        } else {
+            pointers[1] = pointers[1] - 1;
+        }
+    }
+    return pointers;
+}
+
+/// p168
+///
+/// A -> 1 B -> 2 C -> 3 ... Z -> 26 AA -> 27 AB -> 28
+pub fn convert_to_title(column_number: i32) -> String {
+    let mut sb = String::new();
+    let mut n = column_number;
+    while (n > 0) {
+        let pop = (n - 1) % 26;
+        n = (n - 1) / 26;
+        sb.push(('A' as u8 + pop as u8) as char);
+    }
+    sb.chars().rev().collect::<String>()
+}
+
+///p169
+///
+/// Given an array nums of size n, return the majority element.
+pub fn majority_element(nums: Vec<i32>) -> i32 {
+    let length = nums.len();
+    let mut count: std::collections::HashMap<i32, usize> = std::collections::HashMap::new();
+    for num in nums {
+        match count.get(&num) {
+            Some(val) => {
+                let cur = val + 1;
+                if cur > length / 2 {
+                    return num;
+                } else {
+                    count.insert(num, cur);
+                }
+            }
+            None => {
+                if 1 > length / 2 {
+                    return num;
+                } else {
+                    count.insert(num, 1);
+                }
+            }
+        }
+    }
+    return 0;
+}
