@@ -1361,3 +1361,31 @@ pub fn majority_element(nums: Vec<i32>) -> i32 {
     }
     return 0;
 }
+
+/// p171
+pub fn title_to_number(column_title: String) -> i32 {
+    let mut res = 0;
+    let v: Vec<i32> = column_title
+        .as_bytes()
+        .iter()
+        .map(|f| f.to_string().parse::<i32>().unwrap() - 64)
+        .collect();
+
+    for i in v {
+        res = res * 26 + i;
+    }
+    res
+}
+
+/// p172
+pub fn trailing_zeroes(n: i32) -> i32 {
+    let mut count = 0;
+    for i in 1..=n {
+        let mut current = i;
+        while current % 5 == 0 {
+            current = current / 5;
+            count = count + 1;
+        }
+    }
+    return count;
+}
