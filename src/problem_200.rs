@@ -1,4 +1,4 @@
-use std::{cell::RefCell, num::NonZero, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
 use crate::common::{ListNode, TreeNode};
 
@@ -1388,4 +1388,82 @@ pub fn trailing_zeroes(n: i32) -> i32 {
         }
     }
     return count;
+}
+
+/// p173
+struct BSTIterator {
+    stack: Vec<Option<Rc<RefCell<TreeNode>>>>,
+}
+
+impl BSTIterator {
+    fn new(root: Option<Rc<RefCell<TreeNode>>>) -> Self {
+        BSTIterator { stack: vec![root] }
+    }
+    fn next(&mut self) -> i32 {
+        let mut node = self.stack.pop().unwrap();
+        while node.is_some() || !self.stack.is_empty() {
+            while let Some(mut cur) = node {
+                let left = cur.borrow_mut().left.take();
+                self.stack.push(Some(cur));
+                node = left;
+            }
+            if let Some(top) = self.stack.pop() {
+                if let Some(mut cur) = top {
+                    node = cur.borrow_mut().right.take();
+                    if node.is_some() {
+                        self.stack.push(node);
+                    }
+                    return cur.borrow().val;
+                }
+            }
+        }
+        return -1;
+    }
+    fn has_next(&self) -> bool {
+        !self.stack.is_empty()
+    }
+}
+
+/// p174
+pub fn calculate_minimum_hp(dungeon: Vec<Vec<i32>>) -> i32 {
+    let m = dungeon.len();
+    let n = dungeon[0].len();
+    let mut dp = vec![vec![0; n]; 2];
+    dp[1][n - 1] = dungeon[m - 1][n - 1];
+    for j in (0..n - 1).rev() {
+        dp[1][j] = dungeon[m - 1][j] + 0.min(dp[1][1 + j]);
+    }
+    let mut row_flipped = false;
+    for i in (0..m - 1).rev() {
+        let (i_dp, i_dp_last) = if row_flipped { (1, 0) } else { (0, 1) };
+        dp[i_dp][n - 1] = dungeon[i][n - 1] + 0.min(dp[i_dp_last][n - 1]);
+
+        for j in (0..n - 1).rev() {
+            dp[i_dp][j] = dungeon[i][j] + 0.min(dp[i_dp][1 + j].max(dp[i_dp_last][j]))
+        }
+        row_flipped = !row_flipped;
+    }
+    let i_dp = if row_flipped { 0 } else { 1 };
+
+    1 - 0.min(dp[i_dp][0])
+}
+
+///p179
+pub fn largest_number(mut nums: Vec<i32>) -> String {
+    let cmp = |x, y| -> std::cmp::Ordering {
+        let (x, y) = (x as i64, y as i64);
+        let (mut sx, mut sy) = (10, 10);
+        while sx <= x {
+            sx *= 10
+        }
+        while sy <= y {
+            sy *= 10
+        }
+        (sx * y + x).cmp(&(sy * x + y))
+    };
+    nums.sort_unstable_by(|&a, &b| cmp(a, b));
+    if nums[0] == 0 {
+        return "0".into();
+    }
+    nums.iter().map(|i| i.to_string()).collect()
 }
