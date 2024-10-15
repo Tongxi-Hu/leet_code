@@ -1485,3 +1485,57 @@ pub fn find_repeated_dna_sequences(s: String) -> Vec<String> {
     }
     ans
 }
+
+///p188
+pub fn max_profit_4(k: i32, prices: Vec<i32>) -> i32 {
+    let n = prices.len();
+    let mut memo = vec![vec![vec![-1; 2]; k as usize + 1]; n]; // -1 表示没有计算过
+    fn dfs(i: i32, j: i32, hold: bool, prices: &Vec<i32>, memo: &mut Vec<Vec<Vec<i32>>>) -> i32 {
+        if j < 0 {
+            return i32::MIN / 2; // 防止溢出
+        }
+        if i < 0 {
+            return if hold { i32::MIN / 2 } else { 0 };
+        }
+        let iu = i as usize;
+        let ju = j as usize;
+        let hu = hold as usize;
+        if memo[iu][ju][hu] != -1 {
+            // 之前计算过
+            return memo[iu][ju][hu];
+        }
+        if hold {
+            memo[iu][ju][hu] = dfs(i - 1, j, true, prices, memo)
+                .max(dfs(i - 1, j - 1, false, prices, memo) - prices[iu]);
+        } else {
+            memo[iu][ju][hu] = dfs(i - 1, j, false, prices, memo)
+                .max(dfs(i - 1, j, true, prices, memo) + prices[iu]);
+        }
+        memo[iu][ju][hu]
+    }
+    dfs(n as i32 - 1, k, false, &prices, &mut memo)
+}
+
+///p189
+pub fn rotate(nums: &mut Vec<i32>, k: i32) {
+    if k == 0 {
+        return;
+    } else {
+        let k = k as usize % nums.len();
+        nums.reverse();
+        nums[..k].reverse();
+        nums[k..].reverse();
+    }
+}
+
+///p190
+pub fn reverse_bits(x: u32) -> u32 {
+    let mut x = x;
+    let mut res: u32 = 0;
+
+    for _ in 0..32 {
+        res = (res << 1) | (x & 1);
+        x >>= 1;
+    }
+    res
+}
