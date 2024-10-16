@@ -1539,3 +1539,40 @@ pub fn reverse_bits(x: u32) -> u32 {
     }
     res
 }
+
+///p191
+pub fn hamming_weight(mut n: i32) -> i32 {
+    let mut ret = 0;
+    while n != 0 {
+        n = n & (n - 1);
+        ret += 1;
+    }
+    ret
+}
+
+///p198
+pub fn rob(nums: Vec<i32>) -> i32 {
+    let mut dp = [0; 2];
+    for num in nums {
+        dp = [dp[1], (dp[0] + num).max(dp[1])];
+    }
+    dp[1]
+}
+
+///p199
+pub fn right_side_view(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<i32> {
+    fn dfs(node: &Option<Rc<RefCell<TreeNode>>>, depth: usize, ans: &mut Vec<i32>) {
+        if let Some(node) = node {
+            let node = node.borrow();
+            if depth == ans.len() {
+                // 这个深度首次遇到
+                ans.push(node.val);
+            }
+            dfs(&node.right, depth + 1, ans); // 先递归右子树，保证首次遇到的一定是最右边的节点
+            dfs(&node.left, depth + 1, ans);
+        }
+    }
+    let mut ans = vec![];
+    dfs(&root, 0, &mut ans);
+    ans
+}
