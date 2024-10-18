@@ -11,8 +11,6 @@ pub fn is_happy(n: i32) -> bool {
             .to_string()
             .chars()
             .map(|char| char.to_digit(10).unwrap())
-            .collect::<Vec<u32>>()
-            .into_iter()
             .fold(0, |acc, cur| return acc + (cur * cur) as i32);
         if n == 1 {
             return true;
