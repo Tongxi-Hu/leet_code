@@ -1576,3 +1576,39 @@ pub fn right_side_view(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<i32> {
     dfs(&root, 0, &mut ans);
     ans
 }
+
+///p200
+pub fn num_islands(grid: Vec<Vec<char>>) -> i32 {
+    let mut grid = grid;
+    let mut count = 0;
+    let height = grid.len();
+    let width = grid[0].len();
+
+    fn dfs(grid: &mut Vec<Vec<char>>, i: i32, j: i32) {
+        let height = grid.len();
+        let width = grid[0].len();
+        if i < 0 || j < 0 || i >= height as i32 || j >= width as i32 {
+            return;
+        }
+        match grid[i as usize][j as usize] {
+            '0' => return,
+            '1' => {
+                grid[i as usize][j as usize] = '0';
+                dfs(grid, i - 1, j);
+                dfs(grid, i + 1, j);
+                dfs(grid, i, j - 1);
+                dfs(grid, i, j + 1);
+            }
+            _ => return,
+        }
+    }
+    for i in 0..height {
+        for j in 0..width {
+            if grid[i][j] == '1' {
+                count = count + 1;
+                dfs(&mut grid, i as i32, j as i32)
+            }
+        }
+    }
+    return count;
+}
