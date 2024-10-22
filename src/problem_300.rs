@@ -418,3 +418,37 @@ pub fn find_kth_largest(nums: Vec<i32>, k: i32) -> i32 {
     }
     heap.peek().unwrap().0
 }
+
+///p216
+pub fn combination_sum3(k: i32, n: i32) -> Vec<Vec<i32>> {
+    let mut ans: Vec<Vec<i32>> = vec![];
+    let mut temp: Vec<i32> = vec![];
+    fn dfs(
+        left: i32,
+        right: i32,
+        num: i32,
+        sum: i32,
+        ans: &mut Vec<Vec<i32>>,
+        temp: &mut Vec<i32>,
+    ) {
+        if temp.len() as i32 + right - left + 1 < num || temp.len() as i32 > num {
+            return;
+        };
+        if temp.len() as i32 == num && temp.iter().fold(0, |acc, cur| acc + cur) == sum {
+            ans.push(temp.clone());
+            return;
+        }
+        temp.push(left);
+        dfs(left + 1, right, num, sum, ans, temp);
+        temp.pop();
+        dfs(left + 1, right, num, sum, ans, temp);
+    }
+    dfs(1, 9, k, n, &mut ans, &mut temp);
+    return ans;
+}
+
+/// p217
+pub fn contains_duplicate(nums: Vec<i32>) -> bool {
+    let mut set: std::collections::HashSet<i32> = std::collections::HashSet::new();
+    return !nums.iter().all(|&x| set.insert(x));
+}
