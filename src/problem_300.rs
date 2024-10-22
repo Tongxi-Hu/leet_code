@@ -140,3 +140,281 @@ pub fn can_finish(num_courses: i32, prerequisites: Vec<Vec<i32>>) -> bool {
     }
     ans == num_courses
 }
+
+/// p208
+#[derive(Default)]
+pub struct Trie {
+    root: Node,
+}
+
+#[derive(Default)]
+struct Node {
+    // Some(Box(next_node)) -> 父节点是子节点的所有者
+    children: [Option<Box<Node>>; 26],
+    is_word: bool,
+}
+
+impl Trie {
+    pub fn new() -> Self {
+        Self::default()
+        // Trie {
+        //     root: Node {
+        //         children: [None; 26], -> 直接这样写是不行的，这种写法要求实现了Copy trait
+        //         is_word: false,
+        //     }
+        // }
+    }
+
+    pub fn insert(&mut self, word: String) {
+        let mut node = &mut self.root;
+        for c in word.as_bytes() {
+            let idx = (c - b'a') as usize;
+            let next = &mut node.children[idx];
+            // next.is_some() -> 直接取可变引用
+            // next.is_none() -> 插入新的节点，再取其可变引用
+            node = next.get_or_insert_with(Box::<Node>::default);
+        }
+        node.is_word = true;
+    }
+
+    pub fn search(&self, word: String) -> bool {
+        self.get_node(&word).map_or(false, |w| w.is_word)
+        // match self.get_node(&word) {
+        //     Some(w) if w.is_word => true,
+        //     _ => false
+        // }
+    }
+
+    pub fn starts_with(&self, prefix: String) -> bool {
+        self.get_node(&prefix).is_some()
+    }
+
+    /// 取 `s` 对应的节点，如果不存在则返回 `None`
+    fn get_node(&self, s: &str) -> Option<&Node> {
+        let mut node = &self.root;
+        for c in s.as_bytes() {
+            let idx = (c - b'a') as usize;
+            match &node.children[idx] {
+                Some(next) => node = next.as_ref(),
+                None => return None,
+            }
+        }
+        Some(node)
+    }
+}
+
+/// p209
+pub fn min_sub_array_len(target: i32, nums: Vec<i32>) -> i32 {
+    let n = nums.len();
+    let mut ans = n + 1;
+    let mut sum = 0; // 子数组元素和
+    let mut left = 0; // 子数组左端点
+    for (right, &x) in nums.iter().enumerate() {
+        // 枚举子数组右端点
+        sum += x;
+        while sum >= target {
+            // 满足要求
+            ans = ans.min(right - left + 1);
+            sum -= nums[left]; // 左端点右移
+            left += 1;
+        }
+    }
+    if ans <= n {
+        ans as i32
+    } else {
+        0
+    }
+}
+
+/// p210
+pub fn find_order(num_courses: i32, prerequisites: Vec<Vec<i32>>) -> Vec<i32> {
+    let mut indeg = vec![0; num_courses as usize];
+    let mut m: std::collections::HashMap<usize, Vec<usize>> = std::collections::HashMap::new();
+
+    for x in prerequisites {
+        indeg[x[0] as usize] += 1;
+        m.entry(x[1] as usize).or_default().push(x[0] as usize);
+    }
+
+    let mut count = 0;
+    let mut ans: Vec<i32> = Vec::new();
+    let mut q = std::collections::VecDeque::new();
+
+    for i in 0..num_courses as usize {
+        if indeg[i] == 0 {
+            q.push_back(i);
+        }
+    }
+
+    while !q.is_empty() {
+        let v = q.pop_front().unwrap();
+        count += 1;
+        ans.push(v as i32);
+
+        if let Some(x) = m.get(&v) {
+            for &i in x {
+                indeg[i] -= 1;
+                if indeg[i] == 0 {
+                    q.push_back(i);
+                }
+            }
+        }
+    }
+
+    if count != num_courses {
+        return vec![];
+    }
+
+    ans
+}
+
+/// p211
+struct DictTree {
+    is_end: bool,
+    son: Vec<Option<DictTree>>,
+}
+
+impl DictTree {
+    fn new(is_end: bool) -> Self {
+        let mut son = Vec::with_capacity(26);
+        (0..26).for_each(|_| son.push(None));
+        Self { is_end, son }
+    }
+}
+
+struct WordDictionary {
+    tab: DictTree,
+}
+
+/**
+ * `&self` means the method takes an immutable reference.
+ * If you need a mutable reference, change it to `&mut self` instead.
+ */
+impl WordDictionary {
+    fn new() -> Self {
+        Self {
+            tab: DictTree::new(false),
+        }
+    }
+
+    fn add_word(&mut self, word: String) {
+        fn dfs(dt: &mut DictTree, s: &[u8], i: usize) {
+            if i < s.len() {
+                let c = s[i] as usize - b'a' as usize;
+                let t = if let Some(t) = dt.son[c].as_mut() {
+                    t
+                } else {
+                    dt.son[c] = Some(DictTree::new(false));
+                    dt.son[c].as_mut().unwrap()
+                };
+                dfs(t, s, i + 1)
+            } else {
+                dt.is_end = true
+            }
+        }
+        dfs(&mut self.tab, &mut word.as_bytes(), 0);
+    }
+
+    fn search(&self, word: String) -> bool {
+        fn dfs(dt: &DictTree, s: &[u8], i: usize) -> bool {
+            if i < s.len() {
+                if s[i] == b'.' {
+                    for son in dt.son.iter() {
+                        if let Some(t) = son {
+                            if dfs(t, s, i + 1) {
+                                return true;
+                            }
+                        }
+                    }
+                } else {
+                    let c = s[i] as usize - b'a' as usize;
+                    if let Some(t) = dt.son[c].as_ref() {
+                        return dfs(t, s, i + 1);
+                    }
+                }
+                false
+            } else {
+                if dt.is_end {
+                    true
+                } else {
+                    false
+                }
+            }
+        }
+        dfs(&self.tab, &word.as_bytes(), 0)
+    }
+}
+
+///p212
+
+///p213
+pub fn rob(nums: Vec<i32>) -> i32 {
+    fn rob1(nums: &Vec<i32>, start: usize, end: usize) -> i32 {
+        let mut f0 = 0;
+        let mut f1 = 0;
+        for i in start..end {
+            let new_f = f1.max(f0 + nums[i]);
+            f0 = f1;
+            f1 = new_f;
+        }
+        f1
+    }
+
+    let n = nums.len();
+    rob1(&nums, 1, n).max(nums[0] + rob1(&nums, 2, n - 1))
+}
+
+///p214
+pub fn shortest_palindrome(s: String) -> String {
+    let mut palindrome_end = s.len();
+    let chars = s.chars().collect::<Vec<char>>();
+    if palindrome_end <= 1 || is_palindrome(&chars) {
+        return s;
+    }
+    while palindrome_end >= 0 {
+        if is_palindrome(&chars[0..palindrome_end]) {
+            break;
+        }
+        palindrome_end -= 1;
+    }
+
+    chars[palindrome_end..]
+        .iter()
+        .rev()
+        .chain(&chars)
+        .collect::<String>()
+}
+
+fn is_palindrome(source: &[char]) -> bool {
+    if source.len() == 1 {
+        return true;
+    }
+    let mut i = 0;
+    let mut j = source.len() - 1;
+    while i <= j {
+        if source[i] != source[j] {
+            return false;
+        }
+        i += 1;
+        j -= 1;
+    }
+
+    true
+}
+
+///p215
+pub fn find_kth_largest(nums: Vec<i32>, k: i32) -> i32 {
+    let mut heap = std::collections::BinaryHeap::with_capacity(k as usize);
+
+    for n in nums {
+        if heap.len() == heap.capacity() {
+            if *heap.peek().unwrap() > std::cmp::Reverse(n) {
+                heap.pop();
+            } else {
+                continue;
+            }
+        }
+        heap.push(std::cmp::Reverse(n));
+    }
+    heap.peek().unwrap().0
+}
