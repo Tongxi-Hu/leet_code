@@ -452,3 +452,156 @@ pub fn contains_duplicate(nums: Vec<i32>) -> bool {
     let mut set: std::collections::HashSet<i32> = std::collections::HashSet::new();
     return !nums.iter().all(|&x| set.insert(x));
 }
+
+/// p218
+pub fn get_skyline(buildings: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+    // 1.
+    let mut max_heap: std::collections::BinaryHeap<(i32, i32)> =
+        std::collections::BinaryHeap::new();
+
+    // 2.
+    let mut build_edges = vec![];
+    for build in buildings.iter() {
+        build_edges.push(build[0]);
+        build_edges.push(build[1]);
+    }
+    build_edges.sort_unstable();
+
+    // 3.
+    let n = buildings.len();
+    let mut idx = 0_usize;
+    let mut result: Vec<Vec<i32>> = vec![];
+
+    for &edge in build_edges.iter() {
+        while idx < n && buildings[idx][0] <= edge {
+            max_heap.push((buildings[idx][2], buildings[idx][1]));
+            idx += 1;
+        }
+        while let Some(&(_, edge_end)) = max_heap.peek() {
+            if edge_end <= edge {
+                max_heap.pop();
+            } else {
+                break;
+            }
+        }
+
+        let cur_max_height = match max_heap.peek() {
+            Some(&(height, _)) => height,
+            None => 0,
+        };
+        if result.is_empty() || result.last().unwrap()[1] != cur_max_height {
+            result.push(vec![edge, cur_max_height]);
+        }
+    }
+
+    // 4.
+    result
+}
+
+/// p219
+pub fn contains_nearby_duplicate(nums: Vec<i32>, k: i32) -> bool {
+    let mut record: std::collections::HashMap<i32, usize> = std::collections::HashMap::new();
+    for (index, num) in nums.iter().enumerate() {
+        match record.get(num) {
+            Some(last) => {
+                if index - last <= k as usize {
+                    return true;
+                } else {
+                    record.insert(*num, index);
+                }
+            }
+            None => {
+                record.insert(*num, index);
+            }
+        }
+    }
+    return false;
+}
+
+/// p220
+fn neighbors<T: Ord>(tree: &std::collections::BTreeSet<T>, val: T) -> (Option<&T>, Option<&T>) {
+    let mut before = tree.range(..&val);
+    let mut after = tree.range(&val..);
+
+    (before.next_back(), after.next())
+}
+
+pub fn contains_nearby_almost_duplicate(nums: Vec<i32>, k: i32, t: i32) -> bool {
+    let t = t as i64;
+    let k = k as i64;
+    let mut tree: std::collections::BTreeSet<i64> = std::collections::BTreeSet::new();
+
+    for i in 0..nums.len() {
+        let u = nums[i] as i64;
+        let tmp = neighbors(&tree, u);
+        let (l, r) = tmp;
+        if let Some(&l) = l {
+            if u - l <= t {
+                return true;
+            }
+        }
+
+        if let Some(&r) = r {
+            if r - u <= t {
+                return true;
+            }
+        }
+        tree.insert(u);
+        if i >= k as usize {
+            tree.remove(&(nums[i - k as usize] as i64));
+        };
+    }
+
+    false
+}
+
+/// p221
+pub fn maximal_square(matrix: Vec<Vec<char>>) -> i32 {
+    let row = matrix.len();
+    let col = matrix[0].len();
+    let mut dp: Vec<Vec<usize>> = vec![vec![0; col]; row];
+    for (r, items) in matrix.into_iter().enumerate() {
+        for (c, item) in items.into_iter().enumerate() {
+            if item == '0' {
+                continue;
+            } else if r == 0 || c == 0 {
+                dp[r][c] = 1;
+            } else {
+                dp[r][c] = dp[r - 1][c].min(dp[r][c - 1].min(dp[r - 1][c - 1])) + 1;
+            }
+        }
+    }
+    let max = dp.into_iter().flatten().max().unwrap_or(0);
+    return (max * max) as i32;
+}
+
+///p222
+pub fn count_nodes(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    let mut total = 0;
+    match root {
+        Some(node) => {
+            let left_total = count_nodes(node.borrow().left.clone());
+            let right_total = count_nodes(node.borrow().right.clone());
+            total = 1 + left_total + right_total;
+        }
+        None => (),
+    }
+    return total;
+}
+
+///p223
+pub fn compute_area(
+    ax1: i32,
+    ay1: i32,
+    ax2: i32,
+    ay2: i32,
+    bx1: i32,
+    by1: i32,
+    bx2: i32,
+    by2: i32,
+) -> i32 {
+    let rec_1 = (ax2 - ax1) * (ay2 - ay1);
+    let rec_2 = (bx2 - bx1) * (by2 - by1);
+    let overlap = 0.max(ax2.min(bx2) - ax1.max(bx1)) * 0.max(ay2.min(by2) - ay1.max(by1));
+    return rec_1 + rec_2 - overlap;
+}
