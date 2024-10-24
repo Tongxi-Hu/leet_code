@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashSet, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
 use crate::common::{ListNode, TreeNode};
 
@@ -604,4 +604,199 @@ pub fn compute_area(
     let rec_2 = (bx2 - bx1) * (by2 - by1);
     let overlap = 0.max(ax2.min(bx2) - ax1.max(bx1)) * 0.max(ay2.min(by2) - ay1.max(by1));
     return rec_1 + rec_2 - overlap;
+}
+
+/// p224
+#[derive(PartialEq, Clone, Debug)]
+enum Token {
+    Number(i32),
+    Plus,
+    Minus,
+    LeftParenthesis,
+    RightParenthesis,
+}
+
+struct ContentNode {
+    content: Token,
+    left: Option<Rc<RefCell<ContentNode>>>,
+    right: Option<Rc<RefCell<ContentNode>>>,
+}
+
+pub fn save_val(tokens: &mut Vec<Token>, temp_digits: &mut Vec<i32>) {
+    if temp_digits.len() != 0 {
+        let val = temp_digits.into_iter().fold(0, |acc, cur| acc * 10 + *cur);
+        tokens.push(Token::Number(val));
+        temp_digits.clear();
+    }
+}
+
+pub fn tokenize(s: String) -> Vec<Token> {
+    let mut tokens: Vec<Token> = vec![];
+    let mut temp_digits: Vec<i32> = vec![];
+    for c in s.chars().filter(|&item| item != ' ') {
+        match c {
+            '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => {
+                match c.to_digit(10) {
+                    None => (),
+                    Some(val) => temp_digits.push(val as i32),
+                };
+                continue;
+            }
+            _ => (),
+        };
+        save_val(&mut tokens, &mut temp_digits);
+        match c {
+            '(' => tokens.push(Token::LeftParenthesis),
+            ')' => tokens.push(Token::RightParenthesis),
+            '+' => tokens.push(Token::Plus),
+            '-' => tokens.push(Token::Minus),
+            _ => (),
+        };
+    }
+    save_val(&mut tokens, &mut temp_digits);
+    return tokens;
+}
+
+pub fn generate_simple_ast(tokens: &[Token]) -> Option<Rc<RefCell<ContentNode>>> {
+    let mut temp: Option<Rc<RefCell<ContentNode>>> = None;
+    for token in tokens.iter() {
+        match token {
+            Token::Plus => {
+                temp = Some(Rc::new(RefCell::new(ContentNode {
+                    content: Token::Plus,
+                    left: temp,
+                    right: None,
+                })))
+            }
+            Token::Minus => {
+                temp = Some(Rc::new(RefCell::new(ContentNode {
+                    content: Token::Minus,
+                    left: temp,
+                    right: None,
+                })))
+            }
+            Token::Number(val) => match temp {
+                None => {
+                    temp = Some(Rc::new(RefCell::new(ContentNode {
+                        content: Token::Number(*val),
+                        left: None,
+                        right: None,
+                    })))
+                }
+                Some(ref node) => {
+                    node.borrow_mut().right = Some(Rc::new(RefCell::new(ContentNode {
+                        content: Token::Number(*val),
+                        left: None,
+                        right: None,
+                    })))
+                }
+            },
+            _ => (),
+        }
+    }
+    return temp;
+}
+
+pub fn generate_ast(tokens: Vec<Token>) -> Option<Rc<RefCell<ContentNode>>> {
+    todo!()
+}
+
+pub fn evaluate_ast(ast: Option<Rc<RefCell<ContentNode>>>) -> i32 {
+    match ast {
+        None => {
+            return 0;
+        }
+        Some(node) => match node.borrow_mut().content {
+            Token::Number(val) => {
+                return val;
+            }
+            Token::Plus => {
+                return {
+                    evaluate_ast(node.borrow_mut().left.take())
+                        + evaluate_ast(node.borrow_mut().right.take())
+                }
+            }
+            Token::Minus => {
+                return {
+                    evaluate_ast(node.borrow_mut().left.take())
+                        - evaluate_ast(node.borrow_mut().right.take())
+                }
+            }
+            _ => {
+                return 0;
+            }
+        },
+    }
+}
+
+pub fn calculate(s: String) -> i32 {
+    let tokens = tokenize(s);
+    let ast = generate_ast(tokens);
+    return evaluate_ast(ast);
+}
+
+/// p225
+use std::collections::VecDeque;
+
+struct MyStack {
+    q1: VecDeque<i32>,
+    q2: VecDeque<i32>,
+    out1: bool,
+}
+
+impl MyStack {
+    fn new() -> Self {
+        Self {
+            q1: VecDeque::new(),
+            q2: VecDeque::new(),
+            out1: false,
+        }
+    }
+
+    fn push(&mut self, x: i32) {
+        let (q1, q2) = if !self.out1 {
+            (&mut self.q1, &mut self.q2)
+        } else {
+            (&mut self.q2, &mut self.q1)
+        };
+        q1.push_back(x);
+        while let Some(val) = q2.pop_front() {
+            q1.push_back(val);
+        }
+        self.out1 = !self.out1;
+    }
+
+    fn pop(&mut self) -> i32 {
+        if self.out1 {
+            self.q1.pop_front().unwrap()
+        } else {
+            self.q2.pop_front().unwrap()
+        }
+    }
+
+    fn top(&mut self) -> i32 {
+        if self.out1 {
+            *self.q1.front().unwrap()
+        } else {
+            *self.q2.front().unwrap()
+        }
+    }
+
+    fn empty(&self) -> bool {
+        self.q1.is_empty() && self.q2.is_empty()
+    }
+}
+
+/// p226
+pub fn invert_tree(root: Option<Rc<RefCell<TreeNode>>>) -> Option<Rc<RefCell<TreeNode>>> {
+    match root {
+        None => return None,
+        Some(node) => {
+            let old_left = invert_tree(node.borrow_mut().left.take());
+            let old_right = invert_tree(node.borrow_mut().right.take());
+            node.borrow_mut().left = old_right;
+            node.borrow_mut().right = old_left;
+            return Some(node);
+        }
+    }
 }
