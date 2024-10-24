@@ -608,7 +608,7 @@ pub fn compute_area(
 
 /// p224
 #[derive(PartialEq, Clone, Debug)]
-enum Token {
+pub enum Token {
     Number(i32),
     Plus,
     Minus,
@@ -616,7 +616,7 @@ enum Token {
     RightParenthesis,
 }
 
-struct ContentNode {
+pub struct ContentNode {
     content: Token,
     left: Option<Rc<RefCell<ContentNode>>>,
     right: Option<Rc<RefCell<ContentNode>>>,
