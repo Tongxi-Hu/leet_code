@@ -606,135 +606,6 @@ pub fn compute_area(
     return rec_1 + rec_2 - overlap;
 }
 
-/// p224
-#[derive(PartialEq, Clone, Debug)]
-pub enum Token {
-    Number(i32),
-    Plus,
-    Minus,
-    LeftParenthesis,
-    RightParenthesis,
-}
-
-pub struct ContentNode {
-    content: Token,
-    left: Option<Rc<RefCell<ContentNode>>>,
-    right: Option<Rc<RefCell<ContentNode>>>,
-}
-
-pub fn save_val(tokens: &mut Vec<Token>, temp_digits: &mut Vec<i32>) {
-    if temp_digits.len() != 0 {
-        let val = temp_digits.into_iter().fold(0, |acc, cur| acc * 10 + *cur);
-        tokens.push(Token::Number(val));
-        temp_digits.clear();
-    }
-}
-
-pub fn tokenize(s: String) -> Vec<Token> {
-    let mut tokens: Vec<Token> = vec![];
-    let mut temp_digits: Vec<i32> = vec![];
-    for c in s.chars().filter(|&item| item != ' ') {
-        match c {
-            '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => {
-                match c.to_digit(10) {
-                    None => (),
-                    Some(val) => temp_digits.push(val as i32),
-                };
-                continue;
-            }
-            _ => (),
-        };
-        save_val(&mut tokens, &mut temp_digits);
-        match c {
-            '(' => tokens.push(Token::LeftParenthesis),
-            ')' => tokens.push(Token::RightParenthesis),
-            '+' => tokens.push(Token::Plus),
-            '-' => tokens.push(Token::Minus),
-            _ => (),
-        };
-    }
-    save_val(&mut tokens, &mut temp_digits);
-    return tokens;
-}
-
-pub fn generate_simple_ast(tokens: &[Token]) -> Option<Rc<RefCell<ContentNode>>> {
-    let mut temp: Option<Rc<RefCell<ContentNode>>> = None;
-    for token in tokens.iter() {
-        match token {
-            Token::Plus => {
-                temp = Some(Rc::new(RefCell::new(ContentNode {
-                    content: Token::Plus,
-                    left: temp,
-                    right: None,
-                })))
-            }
-            Token::Minus => {
-                temp = Some(Rc::new(RefCell::new(ContentNode {
-                    content: Token::Minus,
-                    left: temp,
-                    right: None,
-                })))
-            }
-            Token::Number(val) => match temp {
-                None => {
-                    temp = Some(Rc::new(RefCell::new(ContentNode {
-                        content: Token::Number(*val),
-                        left: None,
-                        right: None,
-                    })))
-                }
-                Some(ref node) => {
-                    node.borrow_mut().right = Some(Rc::new(RefCell::new(ContentNode {
-                        content: Token::Number(*val),
-                        left: None,
-                        right: None,
-                    })))
-                }
-            },
-            _ => (),
-        }
-    }
-    return temp;
-}
-
-pub fn generate_ast(tokens: Vec<Token>) -> Option<Rc<RefCell<ContentNode>>> {
-    todo!()
-}
-
-pub fn evaluate_ast(ast: Option<Rc<RefCell<ContentNode>>>) -> i32 {
-    match ast {
-        None => {
-            return 0;
-        }
-        Some(node) => match node.borrow_mut().content {
-            Token::Number(val) => {
-                return val;
-            }
-            Token::Plus => {
-                return {
-                    evaluate_ast(node.borrow_mut().left.take())
-                        + evaluate_ast(node.borrow_mut().right.take())
-                }
-            }
-            Token::Minus => {
-                return {
-                    evaluate_ast(node.borrow_mut().left.take())
-                        - evaluate_ast(node.borrow_mut().right.take())
-                }
-            }
-            _ => {
-                return 0;
-            }
-        },
-    }
-}
-
-pub fn calculate(s: String) -> i32 {
-    let tokens = tokenize(s);
-    let ast = generate_ast(tokens);
-    return evaluate_ast(ast);
-}
-
 /// p225
 use std::collections::VecDeque;
 
@@ -799,4 +670,78 @@ pub fn invert_tree(root: Option<Rc<RefCell<TreeNode>>>) -> Option<Rc<RefCell<Tre
             return Some(node);
         }
     }
+}
+
+/// p228
+pub fn summary_ranges(nums: Vec<i32>) -> Vec<String> {
+    if nums.len() == 0 {
+        return vec![];
+    }
+    let mut start = nums[0];
+    let mut cur = nums[0];
+    let mut ans: Vec<String> = vec![];
+    fn update_ans(start: i32, cur: i32, ans: &mut Vec<String>) {
+        if start == cur {
+            ans.push(start.to_string());
+        } else {
+            ans.push(start.to_string() + &"->".to_string() + &cur.to_string());
+        }
+    }
+    for (index, num) in nums.into_iter().enumerate() {
+        if index == 0 {
+            continue;
+        }
+        if num == cur + 1 {
+            cur = num;
+            continue;
+        } else {
+            update_ans(start, cur, &mut ans);
+            start = num;
+            cur = num;
+        }
+    }
+    update_ans(start, cur, &mut ans);
+    return ans;
+}
+
+/// p229
+pub fn majority_element(nums: Vec<i32>) -> Vec<i32> {
+    let mut count: std::collections::HashMap<i32, usize> = std::collections::HashMap::new();
+    for num in nums.iter() {
+        match count.get(&num) {
+            Some(val) => {
+                count.insert(*num, val + 1);
+            }
+            None => {
+                count.insert(*num, 1);
+            }
+        }
+    }
+    let length = nums.len();
+    let mut ans: Vec<i32> = vec![];
+    for (val, num) in count.into_iter() {
+        if num > length / 3 {
+            ans.push(val)
+        }
+    }
+    return ans;
+}
+
+/// p230
+pub fn kth_smallest(root: Option<Rc<RefCell<TreeNode>>>, k: i32) -> i32 {
+    let mut value: Vec<i32> = vec![];
+    fn in_order(root: Option<Rc<RefCell<TreeNode>>>, value: &mut Vec<i32>) {
+        match root {
+            None => {
+                return;
+            }
+            Some(node) => {
+                in_order(node.borrow_mut().left.take(), value);
+                value.push(node.borrow().val);
+                in_order(node.borrow_mut().right.take(), value);
+            }
+        }
+    }
+    in_order(root, &mut value);
+    return value[(k - 1) as usize];
 }
