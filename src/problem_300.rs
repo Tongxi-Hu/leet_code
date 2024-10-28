@@ -758,6 +758,79 @@ pub fn is_power_of_two(n: i32) -> bool {
     return n == 1;
 }
 
+///p232
+struct MyQueue {
+    stack: Vec<i32>,
+    out: Vec<i32>,
+}
+
+/**
+ * `&self` means the method takes an immutable reference.
+ * If you need a mutable reference, change it to `&mut self` instead.
+ */
+impl MyQueue {
+    /** Initialize your data structure here. */
+    fn new() -> Self {
+        Self {
+            stack: vec![],
+            out: vec![],
+        }
+    }
+
+    /** Push element x to the back of queue. */
+    fn push(&mut self, x: i32) {
+        self.stack.push(x);
+    }
+
+    /** Removes the element from in front of queue and returns that element. */
+    fn pop(&mut self) -> i32 {
+        if let Some(out) = self.out.pop() {
+            out
+        } else {
+            loop {
+                if let Some(s) = self.stack.pop() {
+                    self.out.push(s);
+                } else {
+                    return self.out.pop().unwrap();
+                }
+            }
+        }
+    }
+
+    /** Get the front element. */
+    fn peek(&mut self) -> i32 {
+        if let Some(out) = self.out.last() {
+            *out
+        } else {
+            let mut out = 0;
+            loop {
+                if let Some(s) = self.stack.pop() {
+                    out = s;
+                    self.out.push(s);
+                } else {
+                    return out;
+                }
+            }
+        }
+    }
+
+    /** Returns whether the queue is empty. */
+    fn empty(&self) -> bool {
+        self.stack.is_empty() && self.out.is_empty()
+    }
+}
+
+///p233
+pub fn count_digit_one(n: i32) -> i32 {
+    let mut m = 1;
+    let mut ans = 0;
+    while m <= n {
+        ans += n / (m * 10) * m + m.min(0.max(n % (m * 10) - m + 1));
+        m *= 10;
+    }
+    ans
+}
+
 ///p234
 pub fn is_palindrome_1(head: Option<Box<ListNode>>) -> bool {
     let mut head = head;
@@ -782,10 +855,48 @@ pub fn lowest_common_ancestor(
     let p_val = p.as_ref().unwrap().borrow().val;
     let q_val = q.as_ref().unwrap().borrow().val;
     if root_val > p_val && root_val > q_val {
-        return lowest_common_ancestor(root.as_ref().unwrap().borrow_mut().left.take(), p, q);
+        return lowest_common_ancestor(root.unwrap().borrow_mut().left.take(), p, q);
     } else if root_val < p_val && root_val < q_val {
-        return lowest_common_ancestor(root.as_ref().unwrap().borrow_mut().right.take(), p, q);
+        return lowest_common_ancestor(root.unwrap().borrow_mut().right.take(), p, q);
     } else {
         return root;
     }
+}
+
+///p236
+pub fn lowest_common_ancestor_1(
+    root: Option<Rc<RefCell<TreeNode>>>,
+    p: Option<Rc<RefCell<TreeNode>>>,
+    q: Option<Rc<RefCell<TreeNode>>>,
+) -> Option<Rc<RefCell<TreeNode>>> {
+    if root.is_none() || root == p || root == q {
+        return root;
+    }
+    let x = root.as_ref().unwrap();
+    let left = lowest_common_ancestor(x.borrow_mut().left.take(), p.clone(), q.clone());
+    let right = lowest_common_ancestor(x.borrow_mut().right.take(), p, q);
+    if left.is_some() && right.is_some() {
+        return root;
+    }
+    if left.is_some() {
+        left
+    } else {
+        right
+    }
+}
+
+/// p237
+pub fn product_except_self(nums: Vec<i32>) -> Vec<i32> {
+    let n = nums.len();
+    let mut pre = vec![1; n];
+    for i in 1..n {
+        pre[i] = pre[i - 1] * nums[i - 1];
+    }
+
+    let mut suf = vec![1; n];
+    for i in (0..n - 1).rev() {
+        suf[i] = suf[i + 1] * nums[i + 1];
+    }
+
+    pre.iter().zip(suf.iter()).map(|(&p, &s)| p * s).collect()
 }
