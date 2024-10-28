@@ -745,3 +745,47 @@ pub fn kth_smallest(root: Option<Rc<RefCell<TreeNode>>>, k: i32) -> i32 {
     in_order(root, &mut value);
     return value[(k - 1) as usize];
 }
+
+/// p231
+pub fn is_power_of_two(n: i32) -> bool {
+    if n == 0 {
+        return false;
+    }
+    let mut n = n;
+    while n % 2 == 0 {
+        n = n / 2;
+    }
+    return n == 1;
+}
+
+///p234
+pub fn is_palindrome_1(head: Option<Box<ListNode>>) -> bool {
+    let mut head = head;
+    let mut content: Vec<i32> = vec![];
+    while let Some(node) = head {
+        content.push(node.val);
+        head = node.next;
+    }
+    return content
+        .iter()
+        .zip(content.iter().rev())
+        .all(|(left, right)| *left == *right);
+}
+
+///p235
+pub fn lowest_common_ancestor(
+    root: Option<Rc<RefCell<TreeNode>>>,
+    p: Option<Rc<RefCell<TreeNode>>>,
+    q: Option<Rc<RefCell<TreeNode>>>,
+) -> Option<Rc<RefCell<TreeNode>>> {
+    let root_val = root.as_ref().unwrap().borrow().val;
+    let p_val = p.as_ref().unwrap().borrow().val;
+    let q_val = q.as_ref().unwrap().borrow().val;
+    if root_val > p_val && root_val > q_val {
+        return lowest_common_ancestor(root.as_ref().unwrap().borrow_mut().left.take(), p, q);
+    } else if root_val < p_val && root_val < q_val {
+        return lowest_common_ancestor(root.as_ref().unwrap().borrow_mut().right.take(), p, q);
+    } else {
+        return root;
+    }
+}
