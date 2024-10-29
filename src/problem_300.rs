@@ -885,7 +885,7 @@ pub fn lowest_common_ancestor_1(
     }
 }
 
-/// p237
+/// p238
 pub fn product_except_self(nums: Vec<i32>) -> Vec<i32> {
     let n = nums.len();
     let mut pre = vec![1; n];
@@ -899,4 +899,76 @@ pub fn product_except_self(nums: Vec<i32>) -> Vec<i32> {
     }
 
     pre.iter().zip(suf.iter()).map(|(&p, &s)| p * s).collect()
+}
+
+///p239
+pub fn max_sliding_window(nums: Vec<i32>, k: i32) -> Vec<i32> {
+    let k = k as usize;
+    let mut ans = Vec::with_capacity(nums.len() - k + 1);
+    let mut q = std::collections::VecDeque::new();
+    for (i, &x) in nums.iter().enumerate() {
+        while !q.is_empty() && nums[*q.back().unwrap()] <= x {
+            q.pop_back();
+        }
+        q.push_back(i);
+        if i - q[0] >= k {
+            q.pop_front();
+        }
+        if i >= k - 1 {
+            ans.push(nums[q[0]]);
+        }
+    }
+    ans
+}
+
+///p240
+pub fn search_matrix(matrix: Vec<Vec<i32>>, target: i32) -> bool {
+    let (row, col) = (matrix.len(), matrix[0].len());
+    let (mut r, mut c) = (0, (col - 1) as i32);
+    while r < row && c >= 0 {
+        match matrix[r][c as usize].cmp(&target) {
+            std::cmp::Ordering::Equal => return true,
+            std::cmp::Ordering::Less => {
+                r = r + 1;
+            }
+            std::cmp::Ordering::Greater => c = c - 1,
+        }
+    }
+    return false;
+}
+
+///p241
+pub fn diff_ways_to_compute(expression: String) -> Vec<i32> {
+    let mut res: Vec<i32> = vec![];
+    let chars = expression.chars().collect::<Vec<char>>();
+    let length = chars.len();
+    if length == 0 {
+        return res;
+    }
+
+    for i in 0..length {
+        match chars[i] {
+            '+' | '-' | '*' => {
+                let left = diff_ways_to_compute(expression[..i].to_owned());
+                let right = diff_ways_to_compute(expression[i + 1..].to_owned());
+                for l in left.iter() {
+                    for r in right.iter() {
+                        match chars[i] {
+                            '+' => res.push(l + r),
+                            '-' => res.push(l - r),
+                            '*' => res.push(l * r),
+                            _ => (),
+                        }
+                    }
+                }
+            }
+            _ => continue,
+        }
+    }
+
+    if res.is_empty() {
+        res.push(expression.parse::<i32>().unwrap())
+    }
+
+    return res;
 }
