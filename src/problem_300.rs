@@ -972,3 +972,94 @@ pub fn diff_ways_to_compute(expression: String) -> Vec<i32> {
 
     return res;
 }
+
+///p242
+pub fn is_anagram(s: String, t: String) -> bool {
+    if s.len() != t.len() {
+        return false;
+    }
+    let mut letter_count: std::collections::HashMap<char, i32> = std::collections::HashMap::new();
+
+    let s_chars = s.chars().collect::<Vec<char>>();
+    let t_chars = t.chars().collect::<Vec<char>>();
+
+    for i in 0..s.len() {
+        let s_char = s_chars[i];
+        let t_char = t_chars[i];
+        match letter_count.get_mut(&s_char) {
+            Some(v) => {
+                *v = *v + 1;
+            }
+            None => {
+                letter_count.insert(s_char, 1);
+            }
+        }
+        match letter_count.get_mut(&t_char) {
+            Some(v) => {
+                *v = *v - 1;
+            }
+            None => {
+                letter_count.insert(t_char, -1);
+            }
+        }
+    }
+    return letter_count.iter().all(|(_, val)| {
+        return *val == 0;
+    });
+}
+
+///p257
+pub fn binary_tree_paths(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<String> {
+    let mut all_path: Vec<String> = vec![];
+    let mut temp: Vec<i32> = vec![];
+    fn get_all_path(
+        root: Option<Rc<RefCell<TreeNode>>>,
+        all_path: &mut Vec<String>,
+        temp: &mut Vec<i32>,
+    ) {
+        match root {
+            Some(node) => {
+                let mut node = node.borrow_mut();
+                temp.push(node.val);
+                let left = node.left.take();
+                let right = node.right.take();
+                match (&left, &right) {
+                    (None, None) => {
+                        all_path.push(temp.iter().fold(
+                            "".to_string(),
+                            |acc, cur| match acc.as_str() {
+                                "" => return cur.to_string(),
+                                _ => return acc + "->" + &cur.to_string(),
+                            },
+                        ));
+                    }
+                    _ => {
+                        get_all_path(left, all_path, temp);
+                        get_all_path(right, all_path, temp);
+                    }
+                }
+                temp.pop();
+            }
+            None => {
+                return;
+            }
+        }
+    }
+    get_all_path(root, &mut all_path, &mut temp);
+    return all_path;
+}
+
+///p258
+pub fn add_digits(num: i32) -> i32 {
+    let mut ans = num;
+    while ans >= 10 {
+        let mut temp = 0;
+        let mut left = ans;
+        while left > 0 {
+            temp = temp + left % 10;
+            left = left / 10;
+        }
+        ans = temp;
+    }
+    return ans;
+}
