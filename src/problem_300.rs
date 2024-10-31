@@ -1063,3 +1063,67 @@ pub fn add_digits(num: i32) -> i32 {
     }
     return ans;
 }
+
+///p260
+pub fn single_number(nums: Vec<i32>) -> Vec<i32> {
+    let mut num_count: std::collections::HashSet<i32> = std::collections::HashSet::new();
+    for num in &nums {
+        match num_count.get(num) {
+            Some(_) => {
+                num_count.remove(num);
+            }
+            None => {
+                num_count.insert(*num);
+            }
+        }
+    }
+    return num_count.into_iter().collect::<Vec<i32>>();
+}
+
+/// p263
+pub fn is_ugly(n: i32) -> bool {
+    if n <= 0 {
+        return false;
+    }
+    let mut n = n;
+    while n > 1 {
+        if n % 5 == 0 {
+            n = n / 5
+        } else if n % 3 == 0 {
+            n = n / 3
+        } else if n % 2 == 0 {
+            n = n / 2
+        } else {
+            return false;
+        }
+    }
+    return true;
+}
+
+///p264
+pub fn nth_ugly_number(n: i32) -> i32 {
+    let n = n as usize;
+    let mut dp: Vec<i32> = Vec::with_capacity(n);
+
+    dp.push(1);
+    let mut p_2 = 0;
+    let mut p_3 = 0;
+    let mut p_5 = 0;
+
+    for i in 1..=n - 1 {
+        let num2 = dp[p_2] * 2;
+        let num3 = dp[p_3] * 3;
+        let num5 = dp[p_5] * 5;
+        dp.push(num2.min(num3).min(num5));
+        if dp[i] == num2 {
+            p_2 = p_2 + 1;
+        }
+        if dp[i] == num3 {
+            p_3 = p_3 + 1;
+        }
+        if dp[i] == num5 {
+            p_5 = p_5 + 1;
+        }
+    }
+    return dp[n - 1];
+}
