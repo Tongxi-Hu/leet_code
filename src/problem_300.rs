@@ -1127,3 +1127,59 @@ pub fn nth_ugly_number(n: i32) -> i32 {
     }
     return dp[n - 1];
 }
+
+/// p268
+pub fn missing_number(nums: Vec<i32>) -> i32 {
+    let mut nums = nums;
+    nums.sort();
+    let miss = nums
+        .iter()
+        .enumerate()
+        .find(|(index, num)| *index != (**num) as usize);
+    match miss {
+        Some((_, num)) => {
+            return *num - 1;
+        }
+        None => return nums.len() as i32,
+    };
+}
+
+///p274
+pub fn h_index(citations: Vec<i32>) -> i32 {
+    let mut citations = citations;
+    citations.sort();
+
+    let length = citations.len();
+
+    let h = citations
+        .into_iter()
+        .enumerate()
+        .find(|(index, citation)| (*citation as usize) >= (length - index));
+    match h {
+        Some((index, _)) => {
+            return (length - index) as i32;
+        }
+        None => {
+            return 0;
+        }
+    };
+}
+
+///p275
+pub fn h_index_2(citations: Vec<i32>) -> i32 {
+    let n = citations.len();
+    let (mut l, mut r) = (1, n);
+    while l < r {
+        let mid = (l + r + 1) >> 1;
+        if citations[n - mid] >= mid as i32 {
+            l = mid;
+        } else {
+            r = mid - 1;
+        }
+    }
+    if citations[n - l] >= l as i32 {
+        l as i32
+    } else {
+        0
+    }
+}
