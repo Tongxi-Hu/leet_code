@@ -1183,3 +1183,35 @@ pub fn h_index_2(citations: Vec<i32>) -> i32 {
         0
     }
 }
+
+fn isBadVersion(n: i32) -> bool {
+    todo!()
+}
+
+///p278
+pub fn first_bad_version(n: i32) -> i32 {
+    let (mut left, mut right) = (1, n);
+    while left < right {
+        let mid = (right - left) / 2 + left;
+        if isBadVersion(mid) {
+            right = mid;
+        } else {
+            left = mid + 1;
+        }
+    }
+    return left;
+}
+
+///p279
+pub fn num_squares(n: i32) -> i32 {
+    let mut dp = vec![0; (n + 1) as usize];
+    for i in 1..n + 1 {
+        dp[i as usize] = i;
+        let mut j = 1;
+        while i - j * j >= 0 {
+            dp[i as usize] = std::cmp::min(dp[i as usize], dp[(i - j * j) as usize] + 1);
+            j = j + 1;
+        }
+    }
+    return dp[n as usize];
+}
