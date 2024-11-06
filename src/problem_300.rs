@@ -1215,3 +1215,216 @@ pub fn num_squares(n: i32) -> i32 {
     }
     return dp[n as usize];
 }
+
+///p282
+pub fn add_operators(num: String, target: i32) -> Vec<String> {
+    let mut ops = String::new();
+    let mut result = Vec::new();
+    backtracing(&num[..], &mut ops, &mut result, target);
+
+    result
+}
+
+fn backtracing(num: &str, ops: &mut String, result: &mut Vec<String>, target: i32) {
+    if num.len() == 0 {
+        if check(&ops[..], target) {
+            let mut s = ops.clone();
+            s.pop();
+            result.push(s);
+        }
+        return;
+    }
+
+    let len = ops.len();
+    let n = num.len();
+    let flag = num.as_bytes()[0] == b'0';
+    for i in 0..n {
+        ops.push_str(&num[..=i]);
+
+        ops.push('+');
+        backtracing(&num[i + 1..], ops, result, target);
+        ops.pop();
+
+        if i + 1 != n {
+            ops.push('-');
+            backtracing(&num[i + 1..], ops, result, target);
+            ops.pop();
+        }
+
+        if i + 1 != n {
+            ops.push('*');
+            backtracing(&num[i + 1..], ops, result, target);
+            ops.pop();
+        }
+
+        ops.truncate(len);
+        if flag {
+            break;
+        }
+    }
+}
+
+fn check(num: &str, target: i32) -> bool {
+    let mut sum = vec![];
+    let mut prev_val = None::<i32>;
+    let mut is_sign = false;
+    let mut cur_val: i32 = 0;
+
+    for (i, b) in num.bytes().enumerate() {
+        match b {
+            b'+' | b'-' | b'*' => {
+                if let Some(prev_val) = prev_val {
+                    cur_val = match cur_val.checked_mul(prev_val) {
+                        Some(val) => val,
+                        None => return false,
+                    };
+                }
+                if is_sign {
+                    cur_val = -cur_val;
+                }
+
+                if b == b'*' {
+                    prev_val = Some(cur_val);
+                } else {
+                    sum.push(cur_val);
+                    prev_val = None;
+                }
+
+                cur_val = 0;
+                is_sign = b == b'-';
+            }
+            _ => {
+                cur_val = match cur_val.checked_mul(10) {
+                    Some(val) => match val.checked_add((b - b'0') as i32) {
+                        Some(val) => val,
+                        None => return false,
+                    },
+                    None => return false,
+                };
+                //cur_val = cur_val * 10 + (b - b'0') as i32;
+            }
+        }
+    }
+
+    sum.into_iter().sum::<i32>() == target
+}
+
+///p283
+pub fn move_zeroes(nums: &mut Vec<i32>) {
+    let mut left_zero = 0;
+    for i in 0..nums.len() {
+        if nums[i] != 0 {
+            (nums[left_zero], nums[i]) = (nums[i], nums[left_zero]);
+            left_zero = left_zero + 1
+        }
+    }
+}
+
+/// p287
+pub fn find_duplicate(nums: Vec<i32>) -> i32 {
+    let (mut slow, mut fast) = (0, 0);
+    loop {
+        slow = nums[slow] as usize;
+        fast = nums[nums[fast] as usize] as usize;
+        if slow == fast {
+            break;
+        }
+    }
+    slow = 0;
+    while slow != fast {
+        slow = nums[slow] as usize;
+        fast = nums[fast] as usize;
+    }
+    return slow as i32;
+}
+
+///p289
+pub fn game_of_life(board: &mut Vec<Vec<i32>>) {
+    let mut need_update: Vec<[usize; 2]> = vec![];
+    let row = board.len();
+    let col = board[0].len();
+    for r in 0..row {
+        for c in 0..col {
+            let mut r_near: Vec<usize> = vec![];
+            let mut c_near: Vec<usize> = vec![];
+            if r != 0 {
+                r_near.push(r - 1);
+            }
+            r_near.push(r);
+            if r != row - 1 {
+                r_near.push(r + 1);
+            }
+            if c != 0 {
+                c_near.push(c - 1);
+            }
+            c_near.push(c);
+            if c != col - 1 {
+                c_near.push(c + 1);
+            }
+            let mut count_one = 0;
+            for &neighbor_r in &r_near {
+                for &neighbor_c in &c_near {
+                    if (neighbor_r, neighbor_c) == (r, c) {
+                        continue;
+                    }
+                    if board[neighbor_r][neighbor_c] == 1 {
+                        count_one = count_one + 1;
+                    }
+                }
+            }
+            match board[r][c] {
+                0 => {
+                    if count_one == 3 {
+                        need_update.push([r, c])
+                    }
+                }
+                1 => {
+                    if count_one < 2 || count_one > 3 {
+                        need_update.push([r, c])
+                    }
+                }
+                _ => (),
+            }
+        }
+    }
+    need_update
+        .iter()
+        .for_each(|item| match board[item[0]][item[1]] {
+            0 => {
+                board[item[0]][item[1]] = 1;
+            }
+            1 => {
+                board[item[0]][item[1]] = 0;
+            }
+            _ => (),
+        });
+}
+
+///p290
+pub fn word_pattern(pattern: String, s: String) -> bool {
+    let keys = pattern.chars().collect::<Vec<char>>();
+    let content = s.split(" ").collect::<Vec<&str>>();
+    if keys.len() != content.len() {
+        return false;
+    }
+    let length = keys.len();
+    let mut record: std::collections::HashMap<char, &str> = std::collections::HashMap::new();
+    let mut rev_record: std::collections::HashMap<&str, char> = std::collections::HashMap::new();
+    for i in 0..length {
+        match (record.get(&keys[i]), rev_record.get(&content[i])) {
+            (Some(val), Some(key)) => {
+                if *val != content[i] || *key != keys[i] {
+                    return false;
+                }
+            }
+            (None, None) => {
+                record.insert(keys[i], content[i]);
+                rev_record.insert(content[i], keys[i]);
+            }
+            _ => {
+                return false;
+            }
+        }
+    }
+    return true;
+}
