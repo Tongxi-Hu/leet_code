@@ -1428,3 +1428,103 @@ pub fn word_pattern(pattern: String, s: String) -> bool {
     }
     return true;
 }
+
+///p292
+pub fn can_win_nim(n: i32) -> bool {
+    return !(n % 4 == 0);
+}
+
+///p295
+use std::cmp::Reverse;
+use std::collections::BinaryHeap;
+
+struct MedianFinder {
+    heap_max: BinaryHeap<Reverse<i32>>,
+    heap_min: BinaryHeap<i32>,
+}
+
+impl MedianFinder {
+    fn new() -> Self {
+        MedianFinder {
+            heap_max: BinaryHeap::new(),
+            heap_min: BinaryHeap::new(),
+        }
+    }
+
+    fn add_num(&mut self, num: i32) {
+        if self.heap_min.is_empty() || *self.heap_min.peek().unwrap() >= num {
+            self.heap_min.push(num);
+            if self.heap_min.len() > self.heap_max.len() + 1 {
+                let val = self.heap_min.pop().unwrap();
+                self.heap_max.push(Reverse(val));
+            }
+        } else {
+            self.heap_max.push(Reverse(num));
+            if self.heap_max.len() > self.heap_min.len() {
+                let val = self.heap_max.pop().unwrap().0;
+                self.heap_min.push(val);
+            }
+        }
+    }
+
+    fn find_median(&self) -> f64 {
+        if self.heap_min.len() > self.heap_max.len() {
+            *self.heap_min.peek().unwrap() as f64
+        } else {
+            (*self.heap_min.peek().unwrap() + self.heap_max.peek().unwrap().0) as f64 / 2.0
+        }
+    }
+}
+
+///p297
+use std::convert::TryInto;
+use std::iter::Map;
+use std::slice::Chunks;
+
+struct Codec {}
+
+impl Codec {
+    fn new() -> Self {
+        Self {}
+    }
+
+    fn serialize_sub(&self, root: Option<Rc<RefCell<TreeNode>>>, bytes: &mut Vec<u8>) {
+        match root {
+            Some(node) => {
+                bytes.append(&mut node.borrow_mut().val.to_be_bytes().to_vec());
+                self.serialize_sub(node.borrow_mut().left.take(), bytes);
+                self.serialize_sub(node.borrow_mut().right.take(), bytes);
+            }
+            None => bytes.append(&mut i32::MAX.to_be_bytes().to_vec()),
+        }
+    }
+
+    fn serialize(&self, root: Option<Rc<RefCell<TreeNode>>>) -> String {
+        let mut bytes = Vec::<u8>::new();
+        self.serialize_sub(root, &mut bytes);
+        unsafe { String::from_utf8_unchecked(bytes) }
+    }
+
+    fn deserialize_sub(
+        &self,
+        map: &mut Map<Chunks<u8>, fn(&[u8]) -> i32>,
+    ) -> Option<Rc<RefCell<TreeNode>>> {
+        match map.next().unwrap() {
+            i32::MAX => None,
+            val => Some(Rc::new(RefCell::new(TreeNode {
+                val,
+                left: self.deserialize_sub(map),
+                right: self.deserialize_sub(map),
+            }))),
+        }
+    }
+
+    fn deserialize(&self, data: String) -> Option<Rc<RefCell<TreeNode>>> {
+        self.deserialize_sub(
+            &mut data
+                .into_bytes()
+                .chunks(4)
+                .map(|p| i32::from_be_bytes(p.try_into().unwrap())),
+        )
+    }
+}
