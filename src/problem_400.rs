@@ -91,3 +91,116 @@ fn is_can_added(first: i64, second: i64, num: &str, sum_idx: usize) -> bool {
     let actual_sum = &num[sum_idx..sum_idx + sum_str.len()];
     actual_sum == sum_str && is_can_added(second, first + second, num, sum_idx + sum_str.len())
 }
+
+/// p307
+struct NumArray_2 {
+    nums: Vec<i32>,
+    tree: Vec<i32>,
+}
+
+impl NumArray_2 {
+    fn new(nums: Vec<i32>) -> Self {
+        let mut na = Self {
+            nums: vec![0; nums.len()],
+            tree: vec![0; nums.len() + 1],
+        };
+        for (i, &x) in nums.iter().enumerate() {
+            na.update(i as i32, x);
+        }
+        na
+    }
+
+    fn update(&mut self, index: i32, val: i32) {
+        let index = index as usize;
+        let delta = val - self.nums[index];
+        self.nums[index] = val;
+        let mut i = index + 1;
+        while i < self.tree.len() {
+            self.tree[i] += delta;
+            i += (i as i32 & -(i as i32)) as usize;
+        }
+    }
+
+    fn prefix_sum(&self, i: i32) -> i32 {
+        let mut s = 0;
+        let mut i = i as usize;
+        while i > 0 {
+            s += self.tree[i];
+            i &= i - 1; // i -= i & -i 的另一种写法
+        }
+        s
+    }
+
+    fn sum_range(&self, left: i32, right: i32) -> i32 {
+        self.prefix_sum(right + 1) - self.prefix_sum(left)
+    }
+}
+
+/// p309
+pub fn max_profit(prices: Vec<i32>) -> i32 {
+    let length = prices.len();
+    let mut dp = vec![vec![0, 0, 0]; length];
+    dp[0] = vec![-prices[0], 0, 0];
+    for i in 1..length {
+        dp[i][0] = dp[i - 1][0].max(dp[i - 1][2] - prices[i]);
+        dp[i][1] = dp[i - 1][0] + prices[i];
+        dp[i][2] = dp[i - 1][1].max(dp[i - 1][2]);
+    }
+    return dp[length - 1][1].max(dp[length - 1][2]);
+}
+
+/// p310
+pub fn find_min_height_trees(n: i32, edges: Vec<Vec<i32>>) -> Vec<i32> {
+    if n == 1 {
+        return vec![0];
+    }
+    let mut edge = vec![0; n as usize];
+    let mut g = vec![vec![]; n as usize];
+    for e in edges.iter() {
+        let (x, y) = (e[0] as usize, e[1] as usize);
+        edge[x] += 1;
+        edge[y] += 1;
+        g[x].push(y);
+        g[y].push(x);
+    }
+
+    let mut q = std::collections::VecDeque::new();
+    for (i, &n) in edge.iter().enumerate() {
+        if n == 1 {
+            q.push_back(i);
+        }
+    }
+
+    let mut remains = n;
+    while remains > 2 {
+        remains -= q.len() as i32;
+        for _ in 0..q.len() {
+            let top = q.pop_front().unwrap();
+            for &x in &g[top] {
+                edge[x] -= 1;
+                if edge[x] == 1 {
+                    q.push_back(x);
+                }
+            }
+        }
+    }
+    q.iter().map(|&x| x as i32).collect()
+}
+
+///p312
+pub fn max_coins(mut nums: Vec<i32>) -> i32 {
+    let n = nums.len();
+    nums.insert(0, 1);
+    nums.push(1);
+    let mut dp = vec![vec![0; n + 2]; n + 2];
+    for i in (0..n).rev() {
+        for j in i + 2..n + 2 {
+            for k in i + 1..j {
+                let mut sum = nums[i] * nums[j] * nums[k];
+                sum += dp[i][k] + dp[k][j];
+                dp[i][j] = dp[i][j].max(sum);
+            }
+        }
+    }
+    dp[0][n + 1]
+}
