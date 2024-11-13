@@ -248,3 +248,99 @@ pub fn count_smaller(nums: Vec<i32>) -> Vec<i32> {
     res.reverse();
     res
 }
+
+/// p316
+pub fn remove_duplicate_letters(s: String) -> String {
+    let mut last_appear_index = [0; 26];
+    let mut if_in_stack = [false; 26];
+
+    for (n, i) in s.bytes().enumerate() {
+        last_appear_index[(i - b'a') as usize] = n as i16;
+    }
+
+    let mut stack = vec![b'a'];
+    for (n, i) in s.bytes().enumerate() {
+        if if_in_stack[(i - b'a') as usize] {
+            continue;
+        }
+
+        while let Some(s) = stack.pop() {
+            if s > i && last_appear_index[(s - b'a') as usize] > n as i16 {
+                if_in_stack[(s - b'a') as usize] = false;
+            } else {
+                stack.push(s);
+                break;
+            }
+        }
+        stack.push(i);
+        if_in_stack[(i - b'a') as usize] = true;
+    }
+    stack.drain(1..).map(|x| x as char).collect()
+}
+
+/// p318
+pub fn max_product(words: Vec<String>) -> i32 {
+    let mask: Vec<i32> = words
+        .iter()
+        .map(|word| {
+            word.chars()
+                .fold(0, |acc, c| acc | 1 << (c as u8 - 'a' as u8))
+        })
+        .collect();
+    let mut ans = 0;
+    for i in 0..mask.len() {
+        for j in i + 1..mask.len() {
+            if mask[i] & mask[j] == 0 {
+                ans = ans.max(words[i].len() * words[j].len());
+            }
+        }
+    }
+    ans as i32
+}
+
+/// p319
+pub fn bulb_switch(n: i32) -> i32 {
+    (n as f64 + 0.5).sqrt() as i32
+}
+
+/// p321
+pub fn max_number(nums1: Vec<i32>, nums2: Vec<i32>, k: i32) -> Vec<i32> {
+    let (m, n) = (nums1.len(), nums2.len());
+    ((k - n as i32).max(0)..k.min(m as i32) + 1)
+        .map(|x| merge(select_max(&nums1, x), select_max(&nums2, k - x)))
+        .max()
+        .unwrap()
+}
+
+fn merge(nums1: Vec<i32>, nums2: Vec<i32>) -> Vec<i32> {
+    let mut ans = vec![];
+    let (mut i, mut j) = (0, 0);
+
+    while i < nums1.len() && j < nums2.len() {
+        if nums1[i..] > nums2[j..] {
+            ans.push(nums1[i]);
+            i += 1;
+        } else {
+            ans.push(nums2[j]);
+            j += 1;
+        }
+    }
+    ans.extend(&nums1[i..]);
+    ans.extend(&nums2[j..]);
+    ans
+}
+
+fn select_max(nums: &[i32], k: i32) -> Vec<i32> {
+    let mut to_drop = nums.len() - k as usize;
+    let mut stk = vec![i32::MAX];
+
+    for num in nums {
+        while to_drop > 0 && stk.last() < Some(num) {
+            stk.pop();
+            to_drop -= 1;
+        }
+        stk.push(*num);
+    }
+
+    stk[1..stk.len() - to_drop].to_owned()
+}
