@@ -204,3 +204,47 @@ pub fn max_coins(mut nums: Vec<i32>) -> i32 {
     }
     dp[0][n + 1]
 }
+
+/// p313
+pub fn nth_super_ugly_number(n: i32, primes: Vec<i32>) -> i32 {
+    let n = n as usize;
+    let mut idxs = vec![0_usize; primes.len()];
+    let mut uglys = vec![1; n];
+
+    for i in 1..n {
+        let min_ugly = idxs
+            .iter()
+            .enumerate()
+            .map(|(j, &idx)| i32::saturating_mul(primes[j], uglys[idx]))
+            .min()
+            .unwrap();
+        idxs.iter_mut()
+            .enumerate()
+            .filter_map(|(j, idx)| {
+                if primes[j] * uglys[*idx] == min_ugly {
+                    Some(idx)
+                } else {
+                    None
+                }
+            })
+            .for_each(|idx| *idx += 1);
+        uglys[i] = min_ugly;
+    }
+
+    uglys[n - 1]
+}
+
+/// p315
+pub fn count_smaller(nums: Vec<i32>) -> Vec<i32> {
+    let n = nums.len();
+    let mut right = vec![nums[n - 1]];
+    let mut res = vec![0];
+    for i in (1..n).rev() {
+        let j = nums[i - 1];
+        let p = right.partition_point(|&x| x < j);
+        right.insert(p, j);
+        res.push(p as i32);
+    }
+    res.reverse();
+    res
+}
