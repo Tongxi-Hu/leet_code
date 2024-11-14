@@ -385,3 +385,19 @@ pub fn wiggle_sort(nums: &mut Vec<i32>) {
         };
     }
 }
+
+/// p326
+pub fn is_power_of_three(n: i32) -> bool {
+    if n <= 0 {
+        return false;
+    }
+    let mut n = n;
+    while n % 3 == 0 {
+        n = n / 3;
+    }
+    if n == 1 {
+        true
+    } else {
+        false
+    }
+}
