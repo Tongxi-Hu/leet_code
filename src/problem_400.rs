@@ -1,3 +1,5 @@
+use std::usize;
+
 /// p303
 struct NumArray {
     sum: Vec<i32>,
@@ -343,4 +345,43 @@ fn select_max(nums: &[i32], k: i32) -> Vec<i32> {
     }
 
     stk[1..stk.len() - to_drop].to_owned()
+}
+
+/// p322
+pub fn coin_change(coins: Vec<i32>, amount: i32) -> i32 {
+    let amount = amount as usize;
+    let mut coin_nums = vec![amount + 1; amount + 1];
+    coin_nums[0] = 0;
+    for i in 1..=amount {
+        for val in coins.iter() {
+            let val = *val as usize;
+            if val > i {
+                continue;
+            } else {
+                coin_nums[i] = coin_nums[i].min(coin_nums[i - val] + 1);
+            }
+        }
+    }
+    if coin_nums[amount] == amount + 1 {
+        -1
+    } else {
+        coin_nums[amount] as i32
+    }
+}
+
+/// p324
+pub fn wiggle_sort(nums: &mut Vec<i32>) {
+    let mut nums_copy = nums.clone();
+    nums_copy.sort();
+    let n = nums.len();
+    let (mut p, mut q) = ((n - 1) / 2, n - 1);
+    for i in 0..n {
+        if (i & 1) == 1 {
+            nums[i] = nums_copy[q];
+            q -= 1;
+        } else {
+            nums[i] = nums_copy[p];
+            p -= 1;
+        };
+    }
 }
