@@ -1,4 +1,4 @@
-use std::usize;
+use crate::common::ListNode;
 
 /// p303
 struct NumArray {
@@ -400,4 +400,150 @@ pub fn is_power_of_three(n: i32) -> bool {
     } else {
         false
     }
+}
+
+/// p327
+pub fn count_range_sum(mut nums: Vec<i32>, lower: i32, upper: i32) -> i32 {
+    let mut nums = nums.into_iter().map(|x| x as i64).collect::<Vec<i64>>();
+    let mut count = 0;
+    for i in 1..nums.len() {
+        nums[i] += nums[i - 1];
+    }
+    nums.insert(0, 0);
+    sort(&mut nums, lower as i64, upper as i64, &mut count);
+    count
+}
+
+fn sort(nums: &mut [i64], lower: i64, upper: i64, count: &mut i32) {
+    if nums.len() <= 1 {
+        return;
+    }
+    let mid = nums.len() / 2;
+    sort(&mut nums[..mid], lower, upper, count);
+    sort(&mut nums[mid..], lower, upper, count);
+    merge_2(nums, mid, lower, upper, count);
+}
+
+fn merge_2(nums: &mut [i64], mid: usize, lower: i64, upper: i64, count: &mut i32) {
+    // 滑动窗口
+    let (mut start, mut end) = (mid, mid);
+    for i in 0..mid {
+        while start < nums.len() && nums[start] - nums[i] < lower {
+            start += 1;
+        }
+        while end < nums.len() && nums[end] - nums[i] <= upper {
+            end += 1;
+        }
+        *count += (end - start) as i32;
+    }
+
+    let mut tmp = Vec::with_capacity(nums.len());
+    let (mut i, mut j) = (0, mid);
+    while i < mid && j < nums.len() {
+        if nums[i] <= nums[j] {
+            tmp.push(nums[i]);
+            i += 1;
+        } else {
+            tmp.push(nums[j]);
+            j += 1;
+        }
+    }
+    nums.iter().take(mid).skip(i).for_each(|x| {
+        tmp.push(*x);
+    });
+    nums.iter().skip(j).for_each(|x| {
+        tmp.push(*x);
+    });
+    nums.copy_from_slice(&tmp);
+}
+
+/// p328
+pub fn odd_even_list(head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
+    if head.is_none() {
+        return None;
+    }
+    let mut head = head.unwrap();
+    let mut p1 = head.as_mut();
+    let head2 = p1.next.take();
+    if let Some(mut head2) = head2 {
+        let mut p2 = head2.as_mut();
+        while p2.next.is_some() {
+            p1.next = p2.next.take();
+            p1 = p1.next.as_mut().unwrap();
+            p2.next = p1.next.take();
+            if p2.next.is_some() {
+                p2 = p2.next.as_mut().unwrap();
+            }
+        }
+        p1.next = Some(head2);
+    }
+    Some(head)
+}
+
+/// p329
+pub fn longest_increasing_path(matrix: Vec<Vec<i32>>) -> i32 {
+    let (rows, cols) = (matrix.len(), matrix[0].len());
+    if rows == 0 || cols == 0 {
+        return 0;
+    }
+    let mut longest = vec![vec![0; cols]; rows];
+    fn dfs(
+        r: usize,
+        c: usize,
+        longest: &mut Vec<Vec<i32>>,
+        matrix: &Vec<Vec<i32>>,
+        rows: usize,
+        cols: usize,
+    ) -> i32 {
+        if longest[r][c] != 0 {
+            return longest[r][c];
+        } else {
+            longest[r][c] = 1;
+            if r > 0 && matrix[r - 1][c] > matrix[r][c] {
+                longest[r][c] = longest[r][c].max(dfs(r - 1, c, longest, matrix, rows, cols) + 1);
+            }
+            if r < rows - 1 && matrix[r + 1][c] > matrix[r][c] {
+                longest[r][c] = longest[r][c].max(dfs(r + 1, c, longest, matrix, rows, cols) + 1);
+            }
+            if c > 0 && matrix[r][c - 1] > matrix[r][c] {
+                longest[r][c] = longest[r][c].max(dfs(r, c - 1, longest, matrix, rows, cols) + 1);
+            }
+            if c < cols - 1 && matrix[r][c + 1] > matrix[r][c] {
+                longest[r][c] = longest[r][c].max(dfs(r, c + 1, longest, matrix, rows, cols) + 1);
+            }
+        }
+        longest[r][c]
+    }
+    for r in 0..rows {
+        for c in 0..cols {
+            dfs(r, c, &mut longest, &matrix, rows, cols);
+        }
+    }
+    *longest.iter().flatten().max().unwrap_or(&(0 as i32))
+}
+
+/// p330
+pub fn min_patches(nums: Vec<i32>, n: i32) -> i32 {
+    let mut idx = 0;
+    let mut x = 1;
+    let mut patches = 0;
+
+    while x <= n {
+        let v = match nums.get(idx) {
+            Some(&v) if v <= x => {
+                idx += 1;
+                v
+            }
+            _ => {
+                patches += 1;
+                x
+            }
+        };
+        x = match x.checked_add(v) {
+            Some(v) => v,
+            None => break,
+        }
+    }
+
+    patches
 }
