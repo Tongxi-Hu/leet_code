@@ -1,4 +1,8 @@
-use crate::common::ListNode;
+use crate::common::{ListNode, TreeNode};
+use std::cell::RefCell;
+use std::cmp::Reverse;
+use std::collections::{BinaryHeap, HashMap};
+use std::rc::Rc;
 
 /// p303
 struct NumArray {
@@ -546,4 +550,156 @@ pub fn min_patches(nums: Vec<i32>, n: i32) -> i32 {
     }
 
     patches
+}
+
+/// p331
+pub fn is_valid_serialization(preorder: String) -> bool {
+    if preorder.len() == 0 {
+        return true;
+    }
+    let contents = preorder.split(',').collect::<Vec<&str>>();
+    let mut slots: Vec<bool> = vec![true];
+    for content in contents {
+        match content {
+            "#" => {
+                if slots.len() == 0 {
+                    return false;
+                } else {
+                    slots.pop();
+                }
+            }
+            _ => {
+                if slots.len() == 0 {
+                    return false;
+                } else {
+                    slots.push(true);
+                }
+            }
+        }
+    }
+    slots.len() == 0
+}
+
+/// p332
+pub fn find_itinerary(tickets: Vec<Vec<String>>) -> Vec<String> {
+    let mut graph: HashMap<String, BinaryHeap<Reverse<String>>> = HashMap::new();
+    for v in tickets.into_iter() {
+        graph
+            .entry(v[0].to_owned())
+            .or_insert(BinaryHeap::new())
+            .push(Reverse(v[1].to_owned()));
+    }
+
+    let mut result = vec![];
+    dfs(&mut graph, "JFK", &mut result);
+
+    result.reverse();
+    result
+}
+
+fn dfs(
+    graph: &mut HashMap<String, BinaryHeap<Reverse<String>>>,
+    from: &str,
+    result: &mut Vec<String>,
+) {
+    while let Some(tos) = graph.get_mut(from) {
+        match tos.pop() {
+            Some(Reverse(to)) => dfs(graph, &to, result),
+            None => break,
+        }
+    }
+    result.push(from.to_string());
+}
+
+/// p334
+pub fn increasing_triplet(nums: Vec<i32>) -> bool {
+    if nums.len() < 3 {
+        return false;
+    };
+    let (mut first, mut second) = (nums[0], i32::MAX);
+    for num in nums {
+        if num > second {
+            return true;
+        } else if num > first {
+            second = num;
+        } else {
+            first = num;
+        }
+    }
+    return false;
+}
+
+/// p335
+pub fn is_self_crossing(distance: Vec<i32>) -> bool {
+    distance.windows(4).any(|v| v[0] >= v[2] && v[1] <= v[3])
+        || distance
+            .windows(5)
+            .any(|v| v[0] + v[4] >= v[2] && v[1] == v[3])
+        || distance
+            .windows(6)
+            .any(|v| v[0] + v[4] >= v[2] && v[1] + v[5] >= v[3] && v[1] <= v[3] && v[2] >= v[4])
+}
+
+/// p336
+pub fn palindrome_pairs(words: Vec<String>) -> Vec<Vec<i32>> {
+    let mp = words
+        .iter()
+        .enumerate()
+        .map(|(i, word)| (word.clone(), i))
+        .collect::<HashMap<_, _>>();
+
+    let mut ans = Vec::new();
+
+    for (i, word) in words.iter().enumerate() {
+        for k in 0..word.len() {
+            if (0..=k / 2).all(|l| word[l..=l] == word[k - l..=k - l]) {
+                if let Some(&j) = mp.get(&(word[k + 1..].chars().rev().collect::<String>())) {
+                    ans.push(vec![j as i32, i as i32]);
+                }
+            }
+        }
+
+        let rev = word.chars().rev().collect::<String>();
+        if let Some(&j) = mp.get(&rev) {
+            if i != j {
+                ans.push(vec![i as i32, j as i32]);
+            }
+        }
+
+        for k in 0..rev.len() {
+            if (0..=k / 2).all(|l| rev[l..=l] == rev[k - l..=k - l]) {
+                if let Some(&j) = mp.get(&rev[k + 1..]) {
+                    ans.push(vec![i as i32, j as i32]);
+                }
+            }
+        }
+    }
+
+    ans
+}
+
+/// p337
+pub fn rob(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    fn dp(node: &Option<Rc<RefCell<TreeNode>>>) -> [i32; 2] {
+        if let Some(n) = node {
+            let left_gain = dp(&n.borrow().left);
+            let right_gain = dp(&n.borrow().right);
+            [
+                left_gain[1] + right_gain[1],
+                (left_gain[0] + right_gain[0] + n.borrow().val).max(left_gain[1] + right_gain[1]),
+            ]
+        } else {
+            [0, 0]
+        }
+    }
+    dp(&root)[1]
+}
+
+/// p338
+pub fn count_bits(n: i32) -> Vec<i32> {
+    let mut ones: Vec<i32> = vec![];
+    for i in 0..=n {
+        ones.push(i.count_ones() as i32);
+    }
+    ones
 }
