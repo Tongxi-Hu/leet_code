@@ -703,3 +703,94 @@ pub fn count_bits(n: i32) -> Vec<i32> {
     }
     ones
 }
+
+/// p341
+#[derive(Debug, PartialEq, Eq)]
+pub enum NestedInteger {
+    Int(i32),
+    List(Vec<NestedInteger>),
+}
+
+struct NestedIterator(Vec<i32>);
+impl NestedIterator {
+    fn new(nestedList: Vec<NestedInteger>) -> Self {
+        let mut v = collect(nestedList);
+        v.reverse();
+        Self(v)
+    }
+    fn next(&mut self) -> i32 {
+        self.0.pop().unwrap()
+    }
+    fn has_next(&self) -> bool {
+        self.0.len() != 0
+    }
+}
+fn collect(nestedList: Vec<NestedInteger>) -> Vec<i32> {
+    nestedList
+        .into_iter()
+        .map(|x| match x {
+            NestedInteger::Int(x) => vec![x],
+            NestedInteger::List(x) => collect(x),
+        })
+        .flatten()
+        .collect()
+}
+
+/// p342
+pub fn is_power_of_four(n: i32) -> bool {
+    if n <= 0 {
+        return false;
+    }
+    let mut n = n;
+    while n % 4 == 0 {
+        n = n / 4;
+    }
+    if n == 1 {
+        true
+    } else {
+        false
+    }
+}
+
+/// p333
+pub fn integer_break(n: i32) -> i32 {
+    if n <= 0 {
+        return 0;
+    }
+    let n = n as usize;
+    let mut dp: Vec<usize> = vec![0; n + 1];
+    for i in 2..n + 1 {
+        for j in 1..i {
+            dp[i] = dp[i].max((j * (i - j)).max(j * dp[i - j]))
+        }
+    }
+    dp[n] as i32
+}
+
+/// p334
+pub fn reverse_string(s: &mut Vec<char>) {
+    s.reverse();
+}
+
+/// p335
+pub fn reverse_vowels(s: String) -> String {
+    let mut chars = s.chars().collect::<Vec<char>>();
+    let (mut l, mut r) = (0, chars.len() - 1);
+    let vowels = ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'];
+    while l < r {
+        if vowels.iter().find(|&&v| v == chars[l]) == None {
+            l = l + 1;
+            continue;
+        }
+        if vowels.iter().find(|&&v| v == chars[r]) == None {
+            r = r - 1;
+            continue;
+        }
+        let old = chars[l];
+        chars[l] = chars[r];
+        chars[r] = old;
+        l = l + 1;
+        r = r - 1;
+    }
+    chars.into_iter().collect::<String>()
+}
