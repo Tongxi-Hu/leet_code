@@ -752,7 +752,7 @@ pub fn is_power_of_four(n: i32) -> bool {
     }
 }
 
-/// p333
+/// p343
 pub fn integer_break(n: i32) -> i32 {
     if n <= 0 {
         return 0;
@@ -767,12 +767,12 @@ pub fn integer_break(n: i32) -> i32 {
     dp[n] as i32
 }
 
-/// p334
+/// p344
 pub fn reverse_string(s: &mut Vec<char>) {
     s.reverse();
 }
 
-/// p335
+/// p345
 pub fn reverse_vowels(s: String) -> String {
     let mut chars = s.chars().collect::<Vec<char>>();
     let (mut l, mut r) = (0, chars.len() - 1);
@@ -793,4 +793,64 @@ pub fn reverse_vowels(s: String) -> String {
         r = r - 1;
     }
     chars.into_iter().collect::<String>()
+}
+
+/// p347
+pub fn top_k_frequent(nums: Vec<i32>, k: i32) -> Vec<i32> {
+    let mut appearance: HashMap<i32, i32> = HashMap::new();
+    nums.into_iter().for_each(|item| {
+        appearance
+            .entry(item)
+            .and_modify(|count| *count = *count - 1)
+            .or_insert(-1);
+    });
+    let mut heap: BinaryHeap<(i32, i32)> = BinaryHeap::with_capacity(k as usize);
+    appearance.into_iter().for_each(|item| {
+        heap.push((item.1, item.0));
+        if heap.len() > k as usize {
+            heap.pop();
+        }
+    });
+    heap.into_iter().map(|item| item.1).collect::<Vec<i32>>()
+}
+
+// p349
+pub fn intersection(nums1: Vec<i32>, nums2: Vec<i32>) -> Vec<i32> {
+    let mut counter: std::collections::HashMap<i32, usize> = std::collections::HashMap::new();
+    nums1.into_iter().for_each(|num| {
+        counter.entry(num).or_insert(1);
+    });
+    nums2.into_iter().for_each(|num| {
+        counter.entry(num).and_modify(|count| {
+            if *count == 1 {
+                *count = 2
+            }
+        });
+    });
+    counter
+        .into_iter()
+        .filter(|item| item.1 == 2)
+        .map(|item| item.0)
+        .collect::<Vec<i32>>()
+}
+
+/// p350
+pub fn intersect(nums1: Vec<i32>, nums2: Vec<i32>) -> Vec<i32> {
+    let (mut nums1, mut nums2) = (nums1, nums2);
+    nums1.sort();
+    nums2.sort();
+    let mut common: Vec<i32> = vec![];
+    let (mut i, mut j) = (0, 0);
+    while i < nums1.len() && j < nums2.len() {
+        if nums1[i] < nums2[j] {
+            i = i + 1;
+        } else if nums2[j] < nums1[i] {
+            j = j + 1
+        } else {
+            common.push(nums1[i]);
+            i = i + 1;
+            j = j + 1;
+        }
+    }
+    common
 }
