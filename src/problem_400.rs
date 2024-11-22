@@ -1,7 +1,7 @@
 use crate::common::{ListNode, TreeNode};
 use std::cell::RefCell;
 use std::cmp::Reverse;
-use std::collections::{BinaryHeap, HashMap};
+use std::collections::{BTreeSet, BinaryHeap, HashMap, HashSet};
 use std::rc::Rc;
 
 /// p303
@@ -853,4 +853,169 @@ pub fn intersect(nums1: Vec<i32>, nums2: Vec<i32>) -> Vec<i32> {
         }
     }
     common
+}
+
+/// p352
+struct SummaryRanges {
+    intervals: BTreeSet<(i32, i32)>,
+}
+
+impl SummaryRanges {
+    fn new() -> Self {
+        Self {
+            intervals: BTreeSet::new(),
+        }
+    }
+
+    fn add_num(&mut self, value: i32) {
+        let mut new_edge1 = value;
+        let mut new_edge2 = value;
+
+        if let Some(&prev_range) = self.intervals.range(..(value, value)).next_back() {
+            if prev_range.1 >= value {
+                return;
+            }
+            if prev_range.1 + 1 == value {
+                self.intervals.remove(&prev_range);
+                new_edge1 = prev_range.0;
+            }
+        }
+
+        if let Some(&next_range) = self.intervals.range((value, value)..).next() {
+            if next_range.0 <= value {
+                return;
+            }
+            if value + 1 == next_range.0 {
+                self.intervals.remove(&next_range);
+                new_edge2 = next_range.1;
+            }
+        }
+
+        self.intervals.insert((new_edge1, new_edge2));
+    }
+
+    fn get_intervals(&self) -> Vec<Vec<i32>> {
+        self.intervals
+            .iter()
+            .map(|&(edge1, edge2)| vec![edge1, edge2])
+            .collect::<Vec<_>>()
+    }
+}
+
+/// p354
+pub fn max_envelopes(envelopes: Vec<Vec<i32>>) -> i32 {
+    let mut envelopes = envelopes;
+    envelopes.sort_unstable_by(|a, b| a[0].cmp(&b[0]).then(b[1].cmp(&a[1])));
+    let mut sub = vec![];
+    for envelope in envelopes {
+        let (_, h) = (envelope[0], envelope[1]);
+        let i = sub.binary_search(&h);
+        let i = match i {
+            Ok(i) => i,
+            Err(i) => i,
+        };
+        if i == sub.len() {
+            sub.push(h);
+        } else {
+            sub[i] = h;
+        }
+    }
+    sub.len() as i32
+}
+
+/// p355
+struct Twitter {
+    follows: HashMap<i32, HashSet<i32>>,
+    tweets: HashMap<i32, Vec<(usize, i32)>>,
+    id: usize,
+}
+
+impl Twitter {
+    fn new() -> Self {
+        Self {
+            follows: HashMap::new(),
+            tweets: HashMap::new(),
+            id: 0,
+        }
+    }
+
+    fn post_tweet(&mut self, user_id: i32, tweet_id: i32) {
+        let cur_id = self.id;
+        self.tweets
+            .entry(user_id)
+            .or_insert(Vec::new())
+            .push((cur_id, tweet_id));
+        self.id += 1;
+    }
+
+    fn get_news_feed(&self, user_id: i32) -> Vec<i32> {
+        // 1.
+        let mut all_tweets = vec![];
+        let mut idxs = vec![];
+
+        if let Some(tweets) = self.tweets.get(&user_id) {
+            idxs.push(tweets.len());
+            all_tweets.push(tweets);
+        }
+        if let Some(followee_ids) = self.follows.get(&user_id) {
+            for id in followee_ids.iter() {
+                if let Some(tweets) = self.tweets.get(id) {
+                    idxs.push(tweets.len());
+                    all_tweets.push(tweets);
+                }
+            }
+        }
+
+        // 2.
+        Self::get_news_tweet(&all_tweets, &mut idxs)
+    }
+
+    fn get_news_tweet(all_tweets: &Vec<&Vec<(usize, i32)>>, idxs: &mut Vec<usize>) -> Vec<i32> {
+        let mut max_heap = BinaryHeap::new();
+        for (i, tweets) in all_tweets.iter().enumerate() {
+            let idx = idxs.get_mut(i).unwrap();
+            if *idx > 0 {
+                let (time, id) = tweets[*idx - 1];
+                max_heap.push((time, id, i));
+                *idx -= 1;
+            }
+        }
+
+        let mut result = vec![];
+        while let Some((_, id, idx)) = max_heap.pop() {
+            result.push(id);
+            if result.len() == 10 {
+                break;
+            }
+
+            let cur_idx = idxs.get_mut(idx).unwrap();
+            if *cur_idx > 0 {
+                let (time, id) = all_tweets[idx][*cur_idx - 1];
+                max_heap.push((time, id, idx));
+                *cur_idx -= 1;
+            }
+        }
+
+        result
+    }
+
+    fn follow(&mut self, follower_id: i32, followee_id: i32) {
+        if follower_id == followee_id {
+            return;
+        }
+        self.follows
+            .entry(follower_id)
+            .or_insert(HashSet::new())
+            .insert(followee_id);
+    }
+
+    fn unfollow(&mut self, follower_id: i32, followee_id: i32) {
+        if follower_id == followee_id {
+            return;
+        }
+        self.follows
+            .entry(follower_id)
+            .or_insert(HashSet::new())
+            .remove(&followee_id);
+    }
 }
