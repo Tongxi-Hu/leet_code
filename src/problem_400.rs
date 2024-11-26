@@ -1035,3 +1035,72 @@ pub fn count_numbers_with_unique_digits(n: i32) -> i32 {
     }
     return res;
 }
+
+/// p363
+pub fn max_sum_submatrix(matrix: Vec<Vec<i32>>, k: i32) -> i32 {
+    let (m, n) = (matrix.len(), matrix[0].len());
+    let mut result = i32::MIN;
+
+    fn max_sum(nums: &Vec<i32>, k: i32) -> i32 {
+        let mut sum = 0;
+        let mut set = BTreeSet::new();
+        set.insert(0);
+        let mut result = i32::MIN;
+
+        for &num in nums.iter() {
+            sum += num;
+            if let Some(&val) = set.range((sum - k)..).next() {
+                result = i32::max(result, sum - val);
+                if result == k {
+                    return k;
+                }
+            }
+            set.insert(sum);
+        }
+
+        result
+    }
+
+    for i in 0..m {
+        let mut sums = vec![0; n];
+        for j in i..m {
+            for k in 0..n {
+                sums[k] += matrix[j][k];
+            }
+
+            let max_val = max_sum(&sums, k);
+            result = i32::max(result, max_val);
+            if result == k {
+                return k;
+            }
+        }
+    }
+
+    result
+}
+
+/// p365
+pub fn can_measure_water(x: i32, y: i32, target: i32) -> bool {
+    if target > x + y {
+        return false;
+    }
+    if x == 0 || y == 0 {
+        return target == 0 || x + y == target;
+    }
+    let (mut x, mut y) = (x, y);
+    while y != 0 {
+        if y < x {
+            let temp = x;
+            x = y;
+            y = temp;
+        }
+        y = y % x;
+    }
+    return target % x == 0;
+}
+
+/// p367
+pub fn is_perfect_square(num: i32) -> bool {
+    let temp = f64::from(num).sqrt().floor() as i32;
+    return temp * temp == num || (temp + 1) * (temp + 1) == num;
+}
