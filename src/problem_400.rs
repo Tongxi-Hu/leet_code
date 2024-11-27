@@ -1104,3 +1104,48 @@ pub fn is_perfect_square(num: i32) -> bool {
     let temp = f64::from(num).sqrt().floor() as i32;
     return temp * temp == num || (temp + 1) * (temp + 1) == num;
 }
+
+/// p368
+pub fn largest_divisible_subset(nums: Vec<i32>) -> Vec<i32> {
+    let mut nums = nums;
+    nums.sort();
+    let length = nums.len();
+    let mut max_size = 1;
+    let mut max_value = nums[0];
+    let mut dp = vec![1; length];
+    for i in 1..length {
+        for j in 0..i {
+            if nums[i] % nums[j] == 0 {
+                dp[i] = dp[i].max(dp[j] + 1);
+            }
+            if dp[i] > max_size {
+                max_size = dp[i];
+                max_value = nums[i];
+            }
+        }
+    }
+    if max_value == nums[0] {
+        return vec![nums[0]];
+    }
+    let mut res = Vec::<i32>::new();
+    for (index, num) in nums.iter().enumerate().rev() {
+        if max_size > 0 && dp[index] == max_size && max_value % num == 0 {
+            res.push(*num);
+            max_size = max_size - 1;
+            max_value = *num;
+        }
+    }
+    res.sort();
+    res
+}
+
+/// p371
+pub fn get_sum(a: i32, b: i32) -> i32 {
+    let (mut a, mut b) = (a, b);
+    while b != 0 {
+        let carry = (a & b) << 1;
+        a = a ^ b;
+        b = carry;
+    }
+    return a;
+}
