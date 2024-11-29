@@ -1149,3 +1149,65 @@ pub fn get_sum(a: i32, b: i32) -> i32 {
     }
     return a;
 }
+
+/// p372
+pub fn super_pow(a: i32, b: Vec<i32>) -> i32 {
+    fn pow(x: i64, n: i64) -> i64 {
+        let mut ans = 1;
+        let (mut x, mut n) = (x, n);
+        while n > 0 {
+            if n & 1 == 1 {
+                ans = ans * x % 1337;
+            }
+            x = x * x % 1337;
+
+            n >>= 1;
+        }
+        ans
+    }
+    let mut ans: i64 = 1;
+    for i in b {
+        ans = pow(ans, 10) * pow(a as i64, i as i64) % 1337;
+    }
+    ans as i32
+}
+
+/// p373
+pub fn k_smallest_pairs(nums1: Vec<i32>, nums2: Vec<i32>, k: i32) -> Vec<Vec<i32>> {
+    let mut heap: BinaryHeap<Reverse<(i32, usize, usize)>> = nums1
+        .iter()
+        .enumerate()
+        .map(|(i, &n1)| Reverse((n1 + nums2[0], i, 0)))
+        .collect();
+    let mut ans = vec![];
+    let mut k = k;
+    while k > 0 {
+        if let Some(Reverse((_, i, j))) = heap.pop() {
+            if j + 1 < nums2.len() {
+                heap.push(Reverse((nums1[i] + nums2[j + 1], i, j + 1)));
+            }
+            k -= 1;
+            ans.push(vec![nums1[i], nums2[j]]);
+        } else {
+            break;
+        }
+    }
+    ans
+}
+
+// p375
+pub fn get_money_amount(n: i32) -> i32 {
+    let n = n as usize;
+    let mut dp = vec![vec![0; n + 1]; n + 1];
+
+    for i in 1..n {
+        for j in 1..n - i + 1 {
+            dp[j][i + j] = (i / 2 + j..i + j)
+                .map(|v| v as i32 + dp[j][v - 1].max(dp[v + 1][i + j]))
+                .min()
+                .unwrap_or(0);
+        }
+    }
+
+    dp[1][n]
+}
