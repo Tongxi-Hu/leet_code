@@ -1211,3 +1211,47 @@ pub fn get_money_amount(n: i32) -> i32 {
 
     dp[1][n]
 }
+
+/// p376
+pub fn wiggle_max_length(nums: Vec<i32>) -> i32 {
+    let length = nums.len();
+    if length < 2 {
+        return length as i32;
+    }
+    let mut prev_diff = nums[1] - nums[0];
+    let mut ret = 1;
+    if prev_diff != 0 {
+        ret = 2
+    }
+    for i in 2..length {
+        let diff = nums[i] - nums[i - 1];
+        if (diff > 0 && prev_diff <= 0) || (diff < 0 && prev_diff >= 0) {
+            ret = ret + 1;
+            prev_diff = diff;
+        }
+    }
+    return ret;
+}
+
+/// p377
+pub fn combination_sum4(nums: Vec<i32>, target: i32) -> i32 {
+    let t = target as usize;
+    let mut f = vec![0; t + 1];
+    f[0] = 1;
+    for i in 1..=t {
+        for &x in &nums {
+            let x = x as usize;
+            if x <= i {
+                f[i] += f[i - x];
+            }
+        }
+    }
+    f[t]
+}
+
+/// p378
+pub fn kth_smallest(matrix: Vec<Vec<i32>>, k: i32) -> i32 {
+    let mut arr = matrix.into_iter().flatten().collect::<Vec<i32>>();
+    arr.sort();
+    arr[(k - 1) as usize]
+}
