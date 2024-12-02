@@ -1,4 +1,4 @@
-use crate::common::{ListNode, TreeNode};
+use crate::common::{ListNode, NestedInteger, TreeNode};
 use std::cell::RefCell;
 use std::cmp::Reverse;
 use std::collections::{BTreeSet, BinaryHeap, HashMap, HashSet};
@@ -705,12 +705,6 @@ pub fn count_bits(n: i32) -> Vec<i32> {
 }
 
 /// p341
-#[derive(Debug, PartialEq, Eq)]
-pub enum NestedInteger {
-    Int(i32),
-    List(Vec<NestedInteger>),
-}
-
 struct NestedIterator(Vec<i32>);
 impl NestedIterator {
     fn new(nestedList: Vec<NestedInteger>) -> Self {
@@ -1254,4 +1248,32 @@ pub fn kth_smallest(matrix: Vec<Vec<i32>>, k: i32) -> i32 {
     let mut arr = matrix.into_iter().flatten().collect::<Vec<i32>>();
     arr.sort();
     arr[(k - 1) as usize]
+}
+
+/// p383
+pub fn can_construct(ransom_note: String, magazine: String) -> bool {
+    let mut required_map: std::collections::HashMap<char, usize> = std::collections::HashMap::new();
+    for c in ransom_note.chars() {
+        match required_map.get_mut(&c) {
+            Some(v) => {
+                *v = *v + 1;
+            }
+            None => {
+                required_map.insert(c, 1);
+            }
+        }
+    }
+    for c in magazine.chars() {
+        match required_map.get_mut(&c) {
+            Some(v) => {
+                if *v == 1 {
+                    required_map.remove(&c);
+                } else {
+                    *v = *v - 1;
+                }
+            }
+            None => (),
+        }
+    }
+    required_map.is_empty()
 }
