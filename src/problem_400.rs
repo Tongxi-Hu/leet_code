@@ -1277,3 +1277,80 @@ pub fn can_construct(ransom_note: String, magazine: String) -> bool {
     }
     required_map.is_empty()
 }
+
+/// p385
+pub fn deserialize(s: String) -> NestedInteger {
+    if !s.starts_with("[") {
+        return NestedInteger::Int(s.parse::<i32>().unwrap());
+    }
+
+    let (mut l, mut r) = (1, 1);
+    let mut queue = Vec::new();
+    queue.push(NestedInteger::List(vec![]));
+    let s_arr = s.chars().collect::<Vec<char>>();
+
+    while r < s_arr.len() {
+        if s_arr[r] == '[' {
+            queue.push(NestedInteger::List(vec![]));
+            l = r + 1;
+        } else if s_arr[r] == ']' || s_arr[r] == ',' {
+            if l < r {
+                let num = (&s[l..r]).parse::<i32>().unwrap();
+                if let NestedInteger::List(v) = queue.last_mut().unwrap() {
+                    v.push(NestedInteger::Int(num))
+                }
+            }
+            l = r + 1
+        }
+        if s_arr[r] == ']' && queue.len() > 1 {
+            let top = queue.pop().unwrap();
+            if let NestedInteger::List(v) = queue.last_mut().unwrap() {
+                v.push(top)
+            }
+        }
+        r += 1;
+    }
+    queue.pop().unwrap()
+}
+
+///p386
+fn lexical_order(n: i32) -> Vec<i32> {
+    let mut ret = vec![0; n as usize];
+    let mut number = 1;
+    for i in 0..n as usize {
+        ret[i] = number;
+        if number * 10 <= n {
+            number *= 10;
+        } else {
+            while number % 10 == 9 || number + 1 > n {
+                number = number / 10;
+            }
+            number = number + 1;
+        }
+    }
+    ret
+}
+
+///p387
+pub fn first_uniq_char(s: String) -> i32 {
+    let flag = (s.len() + 1) as i32;
+    let mut repeat: std::collections::HashMap<char, i32> = std::collections::HashMap::new();
+    s.chars().into_iter().enumerate().for_each(|(index, c)| {
+        if let Some(v) = repeat.get_mut(&c) {
+            *v = flag;
+        } else {
+            repeat.insert(c, index as i32);
+        }
+    });
+    let mut location: i32 = flag;
+    for (_, val) in repeat.iter() {
+        if *val < location {
+            location = *val
+        }
+    }
+    if location == flag {
+        -1
+    } else {
+        location
+    }
+}
