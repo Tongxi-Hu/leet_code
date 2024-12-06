@@ -1354,3 +1354,61 @@ pub fn first_uniq_char(s: String) -> i32 {
         location
     }
 }
+
+/// p388
+pub fn length_longest_path(input: String) -> i32 {
+    let mut stack = vec![];
+    let inputs = input.split("\n");
+    let mut ans = 0;
+    let mut prev = -1;
+
+    for item in inputs {
+        let len = item.trim_start_matches('\t').len(); // '\t'个数即文件/文件夹的层级，对应栈的下标
+        let num = (item.len() - len) as i32;
+
+        if num != prev + 1 {
+            // 当前文件/文件夹不是前一个文件夹的子级
+            stack.drain(num as usize..); // 仅保留父级文件夹
+        }
+
+        stack.push(len);
+
+        if item.contains(".") {
+            ans = ans.max(stack.len() - 1 + stack.iter().sum::<usize>()); // '/' * (stack.len() - 1)
+        }
+
+        prev = num;
+    }
+
+    ans as i32
+}
+
+/// p389
+pub fn find_the_difference(s: String, t: String) -> char {
+    let mut t_record: std::collections::HashMap<char, usize> = std::collections::HashMap::new();
+    t.chars().into_iter().for_each(|c| {
+        if let Some(v) = t_record.get_mut(&c) {
+            *v = *v + 1;
+        } else {
+            t_record.insert(c, 1);
+        }
+    });
+    s.chars().into_iter().for_each(|c| {
+        if let Some(v) = t_record.get_mut(&c) {
+            if *v > 1 {
+                *v = *v - 1;
+            } else {
+                t_record.remove(&c);
+            }
+        }
+    });
+    *t_record.keys().collect::<Vec<&char>>()[0]
+}
+
+/// p390
+pub fn last_remaining(n: i32) -> i32 {
+    match n {
+        1 => 1,
+        _ => 2 * (1 + n / 2 - last_remaining(n / 2)),
+    }
+}
