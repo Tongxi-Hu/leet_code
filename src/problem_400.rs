@@ -1412,3 +1412,263 @@ pub fn last_remaining(n: i32) -> i32 {
         _ => 2 * (1 + n / 2 - last_remaining(n / 2)),
     }
 }
+
+/// p391
+pub fn is_rectangle_cover(rectangles: Vec<Vec<i32>>) -> bool {
+    fn help(mp: &mut std::collections::HashMap<(i32, i32), i32>, x: i32, y: i32) {
+        if let Some(cnt) = mp.get_mut(&(x, y)) {
+            *cnt += 1;
+        } else {
+            mp.insert((x, y), 1);
+        }
+    }
+
+    let (mut min_x, mut min_y, mut max_x, mut max_y) = (i32::MAX, i32::MAX, 0, 0);
+    let mut area = 0;
+
+    let mut mp = std::collections::HashMap::new();
+
+    for rect in rectangles.iter() {
+        let (x, y, a, b) = (rect[0], rect[1], rect[2], rect[3]);
+        min_x = min_x.min(x);
+        min_y = min_y.min(y);
+        max_x = max_x.max(a);
+        max_y = max_y.max(b);
+        area += (a - x) * (b - y);
+
+        help(&mut mp, x, y);
+        help(&mut mp, x, b);
+        help(&mut mp, a, y);
+        help(&mut mp, a, b);
+    }
+
+    if (max_x - min_x) * (max_y - min_y) != area {
+        return false;
+    }
+
+    for (k, v) in mp {
+        if k == (min_x, min_y) || k == (max_x, min_y) || k == (min_x, max_y) || k == (max_x, max_y)
+        {
+            if v != 1 {
+                return false;
+            }
+        } else {
+            if v != 2 && v != 4 {
+                return false;
+            }
+        }
+    }
+
+    true
+}
+
+/// p392
+pub fn is_subsequence(s: String, t: String) -> bool {
+    if s.is_empty() {
+        return true;
+    }
+    let s = s.as_bytes();
+    let mut i = 0;
+    for c in t.bytes() {
+        if s[i] == c {
+            i += 1;
+            if i == s.len() {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+/// p393
+pub fn valid_utf8(data: Vec<i32>) -> bool {
+    let d = data.iter().map(|&x| x as u8).collect::<Vec<_>>();
+    let mut i = 0;
+    while i < d.len() {
+        match d[i].leading_ones() {
+            0 => i += 1,
+            len @ 2..=4 if i + len as usize <= d.len() => {
+                for j in 1..len as usize {
+                    if d[i + j].leading_ones() != 1 {
+                        return false;
+                    }
+                }
+                i += len as usize;
+            }
+            _ => return false,
+        }
+    }
+    true
+}
+
+/// p394
+pub fn decode_string(s: String) -> String {
+    let mut stack: Vec<(usize, String)> = Vec::new();
+    let (mut n, mut str) = (0, String::new());
+    for c in s.chars() {
+        match c {
+            '[' => {
+                stack.push((n, str.clone()));
+                n = 0;
+                str.clear();
+            }
+            ']' => {
+                if let Some(last) = stack.pop() {
+                    str = last.1 + str.repeat(last.0).as_str();
+                }
+            }
+            '0'..='9' => n = n * 10 + (c as u8 - b'0') as usize,
+            c => str.push(c),
+        }
+    }
+    str
+}
+
+/// p395
+pub fn longest_substring(s: String, k: i32) -> i32 {
+    use std::collections::HashMap;
+    let mut dict = HashMap::new();
+    for ch in s.chars() {
+        *dict.entry(ch).or_insert(0) += 1;
+    }
+
+    let mut ans = s.len() as i32;
+    for (key, val) in dict.into_iter() {
+        if val < k {
+            ans = s
+                .split(key)
+                .map(|x| longest_substring(x.to_string(), k))
+                .max()
+                .unwrap();
+            break;
+        }
+    }
+    ans
+}
+
+/// p396
+pub fn max_rotate_function(nums: Vec<i32>) -> i32 {
+    let (mut f, mut sum) = (0, 0);
+    for (i, &n) in nums.iter().enumerate() {
+        f += n * i as i32;
+        sum += n;
+    }
+
+    let mut ans = f;
+    for i in 1..nums.len() {
+        f += sum - nums[nums.len() - i] * nums.len() as i32;
+        ans = ans.max(f);
+    }
+    ans
+}
+
+/// p397
+pub fn integer_replacement(n: i32) -> i32 {
+    let mut n = n;
+    let mut ans = 0;
+    while n > 1 {
+        if n == 3 {
+            return ans + 2;
+        }
+        ans += match n & 3 {
+            0 => {
+                n >>= 2;
+                2
+            }
+            1 => {
+                n >>= 2;
+                3
+            }
+            2 => {
+                n >>= 1;
+                1
+            }
+            _ => {
+                n = (n >> 2) + 1;
+                3
+            }
+        };
+    }
+    ans
+}
+
+/// p398
+
+/// p399
+pub fn calc_equation(
+    equations: Vec<Vec<String>>,
+    values: Vec<f64>,
+    queries: Vec<Vec<String>>,
+) -> Vec<f64> {
+    let mut parent: Vec<usize> = (0..equations.len() * 2).collect();
+    let mut weight = vec![1.0_f64; equations.len() * 2];
+
+    fn union(parent: &mut Vec<usize>, weight: &mut Vec<f64>, idx1: usize, idx2: usize, val: f64) {
+        let x = find(parent, weight, idx1);
+        let y = find(parent, weight, idx2);
+        if x == y {
+            return;
+        }
+        parent[x] = y;
+        weight[x] = val * weight[idx2] / weight[idx1];
+    }
+
+    fn find(parent: &mut Vec<usize>, weight: &mut Vec<f64>, mut idx: usize) -> usize {
+        if idx != parent[idx] {
+            let p = find(parent, weight, parent[idx]);
+            weight[idx] *= weight[parent[idx]];
+            parent[idx] = p;
+        }
+        parent[idx]
+    }
+
+    let mut idx = 0;
+    let mut map = HashMap::new();
+    for (e, &v) in equations.iter().zip(values.iter()) {
+        for e in [&e[0], &e[1]] {
+            if map.get(&e).is_none() {
+                map.insert(e, idx);
+                idx += 1;
+            }
+        }
+        union(&mut parent, &mut weight, map[&e[0]], map[&e[1]], v);
+    }
+    let mut ans = vec![];
+
+    for ele in queries {
+        if map.get(&ele[0]).is_none() || map.get(&ele[1]).is_none() {
+            ans.push(-1.0);
+            continue;
+        }
+        let idx1 = find(&mut parent, &mut weight, map[&ele[0]]);
+        let idx2 = find(&mut parent, &mut weight, map[&ele[1]]);
+        if idx1 != idx2 {
+            ans.push(-1.0);
+        } else {
+            ans.push(weight[map[&ele[0]]] / weight[map[&ele[1]]]);
+        }
+    }
+    ans
+}
+
+/// p400
+pub fn find_nth_digit(n: i32) -> i32 {
+    let n = n as usize;
+    let mut begin = 1;
+    let mut total = 0;
+    let mut digits = 1;
+    loop {
+        let end = begin * 10;
+        let count = (end - begin) * digits;
+        let new_total = total + count;
+        if n <= new_total {
+            let val = (n - total - 1) / digits + begin;
+            let offset = (n - total - 1) % digits;
+            let s = val.to_string();
+            return (s.as_bytes()[offset] - b'0') as i32;
+        }
+        total = new_total;
+        begin = end;
+        digits += 1;
+    }
+}
