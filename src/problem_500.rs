@@ -4,7 +4,7 @@ use std::{
     rc::Rc,
 };
 
-use crate::common::TreeNode;
+use crate::{common::TreeNode, problem_200::largest_number};
 
 /// p401
 fn read_binary_watch(turned_on: i32) -> Vec<String> {
@@ -203,4 +203,91 @@ pub fn split_array(nums: Vec<i32>, k: i32) -> i32 {
         }
     }
     right
+}
+
+/// p412
+pub fn fizz_buzz(n: i32) -> Vec<String> {
+    let mut ans: Vec<String> = vec![];
+    for i in 1..=n {
+        if i % 15 == 0 {
+            ans.push("FizzBuzz".to_string());
+        } else if i % 5 == 0 {
+            ans.push("Buzz".to_string());
+        } else if i % 3 == 0 {
+            ans.push("Fizz".to_string())
+        } else {
+            ans.push(i.to_string())
+        }
+    }
+    ans
+}
+
+/// p413
+pub fn number_of_arithmetic_slices(nums: Vec<i32>) -> i32 {
+    let n = nums.len();
+    if n == 1 {
+        return 0;
+    }
+    let (mut d, mut t, mut ans) = (nums[0] - nums[1], 0, 0);
+    for i in 2..n {
+        if nums[i - 1] - nums[i] == d {
+            t = t + 1;
+        } else {
+            d = nums[i - 1] - nums[i];
+            t = 0;
+        }
+        ans = ans + t;
+    }
+    return ans;
+}
+
+/// p414
+pub fn third_max(nums: Vec<i32>) -> i32 {
+    let (mut first, mut second, mut third) = (i64::MIN, i64::MIN, i64::MIN);
+    for n in nums {
+        let num = n as i64;
+        if num > first {
+            third = second;
+            second = first;
+            first = num;
+        } else if num < first && num > second {
+            third = second;
+            second = num;
+        } else if num < second && num > third {
+            third = num;
+        }
+    }
+    return if third == i64::MIN {
+        first as i32
+    } else {
+        third as i32
+    };
+}
+
+/// p415
+pub fn add_strings(num1: String, num2: String) -> String {
+    use std::iter::repeat;
+    if num2.len() > num1.len() {
+        return add_strings(num2, num1);
+    }
+    let mut prev = 0;
+    let mut ret = num1
+        .chars()
+        .rev()
+        .zip(
+            num2.chars()
+                .rev()
+                .chain(repeat('0').take(num1.len().saturating_sub(num2.len()))),
+        )
+        .map(|(a, b)| {
+            let curr = prev + a.to_digit(10).unwrap() + b.to_digit(10).unwrap();
+            prev = curr / 10;
+            char::from_digit(curr % 10, 10).unwrap()
+        })
+        .collect::<Vec<_>>();
+
+    if prev == 1 {
+        ret.push((1u8 + b'0') as char);
+    }
+    ret.iter().rev().collect::<_>()
 }
