@@ -1,6 +1,6 @@
 use std::{
     cell::RefCell,
-    collections::{BinaryHeap, HashMap},
+    collections::{BinaryHeap, HashMap, HashSet},
     rc::Rc,
 };
 
@@ -290,4 +290,170 @@ pub fn add_strings(num1: String, num2: String) -> String {
         ret.push((1u8 + b'0') as char);
     }
     ret.iter().rev().collect::<_>()
+}
+
+/// p416
+pub fn can_partition(nums: Vec<i32>) -> bool {
+    let s = nums.iter().sum::<i32>() as usize;
+    if s % 2 != 0 {
+        return false;
+    }
+    fn dfs(i: usize, j: usize, nums: &[i32], memo: &mut [Vec<i32>]) -> bool {
+        if i == nums.len() {
+            return j == 0;
+        }
+        if memo[i][j] != -1 {
+            // 之前计算过
+            return memo[i][j] == 1;
+        }
+        let x = nums[i] as usize;
+        let res = j >= x && dfs(i + 1, j - x, nums, memo) || dfs(i + 1, j, nums, memo);
+        memo[i][j] = if res { 1 } else { 0 }; // 记忆化
+        res
+    }
+    let n = nums.len();
+    let mut memo = vec![vec![-1; s / 2 + 1]; n]; // -1 表示没有计算过
+                                                 // 为方便起见，改成 i 从 0 开始
+    dfs(0, s / 2, &nums, &mut memo)
+}
+
+/// p417
+pub fn pacific_atlantic(heights: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+    let mut to_pacific: HashSet<Vec<usize>> = HashSet::new();
+    let mut to_atlantic: HashSet<Vec<usize>> = HashSet::new();
+    let mut ans = Vec::new();
+
+    fn dfs(r: usize, c: usize, heights: &Vec<Vec<i32>>, record: &mut HashSet<Vec<usize>>) {
+        if record.contains(&vec![r, c]) {
+            return;
+        }
+        record.insert(vec![r, c]);
+        if r as i32 - 1 >= 0 && heights[r - 1][c] >= heights[r][c] {
+            dfs(r - 1, c, heights, record)
+        }
+        if r + 1 < heights.len() && heights[r + 1][c] >= heights[r][c] {
+            dfs(r + 1, c, heights, record)
+        }
+        if c as i32 - 1 >= 0 && heights[r][c - 1] >= heights[r][c] {
+            dfs(r, c - 1, heights, record)
+        }
+        if c + 1 < heights[0].len() && heights[r][c + 1] >= heights[r][c] {
+            dfs(r, c + 1, heights, record)
+        }
+    }
+
+    for left in 0..heights.len() {
+        dfs(left, 0, &heights, &mut to_pacific);
+    }
+    for top in 0..heights[0].len() {
+        dfs(0, top, &heights, &mut to_pacific);
+    }
+    for right in 0..heights.len() {
+        dfs(right, heights[0].len() - 1, &heights, &mut to_atlantic);
+    }
+    for bottom in 0..heights[0].len() {
+        dfs(heights.len() - 1, bottom, &heights, &mut to_atlantic);
+    }
+
+    for p in to_pacific.iter() {
+        for a in to_atlantic.iter() {
+            if p[0] == a[0] && p[1] == a[1] {
+                ans.push(vec![p[0] as i32, p[1] as i32])
+            }
+        }
+    }
+    ans
+}
+
+/// p419
+pub fn count_battleships(board: Vec<Vec<char>>) -> i32 {
+    let mut ans = 0;
+    let row = board.len();
+    let col = board[0].len();
+    for r in 0..row {
+        for c in 0..col {
+            if board[r][c] == 'X' {
+                if r > 0 && board[r - 1][c] == 'X' {
+                    continue;
+                }
+                if c > 0 && board[r][c - 1] == 'X' {
+                    continue;
+                }
+                ans = ans + 1;
+            }
+        }
+    }
+    ans
+}
+
+/// p420
+pub fn strong_password_checker(password: String) -> i32 {
+    let mut miss_types = 3;
+
+    if password.chars().any(|c| c.is_lowercase()) {
+        miss_types -= 1;
+    }
+
+    if password.chars().any(|c| c.is_uppercase()) {
+        miss_types -= 1;
+    }
+
+    if password.chars().any(|c| c.is_digit(10)) {
+        miss_types -= 1;
+    }
+
+    let n = password.len();
+    let s = password.as_bytes();
+    let (mut a, mut b, mut r) = (0, 0, 0);
+    let mut i = 2;
+
+    while i < n {
+        if s[i] == s[i - 1] && s[i] == s[i - 2] {
+            let mut tmp = 3;
+
+            while i + 1 < n && s[i] == s[i + 1] {
+                tmp += 1;
+                i += 1;
+            }
+
+            if tmp % 3 == 0 {
+                a += 1;
+            } else if tmp % 3 == 1 {
+                b += 1;
+            }
+
+            r += tmp / 3;
+        }
+
+        i += 1;
+    }
+
+    if n < 6 {
+        return miss_types.max(6 - n as i32);
+    }
+
+    if n <= 20 {
+        return miss_types.max(r);
+    }
+
+    let d = n as i32 - 20;
+    r -= a.min(d);
+
+    if d > a {
+        r -= b.min((d - a) / 2);
+    }
+
+    if d > a + 2 * b {
+        r -= (d - a - 2 * b) / 3;
+    }
+
+    d + r.max(miss_types)
+}
+
+#[test]
+fn test_eq() {
+    let mut set = HashSet::new();
+    set.insert(vec![1, 2]);
+    set.insert(vec![1, 2]);
+    println!("{}", set.len());
 }
