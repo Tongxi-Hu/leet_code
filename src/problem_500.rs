@@ -497,7 +497,6 @@ pub fn original_digits(s: String) -> String {
     cnt[7] = *c.get(&'s').unwrap_or(&0) - cnt[6];
 
     cnt[1] = *c.get(&'o').unwrap_or(&0) - cnt[0] - cnt[2] - cnt[4];
-
     cnt[9] = *c.get(&'i').unwrap_or(&0) - cnt[5] - cnt[6] - cnt[8];
 
     let mut ans = "".to_string();
