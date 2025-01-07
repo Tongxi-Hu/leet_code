@@ -450,10 +450,89 @@ pub fn strong_password_checker(password: String) -> i32 {
     d + r.max(miss_types)
 }
 
+/// p421
+pub fn find_maximum_xor(nums: Vec<i32>) -> i32 {
+    let mx = nums.iter().max().unwrap();
+    let high_bit = 31 - mx.leading_zeros() as i32;
+
+    let mut ans = 0;
+    let mut mask = 0;
+    let mut seen = HashSet::new();
+    for i in (0..=high_bit).rev() {
+        // 从最高位开始枚举
+        seen.clear();
+        mask |= 1 << i;
+        let new_ans = ans | (1 << i); // 这个比特位可以是 1 吗？
+        for &x in &nums {
+            let x = x & mask; // 低于 i 的比特位置为 0
+            if seen.contains(&(new_ans ^ x)) {
+                ans = new_ans; // 这个比特位可以是 1
+                break;
+            }
+            seen.insert(x);
+        }
+    }
+    ans
+}
+
+/// p423
+pub fn original_digits(s: String) -> String {
+    let mut c: HashMap<char, usize> = HashMap::new();
+    s.chars().for_each(|ch| {
+        if let Some(count) = c.get_mut(&ch) {
+            *count = *count + 1;
+        } else {
+            c.insert(ch, 1);
+        }
+    });
+    let mut cnt = vec![0 as usize; 10];
+    cnt[0] = *c.get(&'z').unwrap_or(&0);
+    cnt[2] = *c.get(&'w').unwrap_or(&0);
+    cnt[4] = *c.get(&'u').unwrap_or(&0);
+    cnt[6] = *c.get(&'x').unwrap_or(&0);
+    cnt[8] = *c.get(&'g').unwrap_or(&0);
+
+    cnt[3] = *c.get(&'h').unwrap_or(&0) - cnt[8];
+    cnt[5] = *c.get(&'f').unwrap_or(&0) - cnt[4];
+    cnt[7] = *c.get(&'s').unwrap_or(&0) - cnt[6];
+
+    cnt[1] = *c.get(&'o').unwrap_or(&0) - cnt[0] - cnt[2] - cnt[4];
+
+    cnt[9] = *c.get(&'i').unwrap_or(&0) - cnt[5] - cnt[6] - cnt[8];
+
+    let mut ans = "".to_string();
+    for i in 0..10 {
+        for _ in 0..cnt[i] {
+            ans = ans + &i.to_string();
+        }
+    }
+    return ans;
+}
+
+/// p424
+pub fn character_replacement(s: String, k: i32) -> i32 {
+    let mut records = [0; 26];
+    let mut max_count = 0;
+    let mut max_len = 0;
+
+    let mut l = 0;
+    for (i, b) in s.bytes().enumerate() {
+        let idx = (b - b'A') as usize;
+        records[idx] += 1;
+        max_count = i32::max(max_count, records[idx]);
+
+        while (i - l + 1) as i32 - max_count > k {
+            records[(s.as_bytes()[l] - b'A') as usize] -= 1;
+            l += 1;
+        }
+
+        max_len = i32::max(max_len, (i - l + 1) as i32);
+    }
+
+    max_len
+}
+
 #[test]
 fn test_eq() {
-    let mut set = HashSet::new();
-    set.insert(vec![1, 2]);
-    set.insert(vec![1, 2]);
-    println!("{}", set.len());
+    original_digits("owoztneoer".to_string());
 }
