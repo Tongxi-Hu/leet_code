@@ -531,6 +531,164 @@ pub fn character_replacement(s: String, k: i32) -> i32 {
     max_len
 }
 
+/// p432
+#[derive(Debug, PartialEq, Clone, Eq)]
+struct Node {
+    key: String,
+    count: i32,
+    prev: Option<Rc<RefCell<Node>>>,
+    next: Option<Rc<RefCell<Node>>>,
+}
+impl Node {
+    fn new(key: String) -> Self {
+        Self {
+            key,
+            count: 1,
+            prev: None,
+            next: None,
+        }
+    }
+}
+
+struct DoubleList {
+    head: Rc<RefCell<Node>>,
+    tail: Rc<RefCell<Node>>,
+}
+impl DoubleList {
+    fn new() -> Self {
+        let mut head = Rc::new(RefCell::new(Node::new("".to_string())));
+        let mut tail = Rc::new(RefCell::new(Node::new("".to_string())));
+        head.borrow_mut().next = Some(tail.clone());
+        tail.borrow_mut().prev = Some(head.clone());
+        Self { head, tail }
+    }
+
+    fn get_max_key(&self) -> String {
+        let next = self.head.borrow().next.clone().unwrap();
+        if next == self.tail {
+            "".to_string()
+        } else {
+            next.borrow().key.clone()
+        }
+    }
+    fn get_min_key(&self) -> String {
+        let prev = self.tail.borrow().prev.clone().unwrap();
+        if prev == self.head {
+            "".to_string()
+        } else {
+            prev.borrow().key.clone()
+        }
+    }
+
+    fn insert_tail(&mut self, node: Rc<RefCell<Node>>) {
+        let prev = self.tail.borrow_mut().prev.take().unwrap();
+        prev.borrow_mut().next = Some(node.clone());
+        self.tail.borrow_mut().prev = Some(node.clone());
+        node.borrow_mut().prev = Some(prev);
+        node.borrow_mut().next = Some(self.tail.clone());
+    }
+
+    fn remove(&mut self, node: Rc<RefCell<Node>>) {
+        let prev = node.borrow_mut().prev.take().unwrap();
+        let next = node.borrow_mut().next.take().unwrap();
+        prev.borrow_mut().next = Some(next.clone());
+        next.borrow_mut().prev = Some(prev);
+    }
+    fn insert(&mut self, node: Rc<RefCell<Node>>) {
+        let count = node.borrow().count;
+        let mut cur = self.head.borrow().next.clone().unwrap();
+        while cur != self.tail && cur.borrow().count > count {
+            let next = cur.borrow().next.clone().unwrap();
+            cur = next;
+        }
+
+        let prev = cur.borrow_mut().prev.take().unwrap();
+        prev.borrow_mut().next = Some(node.clone());
+        cur.borrow_mut().prev = Some(node.clone());
+        node.borrow_mut().prev = Some(prev);
+        node.borrow_mut().next = Some(cur);
+    }
+    fn rearrange(&mut self, node: Rc<RefCell<Node>>) {
+        self.remove(node.clone());
+        self.insert(node);
+    }
+}
+
+struct AllOne {
+    maps: HashMap<String, Rc<RefCell<Node>>>,
+    list: DoubleList,
+}
+impl AllOne {
+    fn new() -> Self {
+        Self {
+            maps: HashMap::new(),
+            list: DoubleList::new(),
+        }
+    }
+
+    fn inc(&mut self, key: String) {
+        match self.maps.get_mut(&key) {
+            Some(node) => {
+                node.borrow_mut().count += 1;
+                self.list.rearrange(node.clone());
+            }
+            None => {
+                let node = Rc::new(RefCell::new(Node::new(key.clone())));
+                self.list.insert_tail(node.clone());
+                self.maps.insert(key, node);
+            }
+        }
+    }
+
+    fn dec(&mut self, key: String) {
+        let node = self.maps.get_mut(&key).unwrap();
+        node.borrow_mut().count -= 1;
+        if node.borrow().count == 0 {
+            self.list.remove(self.maps.remove(&key).unwrap());
+        } else {
+            self.list.rearrange(node.clone());
+        }
+    }
+
+    fn get_max_key(&self) -> String {
+        self.list.get_max_key()
+    }
+    fn get_min_key(&self) -> String {
+        self.list.get_min_key()
+    }
+}
+
+/// p433
+pub fn min_mutation(start_gene: String, end_gene: String, bank: Vec<String>) -> i32 {
+    let mut step = -1;
+
+    step
+}
+
+/// p434
+pub fn count_segments(s: String) -> i32 {
+    s.split_whitespace().count() as i32
+}
+
+/// p435
+pub fn erase_overlap_intervals(intervals: Vec<Vec<i32>>) -> i32 {
+    let length = intervals.len();
+    if length == 0 {
+        return 0;
+    }
+    let mut intervals = intervals;
+    let mut count = 1;
+    intervals.sort_by(|a, b| return a[1].cmp(&b[1]));
+    let mut right = intervals[0][1];
+    for i in 1..length {
+        if intervals[i][0] >= right {
+            right = intervals[i][1];
+            count = count + 1;
+        }
+    }
+    return length as i32 - count;
+}
+
 #[test]
 fn test_eq() {
     original_digits("owoztneoer".to_string());
