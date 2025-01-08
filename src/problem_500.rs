@@ -660,9 +660,65 @@ impl AllOne {
 
 /// p433
 pub fn min_mutation(start_gene: String, end_gene: String, bank: Vec<String>) -> i32 {
-    let mut step = -1;
+    if start_gene == end_gene {
+        return 0;
+    }
+    if !bank.contains(&end_gene) {
+        return -1;
+    }
+    let gene = vec![
+        "A".to_string(),
+        "G".to_string(),
+        "T".to_string(),
+        "C".to_string(),
+    ];
+    let mut all_mut: Vec<Vec<String>> = vec![];
+    let mut current_mut: Vec<String> = vec![start_gene.clone()];
+    fn dfs(
+        current_mut: &mut Vec<String>,
+        all_mut: &mut Vec<Vec<String>>,
+        bank: &Vec<String>,
+        gene: &Vec<String>,
+        start_gene: &String,
+        end_gene: &String,
+    ) {
+        let last = current_mut[current_mut.len() - 1].to_string();
+        for g in gene {
+            for i in 0..start_gene.len() {
+                let mut new = last.clone();
+                new.replace_range(i..i + 1, &g.to_string());
+                if new == *end_gene {
+                    current_mut.push(new);
+                    all_mut.push(current_mut.clone());
+                    current_mut.pop();
+                } else if bank.contains(&new) && !current_mut.contains(&new) {
+                    current_mut.push(new);
+                    dfs(current_mut, all_mut, bank, gene, start_gene, end_gene);
+                    current_mut.pop();
+                }
+            }
+        }
+    }
 
-    step
+    dfs(
+        &mut current_mut,
+        &mut all_mut,
+        &bank,
+        &gene,
+        &start_gene,
+        &end_gene,
+    );
+    if all_mut.len() == 0 {
+        return -1;
+    } else {
+        (all_mut.iter().fold(usize::MAX, |acc, path| {
+            if path.len() < acc {
+                return path.len();
+            } else {
+                acc
+            }
+        }) - 1) as i32
+    }
 }
 
 /// p434
