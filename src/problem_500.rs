@@ -1,10 +1,11 @@
 use std::{
     cell::RefCell,
     collections::{BinaryHeap, HashMap, HashSet},
+    i32,
     rc::Rc,
 };
 
-use crate::common::TreeNode;
+use crate::{common::TreeNode, problem_400::largest_divisible_subset};
 
 /// p401
 fn read_binary_watch(turned_on: i32) -> Vec<String> {
@@ -745,7 +746,97 @@ pub fn erase_overlap_intervals(intervals: Vec<Vec<i32>>) -> i32 {
     return length as i32 - count;
 }
 
-#[test]
-fn test_eq() {
-    original_digits("owoztneoer".to_string());
+/// p346
+pub fn find_right_interval(intervals: Vec<Vec<i32>>) -> Vec<i32> {
+    let mut ans = vec![];
+    for interval in intervals.iter() {
+        let mut index = -1;
+        let mut min = i32::MAX;
+        for (location, pick) in intervals.iter().enumerate() {
+            if pick[0] >= interval[1] && pick[0] < min {
+                index = location as i32;
+                min = pick[0];
+            }
+        }
+        ans.push(index);
+    }
+    ans
+}
+
+/// p347
+pub fn path_sum(root: Option<Rc<RefCell<TreeNode>>>, target_sum: i32) -> i32 {
+    fn dfs(
+        node: &Option<Rc<RefCell<TreeNode>>>,
+        s: i64,
+        target_sum: i64,
+        ans: &mut i32,
+        cnt: &mut HashMap<i64, i32>,
+    ) {
+        if let Some(node) = node {
+            let node = node.borrow();
+            let s = s + node.val as i64;
+            *ans += *cnt.get(&(s - target_sum)).unwrap_or(&0);
+            *cnt.entry(s).or_insert(0) += 1;
+            dfs(&node.left, s, target_sum, ans, cnt);
+            dfs(&node.right, s, target_sum, ans, cnt);
+            *cnt.entry(s).or_insert(0) -= 1;
+        }
+    }
+    let mut ans = 0;
+    let mut cnt = HashMap::new();
+    cnt.insert(0, 1);
+    dfs(&root, 0, target_sum as i64, &mut ans, &mut cnt);
+    ans
+}
+
+/// p348
+pub fn find_anagrams(s: String, p: String) -> Vec<i32> {
+    // 1.
+    let mut records = [0; 26];
+    for b in p.bytes() {
+        records[(b - b'a') as usize] += 1;
+    }
+
+    // 2.
+    let mut result = vec![];
+    for (i, w) in s.as_bytes().windows(p.len()).enumerate() {
+        if i == 0 {
+            for &b in w.iter() {
+                records[(b - b'a') as usize] -= 1;
+            }
+        } else {
+            records[(*w.last().unwrap() - b'a') as usize] -= 1;
+        }
+
+        if records.iter().all(|&count| count == 0) {
+            result.push(i as i32);
+        }
+        records[(*w.first().unwrap() - b'a') as usize] += 1;
+    }
+
+    // 3.
+    result
+}
+
+/// p340
+pub fn find_kth_number(n: i32, mut k: i32) -> i32 {
+    let mut curr: i32 = 1;
+    while k > 1 {
+        let (mut step, mut p, mut q): (i64, i64, i64) = (0, curr as i64, curr as i64 + 1);
+        // 计算节点数
+        while p <= n as i64 {
+            step += q.min(n as i64 + 1) - p;
+            p *= 10;
+            q *= 10;
+        }
+        // 根据结果在下一棵树还是当前树做不同的处理
+        if k - 1 >= step as i32 {
+            k -= step as i32;
+            curr += 1;
+        } else {
+            k -= 1;
+            curr *= 10;
+        }
+    }
+    curr as i32
 }
