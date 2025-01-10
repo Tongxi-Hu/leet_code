@@ -1,11 +1,15 @@
 use std::{
     cell::RefCell,
     collections::{BinaryHeap, HashMap, HashSet},
-    i32,
+    i32, iter,
     rc::Rc,
 };
 
-use crate::{common::TreeNode, problem_400::largest_divisible_subset};
+use crate::{
+    common::{ListNode, TreeNode},
+    problem_100::climb_stairs,
+    problem_400::largest_divisible_subset,
+};
 
 /// p401
 fn read_binary_watch(turned_on: i32) -> Vec<String> {
@@ -839,4 +843,126 @@ pub fn find_kth_number(n: i32, mut k: i32) -> i32 {
         }
     }
     curr as i32
+}
+
+/// p441
+pub fn arrange_coins(n: i32) -> i32 {
+    if n == 1 {
+        return 1;
+    }
+    let mut rows = 1;
+    let mut remain = n;
+    while remain >= rows {
+        remain = remain - rows;
+        rows = rows + 1;
+    }
+    rows - 1
+}
+
+/// p442
+pub fn find_duplicates(nums: Vec<i32>) -> Vec<i32> {
+    let mut nums = nums;
+    let n = nums.len();
+    let mut ans = vec![];
+    for i in 0..n {
+        let x = nums[i].abs();
+        if nums[(x - 1) as usize] > 0 {
+            nums[(x - 1) as usize] = -nums[(x - 1) as usize];
+        } else {
+            ans.push(x);
+        }
+    }
+    ans
+}
+
+/// p443
+pub fn compress(chars: &mut Vec<char>) -> i32 {
+    let n = chars.len();
+    let mut idx = 0;
+    let mut count = 1;
+
+    for i in 1..n {
+        if chars[i - 1] == chars[i] {
+            count += 1;
+        } else {
+            chars[idx] = chars[i - 1];
+            idx += 1;
+            if count > 1 {
+                for c in count.to_string().chars() {
+                    chars[idx] = c;
+                    idx += 1;
+                }
+            }
+            count = 1;
+        }
+    }
+
+    chars[idx] = chars[n - 1];
+    idx += 1;
+    if count > 1 {
+        for c in count.to_string().chars() {
+            chars[idx] = c;
+            idx += 1;
+        }
+    }
+
+    idx as i32
+}
+
+/// p445
+pub fn add_two_numbers(
+    l1: Option<Box<ListNode>>,
+    l2: Option<Box<ListNode>>,
+) -> Option<Box<ListNode>> {
+    let mut n_1 = vec![];
+    let mut n_2 = vec![];
+    let mut p_1 = &l1;
+    let mut p_2 = &l2;
+    while let Some(node) = p_1 {
+        n_1.push(node.val);
+        p_1 = &node.next;
+    }
+    while let Some(node) = p_2 {
+        n_2.push(node.val);
+        p_2 = &node.next;
+    }
+    let mut longer = n_1;
+    let mut shorter = n_2;
+    if longer.len() < shorter.len() {
+        let temp = longer;
+        longer = shorter;
+        shorter = temp;
+    }
+    let mut remain = 0;
+    let mut total = longer
+        .iter()
+        .rev()
+        .zip(shorter.iter().rev().chain(iter::repeat(&0)))
+        .map(|(num1, num2)| {
+            let mut total = num1 + num2 + remain;
+            if total >= 10 {
+                remain = 1;
+                total = total - 10;
+            } else {
+                remain = 0;
+            }
+            total
+        })
+        .collect::<Vec<i32>>();
+    if remain != 0 {
+        total.push(remain)
+    }
+    total.reverse();
+    let mut res: Option<Box<ListNode>> = None;
+    let mut p = &mut res;
+    for n in total {
+        let new_node = ListNode::new(n);
+        if let Some(old_node) = p {
+            old_node.next = Some(Box::new(new_node));
+            p = &mut old_node.next;
+        } else {
+            *p = Some(Box::new(new_node));
+        }
+    }
+    res
 }
