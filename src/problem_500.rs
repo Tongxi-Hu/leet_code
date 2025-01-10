@@ -746,7 +746,7 @@ pub fn erase_overlap_intervals(intervals: Vec<Vec<i32>>) -> i32 {
     return length as i32 - count;
 }
 
-/// p346
+/// p446
 pub fn find_right_interval(intervals: Vec<Vec<i32>>) -> Vec<i32> {
     let mut ans = vec![];
     for interval in intervals.iter() {
@@ -763,7 +763,7 @@ pub fn find_right_interval(intervals: Vec<Vec<i32>>) -> Vec<i32> {
     ans
 }
 
-/// p347
+/// p447
 pub fn path_sum(root: Option<Rc<RefCell<TreeNode>>>, target_sum: i32) -> i32 {
     fn dfs(
         node: &Option<Rc<RefCell<TreeNode>>>,
@@ -789,7 +789,7 @@ pub fn path_sum(root: Option<Rc<RefCell<TreeNode>>>, target_sum: i32) -> i32 {
     ans
 }
 
-/// p348
+/// p448
 pub fn find_anagrams(s: String, p: String) -> Vec<i32> {
     // 1.
     let mut records = [0; 26];
@@ -818,7 +818,7 @@ pub fn find_anagrams(s: String, p: String) -> Vec<i32> {
     result
 }
 
-/// p340
+/// p440
 pub fn find_kth_number(n: i32, mut k: i32) -> i32 {
     let mut curr: i32 = 1;
     while k > 1 {
