@@ -1103,39 +1103,39 @@ impl Codec {
     }
 }
 
-// pub fn delete_node(root: Option<Rc<RefCell<TreeNode>>>, key: i32) -> Option<Rc<RefCell<TreeNode>>> {
-//     let root = root;
-//     match root {
-//         Some(ref node) => {
-//             let val = node.borrow().val;
-//             if key == val {
-//                 let mut left = node.borrow_mut().left.take();
-//                 let mut right = node.borrow_mut().right.take();
-//                 match (left.is_none(), right.is_none()) {
-//                     (true, true) => return None,
-//                     (true, false) => return right,
-//                     (false, true) => return left,
-//                     (false, false) => {
-//                         let mut min_node = right.clone().unwrap();
-//                         while min_node.borrow().left.is_some() {
-//                             let t = min_node.borrow_mut().left.clone();
-//                             min_node = t.unwrap();
-//                         }
-//                         min_node.borrow_mut().left = left.take();
-//                         return right.take();
-//                     }
-//                 }
-//             } else if key > val {
-//                 let right = node.borrow_mut().right.take();
-//                 let new_right = delete_node(right, key);
-//                 node.borrow_mut().right = new_right;
-//             } else {
-//                 let left = node.borrow_mut().left.take();
-//                 let new_left = delete_node(left, key);
-//                 node.borrow_mut().right = new_left;
-//             }
-//         }
-//         None => (),
-//     }
-//     root
-// }
+/// p450
+pub fn delete_node(root: Option<Rc<RefCell<TreeNode>>>, key: i32) -> Option<Rc<RefCell<TreeNode>>> {
+    use std::cmp;
+    fn dfs(root: Option<Rc<RefCell<TreeNode>>>, key: i32) -> Option<Rc<RefCell<TreeNode>>> {
+        if root.is_none() {
+            return None;
+        }
+        let mut node = root.as_ref().unwrap().borrow_mut();
+        match node.val.cmp(&key) {
+            cmp::Ordering::Greater => {
+                node.left = dfs(node.left.take(), key);
+            }
+            cmp::Ordering::Less => {
+                node.right = dfs(node.right.take(), key);
+            }
+            cmp::Ordering::Equal => {
+                return match (node.left.is_none(), node.right.is_none()) {
+                    (true, false) => node.right.take(),
+                    (false, true) => node.left.take(),
+                    (false, false) => {
+                        let mut min_node = node.right.clone().unwrap();
+                        while min_node.borrow().left.is_some() {
+                            let t = min_node.borrow_mut().left.clone();
+                            min_node = t.unwrap();
+                        }
+                        min_node.borrow_mut().left = node.left.take();
+                        node.right.take()
+                    }
+                    _ => None,
+                }
+            }
+        };
+        root.clone()
+    }
+    dfs(root, key)
+}
