@@ -1,15 +1,11 @@
 use std::{
     cell::RefCell,
-    collections::{BinaryHeap, HashMap, HashSet},
+    collections::{BinaryHeap, HashMap, HashSet, VecDeque},
     i32, iter,
     rc::Rc,
 };
 
-use crate::{
-    common::{ListNode, TreeNode},
-    problem_100::climb_stairs,
-    problem_400::largest_divisible_subset,
-};
+use crate::common::{ListNode, TreeNode};
 
 /// p401
 fn read_binary_watch(turned_on: i32) -> Vec<String> {
@@ -966,3 +962,180 @@ pub fn add_two_numbers(
     }
     res
 }
+
+/// p446
+pub fn number_of_arithmetic_slices_2(nums: Vec<i32>) -> i32 {
+    let mut dp: Vec<HashMap<i64, i32>> = vec![HashMap::new(); nums.len()];
+
+    let mut total_count = 0;
+    for (i, &num) in nums.iter().enumerate() {
+        for (j, &prev_num) in nums.iter().enumerate().take(i) {
+            let d = num as i64 - prev_num as i64;
+            let count = dp[j].get(&d).map(|count| *count).unwrap_or(0);
+            *dp[i].entry(d).or_insert(0) += count + 1;
+            total_count += count;
+        }
+    }
+
+    total_count
+}
+
+/// p447
+pub fn number_of_boomerangs(points: Vec<Vec<i32>>) -> i32 {
+    let length = points.len();
+    if length < 3 {
+        return 0;
+    } else {
+        let mut ans = 0;
+        for i in 0..length {
+            let mut record: HashMap<i32, i32> = HashMap::new();
+            for j in 0..length {
+                let distance =
+                    (points[i][0] - points[j][0]).pow(2) + (points[i][1] - points[j][1]).pow(2);
+                if let Some(val) = record.get_mut(&distance) {
+                    *val = *val + 1;
+                } else {
+                    record.insert(distance, 1);
+                }
+            }
+            record.iter().for_each(|(_, val)| {
+                if *val > 1 {
+                    ans = ans + val * (val - 1);
+                }
+            });
+        }
+        ans
+    }
+}
+
+/// p448
+pub fn find_disappeared_numbers(nums: Vec<i32>) -> Vec<i32> {
+    let mut cnt = vec![0; nums.len() + 1];
+    for n in nums {
+        cnt[n as usize] += 1;
+    }
+    let mut ans = vec![];
+    for i in 1..cnt.len() {
+        if cnt[i] == 0 {
+            ans.push(i as i32);
+        }
+    }
+    ans
+}
+
+/// p449
+struct Codec {}
+
+impl Codec {
+    fn new() -> Self {
+        Self {}
+    }
+
+    fn serialize(&self, root: Option<Rc<RefCell<TreeNode>>>) -> String {
+        let mut s = String::new();
+
+        if let Some(root) = root {
+            let mut q = VecDeque::new();
+            s.push_str(&root.borrow().val.to_string());
+            q.push_back(root);
+
+            while let Some(node) = q.pop_front() {
+                s.push('-');
+                match node.borrow_mut().left.take() {
+                    Some(left) => {
+                        s.push_str(&left.borrow().val.to_string());
+                        q.push_back(left);
+                    }
+                    None => {
+                        s.push('#');
+                    }
+                }
+
+                s.push('-');
+                match node.borrow_mut().right.take() {
+                    Some(right) => {
+                        s.push_str(&right.borrow().val.to_string());
+                        q.push_back(right);
+                    }
+                    None => {
+                        s.push('#');
+                    }
+                }
+            }
+        }
+
+        s
+    }
+
+    fn deserialize(&self, data: String) -> Option<Rc<RefCell<TreeNode>>> {
+        if data.is_empty() {
+            return None;
+        }
+
+        // 1.
+        let mut nodes = data
+            .split('-')
+            .map(|num| -> Option<Rc<RefCell<TreeNode>>> {
+                match num.parse::<i32>() {
+                    Ok(val) => Some(Rc::new(RefCell::new(TreeNode::new(val)))),
+                    Err(_) => None,
+                }
+            })
+            .collect::<Vec<_>>();
+
+        // 2.
+        let n = nodes.len();
+        let (mut l, mut r) = (0, 1);
+
+        while r < n {
+            nodes[l].as_mut().unwrap().borrow_mut().left = nodes[r].clone();
+            nodes[l].as_mut().unwrap().borrow_mut().right = nodes[r + 1].clone();
+
+            r += 2;
+            l += 1;
+            while l < n && nodes[l].is_none() {
+                l += 1;
+            }
+        }
+
+        // 3.
+        nodes[0].clone()
+    }
+}
+
+// pub fn delete_node(root: Option<Rc<RefCell<TreeNode>>>, key: i32) -> Option<Rc<RefCell<TreeNode>>> {
+//     let root = root;
+//     match root {
+//         Some(ref node) => {
+//             let val = node.borrow().val;
+//             if key == val {
+//                 let mut left = node.borrow_mut().left.take();
+//                 let mut right = node.borrow_mut().right.take();
+//                 match (left.is_none(), right.is_none()) {
+//                     (true, true) => return None,
+//                     (true, false) => return right,
+//                     (false, true) => return left,
+//                     (false, false) => {
+//                         let mut min_node = right.clone().unwrap();
+//                         while min_node.borrow().left.is_some() {
+//                             let t = min_node.borrow_mut().left.clone();
+//                             min_node = t.unwrap();
+//                         }
+//                         min_node.borrow_mut().left = left.take();
+//                         return right.take();
+//                     }
+//                 }
+//             } else if key > val {
+//                 let right = node.borrow_mut().right.take();
+//                 let new_right = delete_node(right, key);
+//                 node.borrow_mut().right = new_right;
+//             } else {
+//                 let left = node.borrow_mut().left.take();
+//                 let new_left = delete_node(left, key);
+//                 node.borrow_mut().right = new_left;
+//             }
+//         }
+//         None => (),
+//     }
+//     root
+// }
