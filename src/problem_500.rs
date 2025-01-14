@@ -1139,3 +1139,76 @@ pub fn delete_node(root: Option<Rc<RefCell<TreeNode>>>, key: i32) -> Option<Rc<R
     }
     dfs(root, key)
 }
+
+/// p451
+pub fn frequency_sort(s: String) -> String {
+    let mut record = HashMap::new();
+    s.chars().for_each(|c| *record.entry(c).or_insert(0) += 1);
+    let mut list = record.iter().map(|(c, _)| *c).collect::<Vec<char>>();
+    list.sort_by_key(|c| -record[c]);
+    list.iter()
+        .map(|c| c.to_string().repeat(record[c] as usize))
+        .collect::<Vec<String>>()
+        .join("")
+}
+
+/// p452
+pub fn find_min_arrow_shots(points: Vec<Vec<i32>>) -> i32 {
+    if points.len() == 0 {
+        return 0;
+    }
+    let mut points = points;
+    points.sort_by(|a, b| a[1].cmp(&b[1]));
+    let mut pos = points[0][1];
+    let mut ans = 1;
+    for balloon in points {
+        if balloon[0] > pos {
+            pos = balloon[1];
+            ans += 1;
+        }
+    }
+    return ans;
+}
+
+/// p453
+pub fn min_moves(nums: Vec<i32>) -> i32 {
+    let record = nums
+        .iter()
+        .fold((0, i32::MAX), |acc, cur| (acc.0 + cur, (*cur).min(acc.1)));
+    record.0 - (nums.len() as i32) * record.1
+}
+
+/// p454
+pub fn four_sum_count(nums1: Vec<i32>, nums2: Vec<i32>, nums3: Vec<i32>, nums4: Vec<i32>) -> i32 {
+    let mut first_two = HashMap::new();
+    nums1.iter().for_each(|n1| {
+        nums2.iter().for_each(|n2| {
+            let v = first_two.entry(n1 + n2).or_insert(0);
+            *v = *v + 1;
+        });
+    });
+    let mut count = 0;
+    nums3.iter().for_each(|n3| {
+        nums4.iter().for_each(|n4| {
+            let c = first_two.get(&(-n3 - n4));
+            if let Some(v) = c {
+                count = count + v;
+            }
+        });
+    });
+    count
+}
+
+/// p455
+pub fn find_content_children(g: Vec<i32>, s: Vec<i32>) -> i32 {
+    let (mut g, mut s) = (g, s);
+    g.sort_by(|a, b| a.cmp(&b));
+    s.sort_by(|a, b| a.cmp(&b));
+    let mut i = 0;
+    for x in s {
+        if i < g.len() && g[i] <= x {
+            i += 1;
+        }
+    }
+    i as i32
+}
