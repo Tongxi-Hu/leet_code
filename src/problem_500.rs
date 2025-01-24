@@ -1212,3 +1212,244 @@ pub fn find_content_children(g: Vec<i32>, s: Vec<i32>) -> i32 {
     }
     i as i32
 }
+
+/// p456
+pub fn find132pattern(nums: Vec<i32>) -> bool {
+    let mut candidate_k = vec![];
+    let mut max_k = i32::MIN;
+
+    nums.into_iter().rev().any(|num| -> bool {
+        if num < max_k {
+            return true;
+        }
+
+        while let Some(val) = candidate_k.pop() {
+            if val >= num {
+                candidate_k.push(val);
+                break;
+            } else {
+                max_k = val;
+            }
+        }
+        if num > max_k {
+            candidate_k.push(num);
+        }
+
+        false
+    })
+}
+
+/// p457
+fn circular_array_loop(mut nums: Vec<i32>) -> bool {
+    let n = nums.len();
+
+    fn next(nums: &[i32], i: usize) -> usize {
+        let n = nums.len();
+        let i = i as i32 + nums[i];
+        let i = if i < 0 {
+            n as i32 + (i % n as i32)
+        } else {
+            i % n as i32
+        };
+
+        (i as usize) % n
+    }
+
+    for i in 0..n {
+        if next(&nums, i) == i {
+            nums[i] = 0;
+        }
+    }
+
+    for i in 0..n {
+        if nums[i] == 0 {
+            continue;
+        }
+
+        let mut sp = i;
+        let mut fp = i;
+
+        while nums[sp] * nums[next(&nums, fp)] > 0
+            && nums[sp] * nums[next(&nums, next(&nums, fp))] > 0
+        {
+            sp = next(&nums, sp);
+            fp = next(&nums, next(&nums, fp));
+
+            if sp == fp {
+                return true;
+            }
+        }
+
+        let mut j = i;
+        let v = nums[i];
+
+        while nums[j] * v > 0 {
+            let next = next(&nums, j);
+            nums[j] = 0;
+            j = next;
+        }
+    }
+
+    false
+}
+
+/// p458
+pub fn poor_pigs(buckets: i32, minutes_to_die: i32, minutes_to_test: i32) -> i32 {
+    let r_plus_1 = minutes_to_test / minutes_to_die + 1;
+    let mut p = 0;
+    let mut b = 1;
+    while b < buckets {
+        p += 1;
+        b *= r_plus_1;
+    }
+    p
+}
+
+/// p459
+pub fn repeated_substring_pattern(s: String) -> bool {
+    let s = s.chars().collect::<Vec<char>>();
+    let len = s.len();
+    if len == 0 {
+        return false;
+    };
+    let mut next = vec![0; len];
+    fn get_next(next: &mut Vec<usize>, s: &Vec<char>) {
+        let len = s.len();
+        let mut j = 0;
+        for i in 1..len {
+            while j > 0 && s[i] != s[j] {
+                j = next[j - 1];
+            }
+            if s[i] == s[j] {
+                j += 1;
+            }
+            next[i] = j;
+        }
+    }
+    get_next(&mut next, &s);
+    if next[len - 1] != 0 && len % (len - (next[len - 1])) == 0 {
+        return true;
+    }
+    return false;
+}
+
+/// p460
+struct LFUNode {
+    key: i32,
+    value: i32,
+    freq: i32,
+    prev: Option<Rc<RefCell<LFUNode>>>,
+    next: Option<Rc<RefCell<LFUNode>>>,
+}
+
+impl LFUNode {
+    fn new(key: i32, value: i32) -> Rc<RefCell<Self>> {
+        Rc::new(RefCell::new(LFUNode {
+            key,
+            value,
+            freq: 1,
+            prev: None,
+            next: None,
+        }))
+    }
+}
+
+struct LFUCache {
+    capacity: usize,
+    min_freq: i32,
+    key_to_node: HashMap<i32, Rc<RefCell<LFUNode>>>,
+    freq_to_dummy: HashMap<i32, Rc<RefCell<LFUNode>>>,
+}
+
+impl LFUCache {
+    fn new(capacity: i32) -> Self {
+        LFUCache {
+            capacity: capacity as usize,
+            min_freq: 0,
+            key_to_node: HashMap::new(),
+            freq_to_dummy: HashMap::new(),
+        }
+    }
+
+    fn get_node(&mut self, key: i32) -> Option<Rc<RefCell<LFUNode>>> {
+        if let Some(node) = self.key_to_node.get(&key) {
+            // 有这本书
+            let node = node.clone();
+            Self::remove(node.clone()); // 把这本书抽出来
+            let freq = node.borrow().freq;
+            let dummy = self.freq_to_dummy.get(&freq).unwrap();
+            if Rc::ptr_eq(dummy, dummy.borrow().prev.as_ref().unwrap()) {
+                // 抽出来后，这摞书是空的
+                self.freq_to_dummy.remove(&freq); // 移除空链表
+                if self.min_freq == freq {
+                    // 这摞书是最左边的
+                    self.min_freq += 1;
+                }
+            }
+            node.borrow_mut().freq += 1; // 看书次数 +1
+            self.push_front(freq + 1, node.clone()); // 放在右边这摞书的最上面
+            return Some(node);
+        }
+        None // 没有这本书
+    }
+
+    fn get(&mut self, key: i32) -> i32 {
+        if let Some(node) = self.get_node(key) {
+            // 有这本书
+            return node.borrow().value;
+        }
+        -1 // 没有这本书
+    }
+
+    fn put(&mut self, key: i32, value: i32) {
+        if let Some(node) = self.get_node(key) {
+            // 有这本书
+            node.borrow_mut().value = value; // 更新 value
+            return;
+        }
+        if self.key_to_node.len() == self.capacity {
+            // 书太多了
+            let dummy = self.freq_to_dummy.get(&self.min_freq).unwrap();
+            let back_node = dummy.borrow().prev.clone().unwrap(); // 最左边那摞书的最下面的书
+            let key = back_node.borrow().key;
+            self.key_to_node.remove(&key);
+            Self::remove(back_node); // 移除
+            if Rc::ptr_eq(dummy, dummy.borrow().prev.as_ref().unwrap()) {
+                // 抽出来后，这摞书是空的
+                self.freq_to_dummy.remove(&self.min_freq); // 移除空链表
+            }
+        }
+        let node = LFUNode::new(key, value); // 新书
+        self.key_to_node.insert(key, node.clone());
+        self.push_front(1, node.clone()); // 放在「看过 1 次」的最上面
+        self.min_freq = 1;
+    }
+
+    // 创建一个新的双向链表
+    fn new_list() -> Rc<RefCell<LFUNode>> {
+        let dummy = LFUNode::new(0, 0);
+        dummy.borrow_mut().prev = Some(dummy.clone());
+        dummy.borrow_mut().next = Some(dummy.clone());
+        dummy
+    }
+
+    // 在链表头添加一个节点（把一本书放在最上面）
+    fn push_front(&mut self, freq: i32, x: Rc<RefCell<LFUNode>>) {
+        let dummy = self
+            .freq_to_dummy
+            .entry(freq)
+            .or_insert_with(|| Self::new_list());
+        let next = dummy.borrow().next.clone();
+        x.borrow_mut().prev = Some(dummy.clone());
+        x.borrow_mut().next = next.clone();
+        dummy.borrow_mut().next = Some(x.clone());
+        next.unwrap().borrow_mut().prev = Some(x);
+    }
+
+    fn remove(x: Rc<RefCell<LFUNode>>) {
+        let prev = x.borrow().prev.clone().unwrap();
+        let next = x.borrow().next.clone().unwrap();
+        prev.borrow_mut().next = Some(next.clone());
+        next.borrow_mut().prev = Some(prev);
+    }
+}
