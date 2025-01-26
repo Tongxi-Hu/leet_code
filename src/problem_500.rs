@@ -1453,3 +1453,80 @@ impl LFUCache {
         next.borrow_mut().prev = Some(prev);
     }
 }
+
+/// p461
+pub fn hamming_distance(x: i32, y: i32) -> i32 {
+    (x ^ y).count_ones() as i32
+}
+
+/// p462
+pub fn min_moves2(nums: Vec<i32>) -> i32 {
+    let mut nums = nums;
+    nums.sort();
+    let (mut left, mut right) = (0, nums.len() - 1);
+    let mut ans = 0;
+    while left < right {
+        ans += nums[right] - nums[left];
+        left = left + 1;
+        right = right - 1;
+    }
+    return ans;
+}
+
+/// p463
+pub fn island_perimeter(grid: Vec<Vec<i32>>) -> i32 {
+    let mut perimeter = 0;
+    for r in 0..grid.len() {
+        for c in 0..grid[0].len() {
+            if grid[r][c] == 1 {
+                let mut contribution = 4;
+                if (r as i32) - 1 >= 0 && grid[r - 1][c] == 1 {
+                    contribution = contribution - 1;
+                }
+                if r + 1 < grid.len() && grid[r + 1][c] == 1 {
+                    contribution = contribution - 1;
+                }
+                if (c as i32) - 1 >= 0 && grid[r][c - 1] == 1 {
+                    contribution = contribution - 1;
+                }
+                if c + 1 < grid[0].len() && grid[r][c + 1] == 1 {
+                    contribution = contribution - 1;
+                }
+                perimeter = perimeter + contribution;
+            }
+        }
+    }
+    perimeter
+}
+
+/// p464
+pub fn can_i_win(max_choosable_integer: i32, desired_total: i32) -> bool {
+    if desired_total == 0 {
+        return true;
+    }
+    if max_choosable_integer * (1 + max_choosable_integer) / 2 < desired_total {
+        return false;
+    }
+    fn dfs(curr: i32, choosable: i32, total: i32, dp: &mut Vec<i32>) -> bool {
+        if total <= 0 {
+            return false;
+        }
+        if dp[curr as usize] != 0 {
+            return dp[curr as usize] == 1;
+        }
+        for i in 0..choosable {
+            if (curr & (1 << i)) == 0 && !dfs(curr | (1 << i), choosable, total - i - 1, dp) {
+                dp[curr as usize] = 1;
+                return true;
+            }
+        }
+        dp[curr as usize] = -1;
+        false
+    }
+    dfs(
+        0,
+        max_choosable_integer,
+        desired_total,
+        &mut vec![0; 1 << max_choosable_integer],
+    )
+}
