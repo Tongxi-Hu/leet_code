@@ -1530,3 +1530,112 @@ pub fn can_i_win(max_choosable_integer: i32, desired_total: i32) -> bool {
         &mut vec![0; 1 << max_choosable_integer],
     )
 }
+
+/// p466
+pub fn get_max_repetitions(s1: String, n1: i32, s2: String, n2: i32) -> i32 {
+    let mut map = vec![(-1, -1); s1.len()];
+    let (bs1, bs2) = (s1.as_bytes(), s2.as_bytes());
+    let (mut cnt1, mut cnt2) = (0, 0);
+    let (mut idx1, mut idx2) = (0, 0);
+    while cnt1 < n1 {
+        idx2 += (bs1[idx1] == bs2[idx2]) as usize;
+        idx1 += 1;
+        if idx1 == bs1.len() {
+            idx1 = 0;
+            cnt1 += 1;
+        }
+        if idx2 == bs2.len() {
+            idx2 = 0;
+            cnt2 += 1;
+            match map[idx1] {
+                (-1, -1) => map[idx1] = (cnt1, cnt2),
+                (prev_cnt1, prev_cnt2) => {
+                    let repeat = (n1 - 1 - cnt1) / (cnt1 - prev_cnt1);
+                    cnt1 += repeat * (cnt1 - prev_cnt1);
+                    cnt2 += repeat * (cnt2 - prev_cnt2);
+                    break;
+                }
+            }
+        }
+    }
+    while cnt1 < n1 {
+        idx2 += (bs1[idx1] == bs2[idx2]) as usize;
+        idx1 += 1;
+        if idx1 == bs1.len() {
+            idx1 = 0;
+            cnt1 += 1;
+        }
+        if idx2 == bs2.len() {
+            idx2 = 0;
+            cnt2 += 1;
+        }
+    }
+    cnt2 / n2
+}
+
+/// p467
+pub fn find_substring_in_wrapround_string(p: String) -> i32 {
+    let (mut dp, p_arr, mut cnt, mut ret) = (vec![0; 32], p.as_bytes(), 0, 0);
+    for i in 0..p.len() {
+        if i > 0 && (p_arr[i] - p_arr[i - 1] == 1 || p_arr[i - 1] - p_arr[i] == 25) {
+            cnt += 1;
+        } else {
+            cnt = 1
+        }
+        dp[(p_arr[i] - 'a' as u8) as usize] = cnt.max(dp[(p_arr[i] - 'a' as u8) as usize])
+    }
+    dp.iter().sum::<i32>()
+}
+
+/// p468
+pub fn valid_ip_address(query_ip: String) -> String {
+    use std::str::FromStr;
+    fn is_ipv4(arr: Vec<&str>) -> bool {
+        if arr.len() != 4 {
+            return false;
+        }
+        for ip in arr {
+            if ip.len() < 1 || ip.len() > 3 {
+                return false;
+            }
+            let ip_num = ip.parse::<i32>();
+            if ip_num.is_err()
+                || ip_num.as_ref().unwrap() > &255
+                || ip_num.as_ref().unwrap().to_string().len() != ip.len()
+            {
+                return false;
+            }
+        }
+        true
+    }
+    fn is_ipv6(arr: Vec<&str>) -> bool {
+        if arr.len() != 8 {
+            return false;
+        }
+        for ip in arr {
+            if ip.len() < 1 || ip.len() > 4 {
+                return false;
+            }
+            for ch in ip.chars() {
+                if !char::is_ascii_digit(&ch) && !(ch >= 'a' && ch <= 'f' || ch >= 'A' && ch <= 'F')
+                {
+                    return false;
+                }
+            }
+        }
+        true
+    }
+
+    if query_ip.contains(".") {
+        return if !is_ipv4(query_ip.split(".").collect::<Vec<_>>()) {
+            "Neither".to_string()
+        } else {
+            "IPv4".to_string()
+        };
+    }
+    return if !is_ipv6(query_ip.split(":").collect::<Vec<_>>()) {
+        "Neither".to_string()
+    } else {
+        "IPv6".to_string()
+    };
+}
