@@ -1639,3 +1639,121 @@ pub fn valid_ip_address(query_ip: String) -> String {
         "IPv6".to_string()
     };
 }
+
+/// p472
+pub fn find_all_concatenated_words_in_a_dict(words: Vec<String>) -> Vec<String> {
+    let mut set = HashSet::new();
+    let mut ret = Vec::new();
+
+    words.iter().for_each(|word| {
+        set.insert(word);
+    });
+
+    fn can_break(s: &String, set: &HashSet<&String>) -> bool {
+        let n = s.len();
+        if set.is_empty() || n == 0 {
+            return false;
+        }
+
+        let mut dp = vec![false; n + 1];
+        dp[0] = true;
+
+        for i in 1..n + 1 {
+            for j in 0..i {
+                if !dp[j] {
+                    continue;
+                }
+                if set.contains(&s[j..i].to_string()) {
+                    dp[i] = true;
+                    break;
+                }
+            }
+        }
+        dp[n]
+    }
+
+    for word in words.iter() {
+        if "" == word {
+            continue;
+        }
+        set.remove(&word);
+
+        if can_break(&word, &set) {
+            ret.push(word.clone());
+        }
+
+        set.insert(&word);
+    }
+
+    ret
+}
+
+/// p473
+pub fn makesquare(mut matchsticks: Vec<i32>) -> bool {
+    let (mut m, n) = (matchsticks.len() as i32, matchsticks.iter().sum::<i32>());
+    if n % 4 != 0 {
+        return false;
+    }
+
+    fn dfs(m: i32, n: i32, side: &mut Vec<i32>, matchsticks: &Vec<i32>) -> bool {
+        if m == -1 {
+            return true;
+        }
+        for i in 0..4 {
+            if side[i] == n
+                || side[i] + matchsticks[m as usize] > n
+                || (i > 0 && side[i] == side[i - 1])
+            {
+                continue;
+            }
+            side[i] += matchsticks[m as usize];
+            if dfs(m - 1, n, side, matchsticks) {
+                return true;
+            }
+            side[i] -= matchsticks[m as usize];
+        }
+        false
+    }
+    matchsticks.sort();
+    dfs(m - 1, n / 4, &mut vec![0; 4], &matchsticks)
+}
+
+/// p474
+pub fn find_max_form(strs: Vec<String>, m: i32, n: i32) -> i32 {
+    fn count(s: &str) -> (usize, usize) {
+        let m = s
+            .chars()
+            .fold(0, |acc, c| acc + if c == '0' { 1 } else { 0 });
+        (m, s.len() - m)
+    }
+    let mut dp = vec![vec![0; m as usize + 1]; n as usize + 1];
+    strs.iter().for_each(|s| {
+        let (ms, ns) = count(s);
+        for ni in (ns..=n as usize).rev() {
+            for mi in (ms..=m as usize).rev() {
+                dp[ni][mi] = dp[ni][mi].max(dp[ni - ns][mi - ms] + 1);
+            }
+        }
+    });
+    dp[n as usize][m as usize]
+}
+
+/// p475
+pub fn find_radius(houses: Vec<i32>, heaters: Vec<i32>) -> i32 {
+    let (mut houses, mut heaters) = (houses, heaters);
+    houses.sort();
+    heaters.sort();
+
+    let mut i = 0;
+    let mut ans = 0;
+    for house in houses {
+        let mut tmp = i32::MAX;
+        while i < heaters.len() && (house - heaters[i]).abs() <= tmp {
+            tmp = (house - heaters[i]).abs();
+            i += 1;
+        }
+        ans = ans.max(tmp);
+        i -= 1;
+    }
+    ans
+}
