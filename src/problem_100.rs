@@ -95,7 +95,7 @@ pub fn add_two_numbers(
                 } else {
                     acc = 0;
                 }
-                if (sum == 0) {
+                if sum == 0 {
                     break;
                 }
                 *p = Some(Box::new(ListNode::new(sum)));
@@ -575,7 +575,7 @@ pub fn remove_nth_from_end(head: Option<Box<ListNode>>, n: i32) -> Option<Box<Li
     let mut pointer = &head;
     while pointer != &None {
         match pointer {
-            Some(ref val) => {
+            Some(val) => {
                 length = length + 1;
                 pointer = &val.next;
             }
@@ -590,7 +590,7 @@ pub fn remove_nth_from_end(head: Option<Box<ListNode>>, n: i32) -> Option<Box<Li
         let mut pointer = &mut head;
         while index < from_heads - 1 {
             match pointer {
-                Some(ref mut val) => {
+                Some(val) => {
                     pointer = &mut val.next;
                     index = index + 1;
                 }
@@ -598,7 +598,7 @@ pub fn remove_nth_from_end(head: Option<Box<ListNode>>, n: i32) -> Option<Box<Li
             }
         }
         match pointer {
-            Some(ref mut val) => {
+            Some(val) => {
                 let to_remove = &mut val.next;
                 match to_remove {
                     Some(ctx) => {
@@ -1157,7 +1157,7 @@ pub fn combination_sum(candidates: Vec<i32>, target: i32) -> Vec<Vec<i32>> {
 }
 pub fn dfs(
     candidates: &Vec<i32>,
-    mut remain: i32,
+    remain: i32,
     combine: &mut Vec<i32>,
     pointer: usize,
     ans: &mut Vec<Vec<i32>>,
@@ -1817,7 +1817,7 @@ pub fn rotate_right(head: Option<Box<ListNode>>, k: i32) -> Option<Box<ListNode>
     let mut head = head;
     let mut ptr = &head;
     let mut len = 0;
-    while let Some(ref t) = ptr {
+    while let Some(t) = ptr {
         ptr = &t.next;
         len += 1;
     }
@@ -2079,7 +2079,7 @@ pub fn full_justify(words: Vec<String>, max_width: i32) -> Vec<String> {
                 break;
             }
 
-            count += (words[i].len() + 1);
+            count += words[i].len() + 1;
             tmp.push(words[i].clone());
             i += 1;
         }
@@ -2107,11 +2107,7 @@ pub fn full_justify(words: Vec<String>, max_width: i32) -> Vec<String> {
                     let times = space + if extra <= 0 { 0 } else { 1 };
                     extra -= 1;
 
-                    if i == T {
-                        x
-                    } else {
-                        x + &" ".repeat(times)
-                    }
+                    if i == T { x } else { x + &" ".repeat(times) }
                 })
                 .collect::<String>();
             queue.push(res);
@@ -2534,7 +2530,7 @@ pub fn largest_rectangle_area(heights: Vec<i32>) -> i32 {
         .zip(right.iter())
         .zip(heights.iter())
         .fold(0, |acc, cur| {
-            return acc.max(cur.1 * (cur.0 .1 - cur.0 .0 - 1));
+            return acc.max(cur.1 * (cur.0.1 - cur.0.0 - 1));
         });
 }
 
@@ -2593,7 +2589,7 @@ pub fn partition(head: Option<Box<ListNode>>, x: i32) -> Option<Box<ListNode>> {
     let mut small = &mut small_head;
     let mut large_head = Some(Box::new(ListNode { val: x, next: None }));
     let mut large = &mut large_head;
-    while let Some(ref node) = head {
+    while let Some(node) = head {
         if node.val < x {
             small.as_mut().unwrap().next = Some(Box::new(ListNode {
                 val: node.val,
