@@ -314,7 +314,7 @@ pub fn can_partition(nums: Vec<i32>) -> bool {
     }
     let n = nums.len();
     let mut memo = vec![vec![-1; s / 2 + 1]; n]; // -1 表示没有计算过
-                                                 // 为方便起见，改成 i 从 0 开始
+    // 为方便起见，改成 i 从 0 开始
     dfs(0, s / 2, &nums, &mut memo)
 }
 
@@ -1132,7 +1132,7 @@ pub fn delete_node(root: Option<Rc<RefCell<TreeNode>>>, key: i32) -> Option<Rc<R
                         node.right.take()
                     }
                     _ => None,
-                }
+                };
             }
         };
         root.clone()
@@ -1756,4 +1756,16 @@ pub fn find_radius(houses: Vec<i32>, heaters: Vec<i32>) -> i32 {
         i -= 1;
     }
     ans
+}
+
+/// p476
+pub fn find_complement(num: i32) -> i32 {
+    let count = 32 - num.leading_zeros();
+    let mut new_num = 0;
+    for i in 0..count {
+        if num & (1 << i) == 0 {
+            new_num |= 1 << i;
+        }
+    }
+    new_num
 }
