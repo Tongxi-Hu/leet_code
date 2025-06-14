@@ -1769,3 +1769,19 @@ pub fn find_complement(num: i32) -> i32 {
     }
     new_num
 }
+
+/// p477
+pub fn total_hamming_distance(nums: Vec<i32>) -> i32 {
+    let mut result = 0;
+    let mut zero = 0;
+    for i in 0..32 {
+        zero = 0;
+        for j in 0..nums.len() {
+            if (nums[j] >> i) & 1 == 1 {
+                zero += 1;
+            }
+        }
+        result += (nums.len() - zero) * zero;
+    }
+    result as i32
+}
