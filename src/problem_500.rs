@@ -5,6 +5,8 @@ use std::{
     rc::Rc,
 };
 
+use rand::{Rng, thread_rng};
+
 use crate::common::{ListNode, TreeNode};
 
 /// p401
@@ -1784,4 +1786,38 @@ pub fn total_hamming_distance(nums: Vec<i32>) -> i32 {
         result += (nums.len() - zero) * zero;
     }
     result as i32
+}
+
+/// p478
+struct SolutionP478 {
+    radius: f64,
+    x_center: f64,
+    y_center: f64,
+    r_2: f64,
+}
+
+impl SolutionP478 {
+    fn new(radius: f64, x_center: f64, y_center: f64) -> Self {
+        SolutionP478 {
+            radius,
+            x_center,
+            y_center,
+            r_2: radius * radius,
+        }
+    }
+
+    fn rand_point(&self) -> Vec<f64> {
+        use rand::{Rng, rng};
+        let mut rng = rng();
+        let (x, y) = loop {
+            let (x, y) = (
+                rng.random_range(-self.radius..self.radius),
+                rng.random_range(-self.radius..self.radius),
+            );
+            if x * x + y * y <= self.r_2 {
+                break (x, y);
+            }
+        };
+        vec![x + self.x_center, y + self.y_center]
+    }
 }
