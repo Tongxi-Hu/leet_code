@@ -1821,3 +1821,146 @@ impl SolutionP478 {
         vec![x + self.x_center, y + self.y_center]
     }
 }
+
+/// p479
+pub fn largest_palindrome(n: i32) -> i32 {
+    if n == 1 {
+        return 9;
+    }
+    let (lower, upper) = ((10_i32).pow(n as u32 - 1) - 1, (10_i32).pow(n as u32) - 1);
+    for i in (lower..=upper).rev() {
+        let (mut l, mut r, mut k) = (i as i64, 0_i64, i as i64);
+        while k != 0 {
+            r = r * 10 + k % 10;
+            k /= 10;
+            l *= 10;
+        }
+        let (curr, mut j) = (l + r, upper);
+        while j as i64 * j as i64 >= curr {
+            if curr % j as i64 == 0 {
+                return (curr % 1337_i64) as i32;
+            }
+            j -= 1;
+        }
+    }
+    -1
+}
+
+/// p480
+struct LazyHeap {
+    heap: BinaryHeap<i64>,
+    remove_cnt: HashMap<i64, i32>, // 记录需要删除的元素次数
+    size: usize,                   // 实际大小
+}
+
+impl LazyHeap {
+    fn new() -> Self {
+        Self {
+            heap: BinaryHeap::new(),
+            remove_cnt: HashMap::new(),
+            size: 0,
+        }
+    }
+
+    fn len(&self) -> usize {
+        self.size
+    }
+
+    // 删除
+    fn remove(&mut self, x: i64) {
+        *self.remove_cnt.entry(x).or_insert(0) += 1;
+        self.size -= 1;
+    }
+
+    // 正式执行删除操作
+    fn apply_remove(&mut self) {
+        while let Some(&x) = self.heap.peek() {
+            if let Some(cnt) = self.remove_cnt.get_mut(&x) {
+                if *cnt == 0 {
+                    break;
+                }
+                *cnt -= 1;
+                self.heap.pop();
+            } else {
+                break;
+            }
+        }
+    }
+
+    // 查看堆顶
+    fn top(&mut self) -> i64 {
+        self.apply_remove();
+        *self.heap.peek().unwrap()
+    }
+
+    // 出堆
+    fn pop(&mut self) -> i64 {
+        self.apply_remove();
+        self.size -= 1;
+        self.heap.pop().unwrap()
+    }
+
+    // 入堆
+    fn push(&mut self, x: i64) {
+        self.size += 1;
+        if let Some(cnt) = self.remove_cnt.get_mut(&x) {
+            if *cnt > 0 {
+                *cnt -= 1; // 抵消之前的删除
+                return;
+            }
+        }
+        self.heap.push(x);
+    }
+
+    // push(x) 然后 pop()
+    fn push_pop(&mut self, x: i64) -> i64 {
+        self.apply_remove();
+        self.heap.push(x);
+        self.heap.pop().unwrap()
+    }
+}
+
+pub fn median_sliding_window(nums: Vec<i32>, k: i32) -> Vec<f64> {
+    let k = k as usize;
+    let mut ans = vec![0.; nums.len() - k + 1];
+    let mut left = LazyHeap::new(); // 最大堆
+    let mut right = LazyHeap::new(); // 最小堆（元素取反）
+
+    for (i, &x) in nums.iter().enumerate() {
+        let x = x as i64;
+        // 1. 进入窗口
+        if left.len() == right.len() {
+            left.push(-right.push_pop(-x));
+        } else {
+            right.push(-left.push_pop(x));
+        }
+
+        if i + 1 < k {
+            continue;
+        }
+        let l = i + 1 - k;
+
+        // 2. 计算答案
+        ans[l] = if k % 2 > 0 {
+            left.top() as f64
+        } else {
+            (left.top() - right.top()) as f64 / 2.
+        };
+
+        // 3. 离开窗口
+        let x = nums[l] as i64;
+        if x <= left.top() {
+            left.remove(x);
+            if left.len() < right.len() {
+                left.push(-right.pop());
+            }
+        } else {
+            right.remove(-x);
+            if left.len() > right.len() + 1 {
+                right.push(-left.pop());
+            }
+        }
+    }
+
+    ans
+}
