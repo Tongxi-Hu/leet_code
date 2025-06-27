@@ -2002,3 +2002,52 @@ pub fn license_key_formatting(s: String, k: i32) -> String {
         .collect::<Vec<_>>()
         .join("-")
 }
+
+/// p483
+pub fn smallest_good_base(n: String) -> String {
+    let num = n.parse::<u128>().unwrap();
+    let mut ans = u128::MAX;
+
+    for i in 1..64 {
+        let mut lo = 2;
+        let mut hi = num;
+
+        while lo <= hi && hi <= num {
+            let mid = lo + (hi - lo) / 2;
+
+            let mut tmp = 0;
+            for _ in 0..=i {
+                tmp = tmp * mid + 1;
+            }
+
+            if tmp == num {
+                ans = mid;
+                break;
+            }
+
+            if tmp < num {
+                lo = mid + 1;
+            } else {
+                hi = mid - 1;
+            }
+        }
+    }
+
+    ans.to_string()
+}
+
+/// p485
+pub fn find_max_consecutive_ones(nums: Vec<i32>) -> i32 {
+    let mut max_size: usize = 0;
+    let mut cur_size: usize = 0;
+    nums.iter().for_each(|&num| {
+        if num == 0 {
+            max_size = max_size.max(cur_size);
+            cur_size = 0;
+        }
+        if num == 1 {
+            cur_size = cur_size + 1;
+        }
+    });
+    max_size.max(cur_size) as i32
+}
