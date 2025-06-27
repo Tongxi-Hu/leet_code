@@ -1964,3 +1964,41 @@ pub fn median_sliding_window(nums: Vec<i32>, k: i32) -> Vec<f64> {
 
     ans
 }
+
+/// p481
+pub fn magical_string(n: i32) -> i32 {
+    if n <= 3 {
+        return 1;
+    }
+    let (mut p, mut q, mut num, mut cnt, mut arr) = (2, 3, 1, 1, vec![1, 2, 2]);
+    while q < n {
+        for _ in 0..arr[p as usize] {
+            arr.push(num);
+            if num == 1 && q < n {
+                cnt += 1;
+            }
+            q += 1;
+        }
+        num ^= 3;
+        p += 1;
+    }
+    cnt
+}
+
+/// p482
+pub fn license_key_formatting(s: String, k: i32) -> String {
+    s.chars()
+        .filter(|&c| c != '-')
+        .rev()
+        .collect::<Vec<_>>()
+        .chunks(k as usize)
+        .map(|v| {
+            v.iter()
+                .map(char::to_ascii_uppercase)
+                .rev()
+                .collect::<String>()
+        })
+        .rev()
+        .collect::<Vec<_>>()
+        .join("-")
+}
