@@ -1577,7 +1577,7 @@ pub fn get_max_repetitions(s1: String, n1: i32, s2: String, n2: i32) -> i32 {
 
 /// p467
 pub fn find_substring_in_wrapround_string(p: String) -> i32 {
-    let (mut dp, p_arr, mut cnt, mut ret) = (vec![0; 32], p.as_bytes(), 0, 0);
+    let (mut dp, p_arr, mut cnt, ret) = (vec![0; 32], p.as_bytes(), 0, 0);
     for i in 0..p.len() {
         if i > 0 && (p_arr[i] - p_arr[i - 1] == 1 || p_arr[i - 1] - p_arr[i] == 25) {
             cnt += 1;
@@ -1591,7 +1591,6 @@ pub fn find_substring_in_wrapround_string(p: String) -> i32 {
 
 /// p468
 pub fn valid_ip_address(query_ip: String) -> String {
-    use std::str::FromStr;
     fn is_ipv4(arr: Vec<&str>) -> bool {
         if arr.len() != 4 {
             return false;
@@ -1692,7 +1691,7 @@ pub fn find_all_concatenated_words_in_a_dict(words: Vec<String>) -> Vec<String> 
 
 /// p473
 pub fn makesquare(mut matchsticks: Vec<i32>) -> bool {
-    let (mut m, n) = (matchsticks.len() as i32, matchsticks.iter().sum::<i32>());
+    let (m, n) = (matchsticks.len() as i32, matchsticks.iter().sum::<i32>());
     if n % 4 != 0 {
         return false;
     }
