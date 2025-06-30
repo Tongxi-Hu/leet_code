@@ -3,6 +3,7 @@ use std::{
     collections::{BinaryHeap, HashMap, HashSet, VecDeque},
     i32, iter,
     rc::Rc,
+    vec,
 };
 
 use rand::{Rng, thread_rng};
@@ -2049,4 +2050,74 @@ pub fn find_max_consecutive_ones(nums: Vec<i32>) -> i32 {
         }
     });
     max_size.max(cur_size) as i32
+}
+
+/// p486
+pub fn predict_the_winner(nums: Vec<i32>) -> bool {
+    let length = nums.len();
+    if length < 3 {
+        return true;
+    }
+    let mut dp: Vec<Vec<i32>> = vec![vec![-1; length]; length];
+    for i in 0..length {
+        dp[i][i] = nums[i];
+    }
+    for i in (0..=length - 2).rev() {
+        for j in i + 1..length {
+            dp[i][j] = (nums[i] - dp[i + 1][j]).max(nums[j] - dp[i][j - 1]);
+        }
+    }
+    return dp[0][length - 1] >= 0;
+}
+
+/// p488
+const INF: i32 = 6;
+pub fn find_min_step(board: String, hand: String) -> i32 {
+    let mut board: Vec<char> = board.chars().collect();
+    let mut hand: Vec<char> = hand.chars().collect();
+    let mut map = HashMap::new();
+    let ans = dfs(board, &mut hand, &mut map);
+    if ans < INF { ans } else { -1 }
+}
+
+fn dfs(board: Vec<char>, hand: &mut Vec<char>, map: &mut HashMap<Vec<char>, i32>) -> i32 {
+    if board.len() == 0 {
+        return 0;
+    }
+    if let Some(&r) = map.get(&board) {
+        return r;
+    }
+    let mut ret = INF;
+    for i in 0..hand.len() {
+        let h = hand.remove(i);
+        for j in 0..board.len() {
+            let mut new_board = board.clone();
+            new_board.insert(j, h);
+            clean_same(&mut new_board, j);
+            ret = std::cmp::min(ret, dfs(new_board, hand, map) + 1);
+        }
+        hand.insert(i, h);
+    }
+    map.insert(board, ret);
+    ret
+}
+fn clean_same(board: &mut Vec<char>, index: usize) {
+    if board.len() < 3 || index >= board.len() {
+        return;
+    }
+    let v = board[index];
+    let (mut l, mut r) = (index, index);
+    while l > 0 && board[l - 1] == v {
+        l -= 1;
+    }
+    while r + 1 < board.len() && board[r + 1] == v {
+        r += 1;
+    }
+    if r - l < 2 {
+        return;
+    }
+    let mut t = board.split_off(l);
+    let mut right = t.split_off(r - l + 1);
+    board.append(&mut right);
+    clean_same(board, l);
 }
