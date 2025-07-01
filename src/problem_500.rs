@@ -2121,3 +2121,131 @@ fn clean_same(board: &mut Vec<char>, index: usize) {
     board.append(&mut right);
     clean_same(board, l);
 }
+
+/// p491
+pub fn find_subsequences(nums: Vec<i32>) -> Vec<Vec<i32>> {
+    fn dfs(nums: &[i32], last: i32, path: &mut Vec<i32>, ans: &mut Vec<Vec<i32>>) {
+        if nums.is_empty() {
+            if path.len() >= 2 {
+                ans.push(path.to_vec());
+            }
+            return;
+        }
+        if nums[0] >= last {
+            path.push(nums[0]);
+            dfs(&nums[1..], nums[0], path, ans);
+            path.pop();
+        }
+        if nums[0] != last {
+            dfs(&nums[1..], last, path, ans);
+        }
+    }
+    let mut ans = vec![];
+    dfs(&nums[..], i32::MIN, &mut vec![], &mut ans);
+    ans
+}
+
+/// p492
+pub fn construct_rectangle(area: i32) -> Vec<i32> {
+    let mut temp = vec![];
+    for w in 1..=area.isqrt() {
+        let l = area / w;
+        if l * w == area {
+            temp = vec![l, w];
+        }
+    }
+    temp
+}
+
+/// p493
+pub fn reverse_pairs(mut nums: Vec<i32>) -> i32 {
+    let n = nums.len() - 1;
+
+    merge_sort(&mut nums, 0, n)
+}
+
+fn merge_sort(nums: &mut [i32], left: usize, right: usize) -> i32 {
+    if left >= right {
+        return 0;
+    }
+
+    let mid = (left + right) / 2;
+    let mut total = merge_sort(nums, left, mid) + merge_sort(nums, mid + 1, right);
+
+    let mut p = left;
+    let mut q = mid + 1;
+
+    while p <= mid && q <= right {
+        if nums[p] as i64 > (nums[q] as i64) * 2 {
+            total += (mid - p + 1) as i32;
+            q += 1;
+        } else {
+            p += 1;
+        }
+    }
+
+    let mut i = left;
+    let mut j = mid + 1;
+    let mut tmp = vec![];
+
+    while i <= mid && j <= right {
+        if nums[i] <= nums[j] {
+            tmp.push(nums[i]);
+            i += 1;
+        } else {
+            tmp.push(nums[j]);
+            j += 1;
+        }
+    }
+
+    while i <= mid {
+        tmp.push(nums[i]);
+        i += 1;
+    }
+
+    while j <= right {
+        tmp.push(nums[j]);
+        j += 1;
+    }
+
+    for k in left..=right {
+        nums[k] = tmp[k - left];
+    }
+
+    return total;
+}
+
+/// p494
+pub fn find_target_sum_ways(nums: Vec<i32>, target: i32) -> i32 {
+    let mut count: i32 = 0;
+    fn back_track(count: &mut i32, nums: &Vec<i32>, target: i32, sum: i32, index: usize) {
+        if index == nums.len() {
+            if sum == target {
+                *count = *count + 1;
+            }
+        } else {
+            back_track(count, nums, target, sum + nums[index], index + 1);
+            back_track(count, nums, target, sum - nums[index], index + 1);
+        }
+    }
+    back_track(&mut count, &nums, target, 0, 0);
+    count
+}
+
+/// p495
+pub fn find_poisoned_duration(time_series: Vec<i32>, duration: i32) -> i32 {
+    let mut total: i32 = 0;
+    for (index, time) in time_series.iter().enumerate() {
+        if index != 0 {
+            if time - time_series[index - 1] < duration {
+                total = total + time - time_series[index - 1];
+            } else {
+                total = total + duration
+            }
+        }
+        if index == time_series.len() - 1 {
+            total = total + duration
+        }
+    }
+    total
+}
