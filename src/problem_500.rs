@@ -2249,3 +2249,104 @@ pub fn find_poisoned_duration(time_series: Vec<i32>, duration: i32) -> i32 {
     }
     total
 }
+
+/// p496
+pub fn next_greater_element(nums1: Vec<i32>, nums2: Vec<i32>) -> Vec<i32> {
+    let mut ans: Vec<i32> = vec![-1; nums1.len()];
+    for (k, &target) in nums1.iter().enumerate() {
+        let index = nums2.iter().position(|val| *val == target);
+        if let Some(i) = index {
+            'inner: for j in i..nums2.len() {
+                if nums2[j] > target {
+                    ans[k] = nums2[j];
+                    break 'inner;
+                }
+            }
+        }
+    }
+    ans
+}
+
+/// p497
+struct SolutionP497 {
+    rects: Vec<Vec<i32>>,
+    len: usize,
+    row: usize,
+    x: i32,
+    y: i32,
+}
+impl SolutionP497 {
+    fn new(mut rects: Vec<Vec<i32>>) -> Self {
+        let len = rects.len();
+        SolutionP497 {
+            rects,
+            len,
+            row: 0,
+            x: i32::MAX,
+            y: 0,
+        }
+    }
+
+    fn pick(&mut self) -> Vec<i32> {
+        if self.x == i32::MAX {
+            self.x = self.rects[self.row][0];
+            self.y = self.rects[self.row][1];
+        } else if self.x + 1 <= self.rects[self.row][2] && self.y <= self.rects[self.row][3] {
+            self.x += 1;
+        } else if self.x + 1 > self.rects[self.row][2] && self.y + 1 <= self.rects[self.row][3] {
+            self.x = self.rects[self.row][0];
+            self.y += 1;
+        } else if self.x + 1 > self.rects[self.row][2] && self.y + 1 > self.rects[self.row][3] {
+            self.row = (self.row + 1) % self.len;
+            self.x = self.rects[self.row][0];
+            self.y = self.rects[self.row][1];
+        }
+        vec![self.x, self.y]
+    }
+}
+
+/// p498
+///   1 2 4 5
+///   2 1 2 7
+pub fn find_diagonal_order(mat: Vec<Vec<i32>>) -> Vec<i32> {
+    let (m, n) = (mat.len(), mat[0].len());
+    let (mut ret, mut r, mut c) = (vec![0; m * n], 0, 0);
+    for i in 0..m * n {
+        ret[i] = mat[r][c];
+        if (r + c) % 2 == 0 {
+            if c == n - 1 {
+                r += 1;
+            } else if r == 0 {
+                c += 1;
+            } else {
+                r -= 1;
+                c += 1;
+            }
+        } else {
+            if r == m - 1 {
+                c += 1;
+            } else if c == 0 {
+                r += 1;
+            } else {
+                r += 1;
+                c -= 1;
+            }
+        }
+    }
+    ret
+}
+
+///p500
+pub fn find_words(words: Vec<String>) -> Vec<String> {
+    let first = "qwertyuiop".chars().collect::<HashSet<char>>();
+    let second = "asdfghjkl".chars().collect::<HashSet<char>>();
+    let third = "zxcvbnm".chars().collect::<HashSet<char>>();
+    let mut ans: Vec<String> = vec![];
+    for word in words.iter() {
+        let c = word.to_lowercase().chars().collect::<HashSet<char>>();
+        if c.is_subset(&first) | c.is_subset(&second) | c.is_subset(&third) {
+            ans.push(word.clone())
+        }
+    }
+    ans
+}
