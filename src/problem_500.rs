@@ -6,8 +6,6 @@ use std::{
     vec,
 };
 
-use rand::{Rng, thread_rng};
-
 use crate::common::{ListNode, TreeNode};
 
 /// p401
