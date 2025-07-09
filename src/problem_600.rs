@@ -271,3 +271,61 @@ pub fn largest_values(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<i32> {
     }
     ans
 }
+
+/// p516
+pub fn longest_palindrome_subseq(s: String) -> i32 {
+    let length = s.len();
+    let chars = s.chars().collect::<Vec<char>>();
+    let mut dp: Vec<Vec<usize>> = vec![vec![0; length]; length];
+    for i in (0..length).rev() {
+        dp[i][i] = 1;
+        let c_1 = chars[i];
+        for j in i + 1..length {
+            let c_2 = chars[j];
+            if c_1 == c_2 {
+                dp[i][j] = dp[i + 1][j - 1] + 2
+            } else {
+                dp[i][j] = dp[i + 1][j].max(dp[i][j - 1]);
+            }
+        }
+    }
+    dp[0][length - 1] as i32
+}
+
+/// p517
+pub fn find_min_moves(machines: Vec<i32>) -> i32 {
+    let n = machines.len() as i32;
+    let sum = machines.iter().sum::<i32>();
+    if sum % n != 0 {
+        return -1;
+    }
+
+    let avg = sum / n;
+    let mut result = 0;
+    let mut sum = 0;
+    for &num in machines.iter() {
+        let cur_diff = num - avg;
+        sum += cur_diff;
+        result = i32::max(result, i32::max(sum.abs(), cur_diff));
+    }
+
+    result
+}
+
+/// p518
+pub fn change(amount: i32, coins: Vec<i32>) -> i32 {
+    let mut dp: Vec<i32> = vec![0; (amount as usize) + 1];
+    dp[0] = 1;
+    coins.iter().for_each(|&coin| {
+        for i in (coin as usize)..=(amount as usize) {
+            dp[i] = dp[i] + dp[i - (coin as usize)];
+        }
+    });
+    return dp[amount as usize];
+}
+
+/// p520
+pub fn detect_capital_use(word: String) -> bool {
+    let cnt = word.bytes().filter(|c| c.is_ascii_uppercase()).count();
+    cnt == 0 || cnt == word.len() || cnt == 1 && word.as_bytes()[0].is_ascii_uppercase()
+}
