@@ -329,3 +329,12 @@ pub fn detect_capital_use(word: String) -> bool {
     let cnt = word.bytes().filter(|c| c.is_ascii_uppercase()).count();
     cnt == 0 || cnt == word.len() || cnt == 1 && word.as_bytes()[0].is_ascii_uppercase()
 }
+
+/// p521
+pub fn find_lu_slength(a: String, b: String) -> i32 {
+    if a != b {
+        return a.len().max(b.len()) as i32;
+    } else {
+        -1
+    }
+}
