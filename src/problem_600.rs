@@ -112,10 +112,10 @@ pub fn convert_to_base7(num: i32) -> String {
 
 /// p506
 pub fn find_relative_ranks(score: Vec<i32>) -> Vec<String> {
-    let mut with_postion = score.into_iter().enumerate().collect::<Vec<(usize, i32)>>();
-    with_postion.sort_by(|a, b| b.1.cmp(&a.1));
-    let mut ranking: Vec<String> = vec!["".to_string(); with_postion.len()];
-    with_postion
+    let mut with_position = score.into_iter().enumerate().collect::<Vec<(usize, i32)>>();
+    with_position.sort_by(|a, b| b.1.cmp(&a.1));
+    let mut ranking: Vec<String> = vec!["".to_string(); with_position.len()];
+    with_position
         .iter()
         .enumerate()
         .for_each(|(index, score)| match index {
@@ -130,13 +130,13 @@ pub fn find_relative_ranks(score: Vec<i32>) -> Vec<String> {
 
 /// p507
 pub fn check_perfect_number(num: i32) -> bool {
-    let mut divisior: Vec<i32> = vec![];
+    let mut divisor: Vec<i32> = vec![];
     for i in 1..=num / 2 {
         if num % i == 0 {
-            divisior.push(i)
+            divisor.push(i)
         }
     }
-    divisior.iter().sum::<i32>() == num
+    divisor.iter().sum::<i32>() == num
 }
 
 /// p508
@@ -157,14 +157,14 @@ pub fn find_frequent_tree_sum(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<i32> {
 
     dfs(&root, &mut sum_frequency);
 
-    let mut accurance: usize = 0;
+    let mut accuracy: usize = 0;
     let mut vals: Vec<i32> = vec![];
     sum_frequency.iter().for_each(|(v, c)| {
-        if *c > accurance {
-            accurance = *c;
+        if *c > accuracy {
+            accuracy = *c;
             vals.clear();
             vals.push(*v);
-        } else if *c == accurance {
+        } else if *c == accuracy {
             vals.push(*v);
         }
     });
