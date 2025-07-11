@@ -338,3 +338,39 @@ pub fn find_lu_slength(a: String, b: String) -> i32 {
         -1
     }
 }
+
+/// p522
+pub fn find_lu_slength_2(strs: Vec<String>) -> i32 {
+    let (n, mut ans) = (strs.len(), -1);
+    fn is_sub_sequence(s: &[u8], t: &[u8]) -> bool {
+        if s == t {
+            return true;
+        }
+        let mut i = 0;
+        for &c in t {
+            if c == s[i] {
+                i += 1;
+                if i == s.len() {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+    for i in 0..n {
+        if strs[i].len() as i32 <= ans {
+            continue;
+        }
+        let mut j = 0;
+        while j < n {
+            if j != i && is_sub_sequence(&strs[i].as_bytes(), &strs[j].as_bytes()) {
+                break;
+            }
+            j += 1;
+        }
+        if j == n {
+            ans = ans.max(strs[i].len() as i32);
+        }
+    }
+    ans
+}
