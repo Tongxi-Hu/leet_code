@@ -374,3 +374,77 @@ pub fn find_lu_slength_2(strs: Vec<String>) -> i32 {
     }
     ans
 }
+
+/// p523
+pub fn check_subarray_sum(nums: Vec<i32>, k: i32) -> bool {
+    let mut m = HashMap::from([(0, 0)]);
+    let mut acc = 0;
+    for (i, num) in nums.into_iter().enumerate() {
+        acc = (acc + num) % k;
+        if let Some(&x) = m.get(&acc) {
+            if i + 1 - x >= 2 {
+                return true;
+            }
+            continue;
+        }
+        m.insert(acc, i + 1);
+    }
+    false
+}
+
+// p524
+pub fn find_longest_word(s: String, dictionary: Vec<String>) -> String {
+    use std::cmp::Ordering;
+    let mut s: Vec<char> = s.chars().collect();
+    let mut dic = dictionary;
+    dic.sort_unstable_by(|a, b| {
+        let cmp = b.len().cmp(&a.len());
+        if cmp == Ordering::Equal {
+            a.cmp(b)
+        } else {
+            cmp
+        }
+    });
+    for d in dic {
+        let mut chars: Vec<char> = d.chars().collect();
+        let mut i = 0;
+        let mut j = 0;
+        while i < chars.len() && j < s.len() {
+            if chars[i] == s[j] {
+                i += 1;
+            }
+            j += 1;
+        }
+        if i == chars.len() {
+            return d;
+        }
+    }
+    String::from("")
+}
+
+/// p525
+pub fn find_max_length(nums: Vec<i32>) -> i32 {
+    let mut max_len = 0;
+    let mut count = 0;
+    let mut map: HashMap<i32, i32> = HashMap::new();
+    map.insert(count, -1);
+
+    for (i, &num) in nums.iter().enumerate() {
+        if num == 0 {
+            count -= 1;
+        } else {
+            count += 1;
+        }
+
+        match map.get(&count) {
+            Some(&idx) => {
+                max_len = i32::max(max_len, i as i32 - idx);
+            }
+            None => {
+                map.insert(count, i as i32);
+            }
+        }
+    }
+
+    max_len
+}
