@@ -1,5 +1,5 @@
 use std::cell::{Ref, RefCell};
-use std::collections::{BTreeMap, BinaryHeap, HashMap};
+use std::collections::{BTreeMap, BinaryHeap, HashMap, HashSet};
 use std::rc::Rc;
 
 use crate::common::TreeNode;
@@ -447,4 +447,123 @@ pub fn find_max_length(nums: Vec<i32>) -> i32 {
     }
 
     max_len
+}
+
+/// p526
+pub fn count_arrangement(n: i32) -> i32 {
+    fn dfs(s: usize, n: i32, memo: &mut Vec<i32>) -> i32 {
+        if s == (1 << n) - 1 {
+            return 1;
+        }
+        if memo[s] != -1 {
+            // 之前计算过
+            return memo[s];
+        }
+        let mut res = 0;
+        let i = s.count_ones() as i32 + 1;
+        for j in 1..=n {
+            if (s >> (j - 1) & 1) == 0 && (i % j == 0 || j % i == 0) {
+                res += dfs(s | (1 << (j - 1)), n, memo);
+            }
+        }
+        memo[s] = res; // 记忆化
+        res
+    }
+    let mut memo = vec![-1; 1 << n]; // -1 表示没有计算过
+    dfs(0, n, &mut memo)
+}
+
+/// p529
+pub fn update_board(mut board: Vec<Vec<char>>, click: Vec<i32>) -> Vec<Vec<char>> {
+    let (a, b) = (click[0] as usize, click[1] as usize);
+    if board[a][b] == 'M' {
+        board[a][b] = 'X'
+    } else if board[a][b] == 'E' {
+        let d = [
+            (1, 0),
+            (0, 1),
+            (-1, 0),
+            (0, -1),
+            (1, 1),
+            (-1, 1),
+            (1, -1),
+            (-1, -1),
+        ];
+        let (m, n) = (board.len(), board[0].len());
+        let mut q = HashSet::new();
+        q.insert((a, b));
+        while !q.is_empty() {
+            let mut p = HashSet::new();
+            for (i, j) in q.into_iter() {
+                let mut c = 48;
+                let mut t = vec![];
+                for &(di, dj) in d.iter() {
+                    match (i as i32 + di, j as i32 + dj) {
+                        (x, y) if x == -1 || x == m as i32 || y == -1 || y == n as i32 => (),
+                        (x, y) => {
+                            let (x, y) = (x as usize, y as usize);
+                            c += (board[x][y] == 'M') as u8;
+                            if board[x][y] == 'E' {
+                                t.push((x, y));
+                            }
+                        }
+                    }
+                }
+                board[i][j] = if c > 48 {
+                    c as char
+                } else {
+                    p.extend(t);
+                    'B'
+                };
+            }
+            q = p;
+        }
+    }
+    board
+}
+
+/// p530
+pub fn get_minimum_difference(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    let mut vals: Vec<i32> = vec![];
+    fn dfs(root: &Option<Rc<RefCell<TreeNode>>>, vals: &mut Vec<i32>) {
+        if let Some(v) = root.as_ref() {
+            dfs(&v.borrow().left.clone(), vals);
+            vals.push(v.borrow().val);
+            dfs(&v.borrow().right.clone(), vals)
+        }
+    }
+    dfs(&root, &mut vals);
+
+    let mut min = i32::MAX;
+    vals.iter().enumerate().for_each(|(i, v)| {
+        if i != 0 {
+            min = min.min(v - vals[i - 1])
+        }
+    });
+    min
+}
+
+/// p532
+pub fn find_pairs(nums: Vec<i32>, k: i32) -> i32 {
+    let mut num_count: HashMap<i32, usize> = HashMap::new();
+    nums.iter().for_each(|n| {
+        let count = num_count.entry(*n).or_insert(0);
+        *count = *count + 1
+    });
+    let mut pair = 0;
+    if k == 0 {
+        num_count.values().for_each(|c| {
+            if *c > 1 {
+                pair = pair + 1;
+            }
+        });
+    } else {
+        for key in num_count.keys() {
+            if num_count.contains_key(&(key + k)) {
+                pair = pair + 1;
+            }
+        }
+    }
+
+    pair
 }
