@@ -567,3 +567,58 @@ pub fn find_pairs(nums: Vec<i32>, k: i32) -> i32 {
 
     pair
 }
+
+/// p537
+pub fn complex_number_multiply(num1: String, num2: String) -> String {
+    let (m, n) = (
+        num1[..num1.len() - 1].split_once('+').unwrap(),
+        num2[..num2.len() - 1].split_once('+').unwrap(),
+    );
+    let (a, b, c, d) = (
+        m.0.parse::<i32>().unwrap(),
+        m.1.parse::<i32>().unwrap(),
+        n.0.parse::<i32>().unwrap(),
+        n.1.parse::<i32>().unwrap(),
+    );
+    format!("{}+{}i", a * c - b * d, a * d + b * c)
+}
+
+/// p538
+pub fn convert_bst(root: Option<Rc<RefCell<TreeNode>>>) -> Option<Rc<RefCell<TreeNode>>> {
+    let mut acc: i32 = 0;
+    fn dfs(root: &Option<Rc<RefCell<TreeNode>>>, acc: &mut i32) {
+        if let Some(node) = root.as_ref() {
+            dfs(&node.borrow().right.clone(), acc);
+            let old_val = node.borrow_mut().val;
+            node.borrow_mut().val = old_val + *acc;
+            *acc = old_val + *acc;
+            dfs(&node.borrow().left.clone(), acc);
+        }
+    }
+    dfs(&root, &mut acc);
+    root
+}
+
+/// p539
+pub fn find_min_difference(time_points: Vec<String>) -> i32 {
+    if time_points.len() > 1440 {
+        return 0;
+    }
+    let mut min = i32::MAX;
+
+    let mut cache: Vec<i32> = time_points
+        .iter()
+        .map(|time_point| {
+            time_point[0..2].parse::<i32>().unwrap() * 60 + time_point[3..].parse::<i32>().unwrap()
+        })
+        .collect();
+
+    cache.sort();
+    (1..cache.len()).for_each(|i| min = min.min(cache[i] - cache[i - 1]));
+    min.min(cache[0] + 1440 - cache[cache.len() - 1])
+}
+
+/// p540
+pub fn single_non_duplicate(nums: Vec<i32>) -> i32 {
+    nums.iter().fold(0, |acc, &n| acc ^ n)
+}
