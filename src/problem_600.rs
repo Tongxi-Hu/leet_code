@@ -622,3 +622,66 @@ pub fn find_min_difference(time_points: Vec<String>) -> i32 {
 pub fn single_non_duplicate(nums: Vec<i32>) -> i32 {
     nums.iter().fold(0, |acc, &n| acc ^ n)
 }
+
+/// p541
+pub fn reverse_str(s: String, k: i32) -> String {
+    let mut s = s.chars().collect::<Vec<char>>();
+    for i in (0..s.len()).step_by(2 * k as usize) {
+        let len = if s.len() - i > k as usize {
+            k as usize
+        } else {
+            s.len() - i
+        };
+        for j in 0..len / 2 {
+            s.swap(i + j, i + len - j - 1);
+        }
+    }
+    s.iter().collect()
+}
+
+/// p542
+pub fn update_matrix(mat: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+    let mut distance = mat.clone();
+    let height = mat.len();
+    let width = mat[0].len();
+    let mut visited: Vec<Vec<bool>> = vec![vec![false; width]; height];
+    let mut temp: Vec<[usize; 2]> = vec![];
+    for i in 0..height {
+        for j in 0..width {
+            if mat[i][j] == 0 {
+                visited[i][j] = true;
+                temp.push([i, j])
+            }
+        }
+    }
+
+    while temp.len() != 0 {
+        let [i, j] = temp.remove(0);
+        for [r, c] in [[i + 1, j], [i - 1, j], [i, j + 1], [i, j - 1]] {
+            if r < height && c < width && visited[r][c] == false {
+                visited[r][c] = true;
+                distance[r][c] = distance[i][j] + 1;
+                temp.push([r, c])
+            }
+        }
+    }
+    distance
+}
+
+/// p543
+pub fn diameter_of_binary_tree(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    fn dfs(root: &Option<Rc<RefCell<TreeNode>>>) -> Option<(i32, i32)> {
+        if let Some(node) = root.as_ref() {
+            let left_depth = dfs(&node.borrow().left).unwrap_or((-1, -1));
+            let right_depth = dfs(&node.borrow().right).unwrap_or((-1, -1));
+            return Some((
+                left_depth.0.max(right_depth.0) + 1,
+                (left_depth.0 + 1 + right_depth.0 + 1)
+                    .max(left_depth.1)
+                    .max(right_depth.1),
+            ));
+        }
+        None
+    }
+    return dfs(&root).unwrap_or((0, 0)).1;
+}
