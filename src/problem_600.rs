@@ -685,3 +685,62 @@ pub fn diameter_of_binary_tree(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
     }
     return dfs(&root).unwrap_or((0, 0)).1;
 }
+
+/// p546
+pub fn remove_boxes(boxes: Vec<i32>) -> i32 {
+    fn calculatePoints(
+        boxes: &[i32],
+        dp: &mut [[[u16; 100]; 100]; 100],
+        mut l: usize,
+        mut r: usize,
+        mut k: usize,
+    ) -> u16 {
+        if l as isize > r as isize {
+            0
+        } else if dp[l][r][k] != 0 {
+            dp[l][r][k]
+        } else {
+            while r > l && boxes[r] == boxes[r - 1] {
+                r -= 1;
+                k += 1;
+            }
+            dp[l][r][k] = calculatePoints(boxes, dp, l, r - 1, 0) + (k as u16 + 1) * (k as u16 + 1);
+            for i in l..r {
+                if boxes[i] == boxes[r] {
+                    dp[l][r][k] = dp[l][r][k].max(
+                        calculatePoints(boxes, dp, l, i, k + 1)
+                            + calculatePoints(boxes, dp, i + 1, r - 1, 0),
+                    )
+                }
+            }
+            dp[l][r][k]
+        }
+    }
+    let mut dp = [[[0; 100]; 100]; 100];
+
+    calculatePoints(&boxes, &mut dp, 0, boxes.len() - 1, 0) as i32
+}
+
+/// p547
+pub fn find_circle_num(is_connected: Vec<Vec<i32>>) -> i32 {
+    fn dfs(is_connected: &Vec<Vec<i32>>, visited: &mut Vec<bool>, o: usize) {
+        for i in 0..is_connected.len() {
+            if is_connected[o][i] == 1 && !visited[i] {
+                visited[i] = true;
+                dfs(is_connected, visited, i);
+            }
+        }
+    }
+    let mut visited = vec![false; is_connected.len()];
+    let mut ans = 0;
+    for r in 0..is_connected.len() {
+        for c in r..is_connected[r].len() {
+            if is_connected[r][c] == 1 && !visited[c] {
+                visited[c] = true;
+                ans += 1;
+                dfs(&is_connected, &mut visited, c);
+            }
+        }
+    }
+    ans
+}
