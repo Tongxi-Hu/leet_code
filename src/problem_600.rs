@@ -1,4 +1,4 @@
-use std::cell::{Ref, RefCell};
+use std::cell::RefCell;
 use std::collections::{BTreeMap, BinaryHeap, HashMap, HashSet};
 use std::rc::Rc;
 
@@ -688,7 +688,7 @@ pub fn diameter_of_binary_tree(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
 
 /// p546
 pub fn remove_boxes(boxes: Vec<i32>) -> i32 {
-    fn calculatePoints(
+    fn calculate_points(
         boxes: &[i32],
         dp: &mut [[[u16; 100]; 100]; 100],
         mut l: usize,
@@ -704,12 +704,13 @@ pub fn remove_boxes(boxes: Vec<i32>) -> i32 {
                 r -= 1;
                 k += 1;
             }
-            dp[l][r][k] = calculatePoints(boxes, dp, l, r - 1, 0) + (k as u16 + 1) * (k as u16 + 1);
+            dp[l][r][k] =
+                calculate_points(boxes, dp, l, r - 1, 0) + (k as u16 + 1) * (k as u16 + 1);
             for i in l..r {
                 if boxes[i] == boxes[r] {
                     dp[l][r][k] = dp[l][r][k].max(
-                        calculatePoints(boxes, dp, l, i, k + 1)
-                            + calculatePoints(boxes, dp, i + 1, r - 1, 0),
+                        calculate_points(boxes, dp, l, i, k + 1)
+                            + calculate_points(boxes, dp, i + 1, r - 1, 0),
                     )
                 }
             }
@@ -718,7 +719,7 @@ pub fn remove_boxes(boxes: Vec<i32>) -> i32 {
     }
     let mut dp = [[[0; 100]; 100]; 100];
 
-    calculatePoints(&boxes, &mut dp, 0, boxes.len() - 1, 0) as i32
+    calculate_points(&boxes, &mut dp, 0, boxes.len() - 1, 0) as i32
 }
 
 /// p547
@@ -743,4 +744,83 @@ pub fn find_circle_num(is_connected: Vec<Vec<i32>>) -> i32 {
         }
     }
     ans
+}
+
+/// p551
+pub fn check_record(s: String) -> bool {
+    let mut late = false;
+    let mut absence: usize = 0;
+    let chars = s.chars().collect::<Vec<char>>();
+    let length = chars.len();
+    for (i, &c) in chars.iter().enumerate() {
+        match c {
+            'A' => absence = absence + 1,
+            'L' => {
+                if length > 2 && i < length - 2 && chars[i + 1] == 'L' && chars[i + 2] == 'L' {
+                    late = true;
+                }
+            }
+            _ => (),
+        }
+    }
+    !late && absence < 2
+}
+
+/// p552
+pub fn check_record_2(n: i32) -> i32 {
+    const MOD: i64 = 1_000_000_007;
+    let n = n as usize;
+    if n == 1 {
+        return 3;
+    }
+    let mut dp = vec![0; n + 3];
+    dp[1] = 1;
+    dp[2] = 1;
+    let mut sum = 0;
+    for i in 0..n {
+        dp[i + 3] = (dp[i + 2] + dp[i + 1] + dp[i]) % MOD;
+    }
+    for i in 0..=n {
+        if i == 0 || i == n - 1 {
+            sum = (sum + dp[n + 1]) % MOD;
+        } else if i == n {
+            sum = (sum + dp[n + 2]) % MOD;
+        } else {
+            sum = (sum + (dp[i + 2]) * (dp[n - i + 1])) % MOD;
+        }
+    }
+    sum as i32
+}
+
+/// p553
+pub fn optimal_division(nums: Vec<i32>) -> String {
+    (1..nums.len()).fold(nums[0].to_string(), |ret, i| match i {
+        1 if nums.len() > 2 => format!("{}/({}", ret, nums[i]),
+        _ => {
+            if i == nums.len() - 1 && nums.len() > 2 {
+                format!("{}/{})", ret, nums[i])
+            } else {
+                format!("{}/{}", ret, nums[i])
+            }
+        }
+    })
+}
+
+/// p554
+pub fn least_bricks(wall: Vec<Vec<i32>>) -> i32 {
+    let mut end_point: HashMap<i32, i32> = HashMap::new();
+    let mut max: i32 = 0;
+    for row in wall.iter() {
+        let mut acc: i32 = 0;
+        let length = row.len();
+        for (i, &brick) in row.iter().enumerate() {
+            if i != length - 1 {
+                acc = acc + brick;
+                let count = end_point.entry(acc).or_default();
+                *count = *count + 1;
+                max = max.max(*count)
+            }
+        }
+    }
+    wall.len() as i32 - max
 }
