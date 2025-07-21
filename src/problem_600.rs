@@ -816,7 +816,7 @@ pub fn least_bricks(wall: Vec<Vec<i32>>) -> i32 {
         for (i, &brick) in row.iter().enumerate() {
             if i != length - 1 {
                 acc = acc + brick;
-                let count = end_point.entry(acc).or_default();
+                let count = end_point.entry(acc).or_insert(0);
                 *count = *count + 1;
                 max = max.max(*count)
             }
