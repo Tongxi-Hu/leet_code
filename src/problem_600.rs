@@ -824,3 +824,62 @@ pub fn least_bricks(wall: Vec<Vec<i32>>) -> i32 {
     }
     wall.len() as i32 - max
 }
+
+/// p556
+pub fn next_greater_element(n: i32) -> i32 {
+    let mut ch_arr = n.to_string().chars().collect::<Vec<char>>();
+    let (mut i, mut j): (i32, usize) = (ch_arr.len() as i32 - 2, ch_arr.len() - 1);
+    while i >= 0 as i32 && ch_arr[i as usize] >= ch_arr[i as usize + 1] {
+        i -= 1;
+    }
+    if i == -1 {
+        return -1;
+    }
+    while j < ch_arr.len() && ch_arr[i as usize] >= ch_arr[j] {
+        j -= 1;
+    }
+    ch_arr.swap(i as usize, j);
+    let (mut prefix, mut tmp) = (
+        ch_arr[..i as usize + 1].to_vec(),
+        ch_arr[i as usize + 1..].to_vec(),
+    );
+    tmp.sort();
+    prefix.append(&mut tmp);
+    return if let Ok(num) = prefix.iter().map(|c| *c).collect::<String>().parse::<i32>() {
+        num
+    } else {
+        -1
+    };
+}
+
+// p557
+pub fn reverse_words(s: String) -> String {
+    let contents = s.split(" ").collect::<Vec<&str>>();
+    contents
+        .iter()
+        .map(|&s| {
+            return s
+                .chars()
+                .map(|c| c.to_string())
+                .rev()
+                .collect::<Vec<String>>()
+                .concat();
+        })
+        .collect::<Vec<String>>()
+        .join(" ")
+}
+
+/// p560
+pub fn subarray_sum(nums: Vec<i32>, k: i32) -> i32 {
+    let mut ans = 0;
+    let mut s = 0;
+    let mut cnt = HashMap::with_capacity(nums.len());
+    for x in nums {
+        *cnt.entry(s).or_insert(0) += 1;
+        s += x;
+        if let Some(&c) = cnt.get(&(s - k)) {
+            ans += c;
+        }
+    }
+    return ans;
+}
