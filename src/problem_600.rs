@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::collections::{BTreeMap, BinaryHeap, HashMap, HashSet};
 use std::rc::Rc;
+use std::str::FromStr;
 
 use crate::common::TreeNode;
 
@@ -882,4 +883,100 @@ pub fn subarray_sum(nums: Vec<i32>, k: i32) -> i32 {
         }
     }
     return ans;
+}
+
+/// p561
+pub fn array_pair_sum(nums: Vec<i32>) -> i32 {
+    let mut nums = nums;
+    nums.sort();
+    let length = nums.len();
+    nums.chunks(2).fold(0, |acc, cur| acc + cur[0])
+}
+
+/// p563
+pub fn find_tilt(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    let mut acc: i32 = 0;
+    fn dfs(root: &Option<Rc<RefCell<TreeNode>>>, acc: &mut i32) -> (i32, i32) {
+        if let Some(node) = root.as_ref() {
+            let (left_sum, left_diff) = dfs(&node.borrow().left, acc);
+            let (right_sum, right_diff) = dfs(&node.borrow().right, acc);
+            *acc = left_diff + right_diff + *acc;
+            return (
+                node.borrow().val + left_sum + right_sum,
+                (left_sum - right_sum).abs(),
+            );
+        } else {
+            (0, 0)
+        }
+    }
+    let (_, diff) = dfs(&root, &mut acc);
+    acc + diff
+}
+
+/// p564
+pub fn nearest_palindromic(n: String) -> String {
+    fn get_palindrome(mut left: i64, mut mark: bool) -> i64 {
+        let mut ret = left;
+        if !mark {
+            left /= 10;
+        }
+        while left > 0 {
+            ret = ret * 10 + left % 10;
+            left /= 10;
+        }
+        ret
+    }
+    let nLen = n.len();
+    let i = if (nLen & 1) == 1 {
+        nLen >> 1
+    } else {
+        (nLen >> 1) - 1
+    };
+    let mut half = i64::from_str(&n[..i + 1]).unwrap();
+    let mark = (nLen & 1) == 0;
+
+    let mut cache: Vec<i64> = vec![0; 5];
+    cache.push(((10 as i64).pow(nLen as u32 - 1) - 1) as i64);
+    cache.push(((10 as i64).pow(nLen as u32) + 1) as i64);
+    cache.push(get_palindrome(half, mark));
+    cache.push(get_palindrome(half - 1, mark));
+    cache.push(get_palindrome(half + 1, mark));
+
+    let nl = i64::from_str(&n).unwrap();
+    let mut ret = 0;
+    let mut diff = i64::MAX;
+    while let Some(v) = cache.pop() {
+        if v == nl {
+            continue;
+        }
+        let curr_diff = ((v - nl) as i64).abs();
+        if curr_diff == diff {
+            ret = v.min(ret);
+        } else if curr_diff < diff {
+            ret = v;
+            diff = curr_diff;
+        }
+    }
+    ret.to_string()
+}
+
+/// p565
+pub fn array_nesting(mut nums: Vec<i32>) -> i32 {
+    nums.clone()
+        .iter()
+        .enumerate()
+        .scan(0, |max_len, (i, num)| {
+            let (mut index, mut cnt): (usize, i32) = (i, 0);
+            if *num != -1 {
+                while nums[index] != -1 {
+                    let tmp = nums[index];
+                    nums[index] = -1;
+                    index = tmp as usize;
+                    cnt += 1;
+                }
+            }
+            Some(cnt.max(*max_len))
+        })
+        .max()
+        .unwrap_or(0)
 }
