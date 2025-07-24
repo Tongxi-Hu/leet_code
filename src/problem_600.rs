@@ -980,3 +980,61 @@ pub fn array_nesting(mut nums: Vec<i32>) -> i32 {
         .max()
         .unwrap_or(0)
 }
+
+/// p566
+pub fn matrix_reshape(mat: Vec<Vec<i32>>, r: i32, c: i32) -> Vec<Vec<i32>> {
+    let (r, c) = (r as usize, c as usize);
+    let row = mat.len();
+    if row == 0 {
+        return mat;
+    }
+    let col = mat[0].len();
+    if r * c != row * col {
+        return mat;
+    }
+    let mut new_mat: Vec<Vec<i32>> = vec![vec![0; c]; r];
+    for i in 0..row {
+        for j in 0..col {
+            let length = col * i + j;
+            let row = length / c;
+            let col = length % c;
+            new_mat[row][col] = mat[i][j];
+        }
+    }
+    new_mat
+}
+
+/// p567
+pub fn check_inclusion(s1: String, s2: String) -> bool {
+    let mut s1_content: HashMap<char, usize> = HashMap::new();
+    for c in s1.chars() {
+        *s1_content.entry(c).or_insert(0) += 1;
+    }
+    let mut find_target = false;
+    let mut temp_content: HashMap<char, usize> = HashMap::new();
+    s2.chars()
+        .collect::<Vec<char>>()
+        .windows(s1.len())
+        .enumerate()
+        .for_each(|(i, content)| {
+            if i == 0 {
+                for &c in content {
+                    *temp_content.entry(c).or_insert(0) += 1;
+                }
+            } else if let Some(&c) = content.last() {
+                *temp_content.entry(c).or_insert(0) += 1;
+            }
+            if temp_content == s1_content {
+                find_target = true;
+            }
+            if let Some(&c) = content.first() {
+                let count = temp_content.entry(c).or_insert(0);
+                if *count == 1 {
+                    temp_content.remove(&c);
+                } else {
+                    *count = *count - 1;
+                }
+            }
+        });
+    find_target
+}
