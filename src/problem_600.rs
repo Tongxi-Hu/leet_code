@@ -396,7 +396,7 @@ pub fn check_subarray_sum(nums: Vec<i32>, k: i32) -> bool {
 // p524
 pub fn find_longest_word(s: String, dictionary: Vec<String>) -> String {
     use std::cmp::Ordering;
-    let mut s: Vec<char> = s.chars().collect();
+    let s: Vec<char> = s.chars().collect();
     let mut dic = dictionary;
     dic.sort_unstable_by(|a, b| {
         let cmp = b.len().cmp(&a.len());
@@ -407,7 +407,7 @@ pub fn find_longest_word(s: String, dictionary: Vec<String>) -> String {
         }
     });
     for d in dic {
-        let mut chars: Vec<char> = d.chars().collect();
+        let chars: Vec<char> = d.chars().collect();
         let mut i = 0;
         let mut j = 0;
         while i < chars.len() && j < s.len() {
@@ -692,7 +692,7 @@ pub fn remove_boxes(boxes: Vec<i32>) -> i32 {
     fn calculate_points(
         boxes: &[i32],
         dp: &mut [[[u16; 100]; 100]; 100],
-        mut l: usize,
+        l: usize,
         mut r: usize,
         mut k: usize,
     ) -> u16 {
@@ -915,7 +915,7 @@ pub fn find_tilt(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
 
 /// p564
 pub fn nearest_palindromic(n: String) -> String {
-    fn get_palindrome(mut left: i64, mut mark: bool) -> i64 {
+    fn get_palindrome(mut left: i64, mark: bool) -> i64 {
         let mut ret = left;
         if !mark {
             left /= 10;
@@ -926,18 +926,18 @@ pub fn nearest_palindromic(n: String) -> String {
         }
         ret
     }
-    let nLen = n.len();
-    let i = if (nLen & 1) == 1 {
-        nLen >> 1
+    let n_len = n.len();
+    let i = if (n_len & 1) == 1 {
+        n_len >> 1
     } else {
-        (nLen >> 1) - 1
+        (n_len >> 1) - 1
     };
-    let mut half = i64::from_str(&n[..i + 1]).unwrap();
-    let mark = (nLen & 1) == 0;
+    let half = i64::from_str(&n[..i + 1]).unwrap();
+    let mark = (n_len & 1) == 0;
 
     let mut cache: Vec<i64> = vec![0; 5];
-    cache.push(((10 as i64).pow(nLen as u32 - 1) - 1) as i64);
-    cache.push(((10 as i64).pow(nLen as u32) + 1) as i64);
+    cache.push(((10 as i64).pow(n_len as u32 - 1) - 1) as i64);
+    cache.push(((10 as i64).pow(n_len as u32) + 1) as i64);
     cache.push(get_palindrome(half, mark));
     cache.push(get_palindrome(half - 1, mark));
     cache.push(get_palindrome(half + 1, mark));
