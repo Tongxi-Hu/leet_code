@@ -1038,3 +1038,37 @@ pub fn check_inclusion(s1: String, s2: String) -> bool {
         });
     find_target
 }
+
+/// p572
+pub fn is_subtree(
+    root: Option<Rc<RefCell<TreeNode>>>,
+    sub_root: Option<Rc<RefCell<TreeNode>>>,
+) -> bool {
+    fn dfs(a: &Option<Rc<RefCell<TreeNode>>>, b: &Option<Rc<RefCell<TreeNode>>>) -> bool {
+        if a == b {
+            return true;
+        }
+        if a.is_none() || b.is_none() {
+            return false;
+        }
+        let (a, b) = (a.as_ref().unwrap().borrow(), b.as_ref().unwrap().borrow());
+        a.val == b.val && dfs(&a.left, &b.left) && dfs(&a.right, &b.right)
+    }
+    if sub_root.is_none() {
+        return true;
+    }
+    if let Some(r) = root {
+        let node = r.borrow();
+        dfs(&Some(r.clone()), &sub_root)
+            || is_subtree(node.left.clone(), sub_root.clone())
+            || is_subtree(node.right.clone(), sub_root.clone())
+    } else {
+        false
+    }
+}
+
+/// p575
+pub fn distribute_candies(candy_type: Vec<i32>) -> i32 {
+    let set = candy_type.iter().collect::<HashSet<_>>();
+    (candy_type.len() / 2).min(set.len()) as i32
+}
