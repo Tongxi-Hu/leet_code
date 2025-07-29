@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::collections::{BTreeMap, BinaryHeap, HashMap, HashSet};
+use std::i32;
 use std::rc::Rc;
 use std::str::FromStr;
 
@@ -1102,4 +1103,58 @@ pub fn find_paths(m: i32, n: i32, max_move: i32, start_row: i32, start_column: i
         }
     }
     out_counts
+}
+
+/// p581
+pub fn find_unsorted_subarray(nums: Vec<i32>) -> i32 {
+    let mut pre = nums[0];
+    let ir = nums[1..].iter().enumerate().fold(0, |ir, (i, &x)| {
+        if x >= pre {
+            pre = x;
+            ir
+        } else {
+            i + 1
+        }
+    });
+    if 0 == ir {
+        return 0;
+    }
+    pre = nums[ir];
+    nums[..ir].iter().rev().enumerate().fold(0, |ans, (i, &x)| {
+        if x <= pre {
+            pre = x;
+            ans
+        } else {
+            i + 2
+        }
+    }) as i32
+}
+
+/// p583
+pub fn min_distance(word1: String, word2: String) -> i32 {
+    let char1 = word1.chars().collect::<Vec<char>>();
+    let char2 = word2.chars().collect::<Vec<char>>();
+    let len1 = char1.len();
+    let len2 = char2.len();
+    let mut dp = vec![vec![-1; len2 + 1]; len1 + 1];
+    dp[0][0] = 0;
+    for i in 1..=len1 {
+        dp[i][0] = i as i32;
+    }
+    for j in 1..=len2 {
+        dp[0][j] = j as i32;
+    }
+    for i in 1..=len1 {
+        let c1 = char1[i - 1];
+        for j in 1..=len2 {
+            let c2 = char2[j - 1];
+            if c1 == c2 {
+                dp[i][j] = dp[i - 1][j - 1];
+            } else {
+                dp[i][j] = dp[i][j - 1].min(dp[i - 1][j]) + 1;
+            }
+        }
+    }
+
+    dp[len1][len2]
 }
