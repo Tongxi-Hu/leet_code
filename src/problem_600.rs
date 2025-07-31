@@ -1158,3 +1158,60 @@ pub fn min_distance(word1: String, word2: String) -> i32 {
 
     dp[len1][len2]
 }
+
+/// p587
+#[derive(Debug, Copy, Clone)]
+struct Point(i32, i32);
+pub fn outer_trees(trees: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+    fn cross(p: &Point, q: &Point, r: &Point) -> i32 {
+        (q.0 - p.0) * (r.1 - q.1) - (q.1 - p.1) * (r.0 - q.0)
+    }
+    fn distance(p: &Point, q: &Point) -> i32 {
+        (p.0 - q.0) * (p.0 - q.0) + (p.1 - q.1) * (p.1 - q.1)
+    }
+    let n = trees.len();
+    if n < 4 {
+        return trees;
+    }
+    let mut trees: Vec<_> = trees.into_iter().map(|t| Point(t[0], t[1])).collect();
+    let bottom = trees
+        .iter()
+        .enumerate()
+        .fold(0, |x, (i, p)| if p.1 < trees[x].1 { i } else { x });
+    trees.swap(bottom, 0);
+    let bottom = *trees.first().unwrap();
+    (&mut trees[1..]).sort_unstable_by(|a, b| {
+        let diff = -cross(&bottom, a, b);
+        if diff < 0 {
+            std::cmp::Ordering::Less
+        } else if diff > 0 {
+            std::cmp::Ordering::Greater
+        } else {
+            distance(&bottom, a).cmp(&distance(&bottom, b))
+        }
+    });
+    let mut r = n as i32 - 2;
+    while r >= 0 && cross(&trees[0], &trees[n - 1], &trees[r as usize]) == 0 {
+        r -= 1
+    }
+    let (mut i, mut j) = ((r + 1) as usize, n - 1);
+    while i < j {
+        trees.swap(i, j);
+        i += 1;
+        j -= 1
+    }
+    let mut stack = vec![0, 1];
+    let get = |s: &Vec<_>, x| s[(s.len() as i32 + x) as usize];
+    for i in 2..n {
+        while stack.len() > 1
+            && cross(&trees[get(&stack, -2)], &trees[get(&stack, -1)], &trees[i]) < 0
+        {
+            stack.pop();
+        }
+        stack.push(i);
+    }
+    stack
+        .into_iter()
+        .map(|i| vec![trees[i].0, trees[i].1])
+        .collect()
+}
