@@ -1215,3 +1215,195 @@ pub fn outer_trees(trees: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
         .map(|i| vec![trees[i].0, trees[i].1])
         .collect()
 }
+
+/// p591
+fn starts_with(code: &str, target: &str, i: usize) -> bool {
+    code[i..].starts_with(target)
+}
+fn index_of(code: &str, target: &str, i: usize) -> i32 {
+    if let Some(j) = code[i..].find(target) {
+        (i + j) as i32
+    } else {
+        -1
+    }
+}
+pub fn is_valid(code: String) -> bool {
+    use std::collections::VecDeque;
+    let (mut i, n) = (0, code.len());
+    let mut queue = VecDeque::new();
+    while i < n {
+        if i > 0 && queue.is_empty() {
+            return false;
+        }
+        if starts_with(&code, "<![CDATA[", i) {
+            let j = index_of(&code, "]]>", i + 9);
+            if j == -1 {
+                return false;
+            }
+            i = j as usize + 3;
+        } else if starts_with(&code, "</", i) {
+            let j = index_of(&code, ">", i + 2);
+            if j == -1 || i + 2 == j as usize || j as usize - i - 2 > 9 {
+                return false;
+            }
+            if queue.is_empty() || &code[i + 2..j as usize] != *queue.back().unwrap() {
+                return false;
+            }
+            queue.pop_back();
+            i = j as usize + 1;
+        } else if starts_with(&code, "<", i) {
+            let j = index_of(&code, ">", i + 1);
+            if j == -1 || i + 1 == j as usize || j as usize - i - 1 > 9 {
+                return false;
+            }
+            if code[i + 1..j as usize]
+                .chars()
+                .filter(|ch| !ch.is_ascii_uppercase())
+                .count()
+                > 0
+            {
+                return false;
+            }
+            queue.push_back(&code[i + 1..j as usize]);
+            i = j as usize + 1;
+        } else {
+            i += 1;
+        }
+    }
+    queue.is_empty()
+}
+
+/// p592
+pub fn fraction_addition(expression: String) -> String {
+    let mut i = 0;
+    let mut nums = Vec::new();
+    while i < expression.len() {
+        let mut j = i + 1;
+        while j < expression.len()
+            && expression.as_bytes()[j] != b'+'
+            && expression.as_bytes()[j] != b'-'
+        {
+            j += 1;
+        }
+        let curr = &expression[i..j].split('/').collect::<Vec<_>>();
+        nums.push(curr[0].to_string().parse::<i32>().unwrap());
+        nums.push(curr[1].to_string().parse::<i32>().unwrap());
+        i = j;
+    }
+
+    let (mut numerator, mut denominator) = (0, 1);
+    for i in (0..nums.len()).filter(|i| (i & 1) == 1) {
+        denominator *= nums[i];
+    }
+    for i in (0..nums.len()).filter(|i| (i & 1) == 0) {
+        numerator += nums[i] * denominator / nums[i + 1];
+    }
+
+    fn gcd(denominator: i32, numerator: i32) -> i32 {
+        return if numerator == 0 {
+            denominator
+        } else {
+            gcd(numerator, denominator % numerator)
+        };
+    }
+    let common = gcd(denominator, numerator).abs();
+    format!("{}/{}", numerator / common, denominator / common)
+}
+
+/// p593
+pub fn valid_square(p1: Vec<i32>, p2: Vec<i32>, p3: Vec<i32>, p4: Vec<i32>) -> bool {
+    use std::collections::HashSet;
+    fn distance(p1: &Vec<i32>, p2: &Vec<i32>) -> i32 {
+        (p2[0] - p1[0]) * (p2[0] - p1[0]) + (p2[1] - p1[1]) * (p2[1] - p1[1])
+    }
+    let cache = HashSet::from([
+        distance(&p1, &p2),
+        distance(&p2, &p3),
+        distance(&p3, &p4),
+        distance(&p4, &p1),
+        distance(&p1, &p3),
+        distance(&p2, &p4),
+    ]);
+    !cache.contains(&0) && cache.len() == 2
+}
+
+/// p594
+pub fn find_lhs(nums: Vec<i32>) -> i32 {
+    let mut cnt = HashMap::new();
+    for x in nums {
+        *cnt.entry(x).or_insert(0) += 1;
+    }
+
+    let mut ans = 0;
+    for (&x, &c) in &cnt {
+        if let Some(&c2) = cnt.get(&(x + 1)) {
+            ans = ans.max(c + c2);
+        }
+    }
+    ans
+}
+
+/// p598
+pub fn max_count(m: i32, n: i32, ops: Vec<Vec<i32>>) -> i32 {
+    if ops.len() == 0 {
+        return m * n;
+    } else {
+        let (mut min_r, mut min_c) = (i32::MAX, i32::MAX);
+        for data in ops {
+            min_r = min_r.min(data[0]);
+            min_c = min_c.min(data[1]);
+        }
+        min_r * min_c
+    }
+}
+
+/// p599
+pub fn find_restaurant(list1: Vec<String>, list2: Vec<String>) -> Vec<String> {
+    let mut map = HashMap::new();
+    for (i, ele) in list1.iter().enumerate() {
+        map.insert(ele, i);
+    }
+
+    let mut min_idx = 2000;
+    let mut ans: Vec<String> = Vec::new();
+    for (i, ele) in list2.iter().enumerate() {
+        if let Some(j) = map.get(ele) {
+            if i + j < min_idx {
+                min_idx = i + j;
+                ans = vec![ele.to_string()];
+            } else if i + j == min_idx {
+                ans.push(ele.to_string());
+            }
+        }
+    }
+    ans
+}
+
+/// p600
+pub fn find_integers(n: i32) -> i32 {
+    let mut memo = vec![vec![-1; 4]; 32];
+    fn dfs(pos: usize, prev: usize, is_limit: bool, n: i32, memo: &mut Vec<Vec<i32>>) -> i32 {
+        if pos == 0 {
+            return 1;
+        }
+
+        let state = prev * 2 + is_limit as usize;
+        if memo[pos][state] != -1 {
+            return memo[pos][state];
+        }
+
+        let mut res = 0;
+        let up = if is_limit { (n >> (pos - 1)) & 1 } else { 1 };
+
+        for d in 0..=up {
+            if prev == 1 && d == 1 {
+                continue;
+            }
+            res += dfs(pos - 1, d as usize, is_limit && d == up, n, memo);
+        }
+
+        memo[pos][state] = res;
+        res
+    }
+    dfs(31, 0, true, n, &mut memo)
+}
