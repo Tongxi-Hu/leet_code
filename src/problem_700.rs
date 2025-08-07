@@ -114,3 +114,142 @@ pub fn merge_trees(
     }
     dfs(&root1, &root2)
 }
+
+/// p621
+pub fn least_interval(tasks: Vec<char>, n: i32) -> i32 {
+    let mut counts = [0; 26];
+    let mut max_count = 0;
+    let mut count = 0;
+
+    for idx in tasks.iter().map(|&task| ((task as u8) - b'A') as usize) {
+        counts[idx] += 1;
+        if counts[idx] > max_count {
+            count = 1;
+            max_count = counts[idx];
+        } else if counts[idx] == max_count {
+            count += 1;
+        }
+    }
+
+    i32::max(tasks.len() as i32, count + (max_count - 1) * (n + 1))
+}
+
+/// p622
+struct MyCircularQueue {
+    arr: Vec<i32>,
+    rear: usize,
+    curr_size: usize,
+}
+
+/**
+ * `&self` means the method takes an immutable reference.
+ * If you need a mutable reference, change it to `&mut self` instead.
+ */
+impl MyCircularQueue {
+    fn new(k: i32) -> Self {
+        MyCircularQueue {
+            arr: vec![0; k as usize],
+            rear: 0,
+            curr_size: 0,
+        }
+    }
+
+    fn en_queue(&mut self, value: i32) -> bool {
+        if self.is_full() {
+            false
+        } else {
+            self.arr[self.rear] = value;
+            self.curr_size += 1;
+            self.rear = (self.rear + 1) % self.arr.len();
+            true
+        }
+    }
+
+    fn de_queue(&mut self) -> bool {
+        if self.is_empty() {
+            false
+        } else {
+            self.curr_size -= 1;
+            true
+        }
+    }
+
+    fn front(&self) -> i32 {
+        if self.is_empty() {
+            -1
+        } else {
+            self.arr[(self.rear - self.curr_size + self.arr.len()) % self.arr.len()]
+        }
+    }
+
+    fn rear(&self) -> i32 {
+        if self.is_empty() {
+            -1
+        } else {
+            self.arr[(self.rear - 1 + self.arr.len()) % self.arr.len()]
+        }
+    }
+
+    fn is_empty(&self) -> bool {
+        self.curr_size == 0
+    }
+
+    fn is_full(&self) -> bool {
+        self.curr_size == self.arr.len()
+    }
+}
+
+///p623
+pub fn add_one_row(
+    root: Option<Rc<RefCell<TreeNode>>>,
+    val: i32,
+    depth: i32,
+) -> Option<Rc<RefCell<TreeNode>>> {
+    use std::collections::VecDeque;
+    if depth == 1 {
+        let mut node = TreeNode::new(val);
+        node.left = root;
+        return Some(Rc::new(RefCell::new(node)));
+    }
+    let mut queue = VecDeque::new();
+    queue.push_back(root.clone());
+    for i in 0..depth - 2 {
+        let size = queue.len();
+        for j in 0..size {
+            if let Some(node) = queue.pop_front() {
+                if node.as_ref().unwrap().borrow().left.is_some() {
+                    queue.push_back(node.as_ref().unwrap().borrow().left.clone());
+                }
+                if node.as_ref().unwrap().borrow().right.is_some() {
+                    queue.push_back(node.as_ref().unwrap().borrow().right.clone());
+                }
+            }
+        }
+    }
+    while !queue.is_empty() {
+        if let Some(node) = queue.pop_front() {
+            let mut new_node = TreeNode::new(val);
+            new_node.left = node.as_ref().unwrap().borrow().left.clone();
+            node.as_ref().unwrap().borrow_mut().left = Some(Rc::new(RefCell::new(new_node)));
+            let mut new_node = TreeNode::new(val);
+            new_node.right = node.as_ref().unwrap().borrow().right.clone();
+            node.as_ref().unwrap().borrow_mut().right = Some(Rc::new(RefCell::new(new_node)));
+        }
+    }
+    root
+}
+
+/// p624
+pub fn max_distance(arrays: Vec<Vec<i32>>) -> i32 {
+    let mut res = 0;
+    let mut min_val = arrays[0][0];
+    let mut max_val = arrays[0][arrays[0].len() - 1];
+    for i in 1..arrays.len() {
+        let n = arrays[i].len();
+        res = res.max((arrays[i][n - 1] - min_val).abs());
+        res = res.max((max_val - arrays[i][0]).abs());
+        min_val = min_val.min(arrays[i][0]);
+        max_val = max_val.max(arrays[i][n - 1]);
+    }
+    res
+}
