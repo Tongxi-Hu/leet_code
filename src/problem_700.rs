@@ -1,4 +1,9 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{
+    cell::RefCell,
+    collections::{BinaryHeap, HashMap, HashSet, VecDeque},
+    hash::Hasher,
+    rc::Rc,
+};
 
 use crate::common::TreeNode;
 
@@ -252,4 +257,76 @@ pub fn max_distance(arrays: Vec<Vec<i32>>) -> i32 {
         max_val = max_val.max(arrays[i][n - 1]);
     }
     res
+}
+
+/// p628
+pub fn maximum_product(mut nums: Vec<i32>) -> i32 {
+    let n = nums.len();
+    nums.sort_unstable();
+
+    let mut max_num = nums[n - 3] * nums[n - 2] * nums[n - 1];
+    if nums[1] < 0 {
+        max_num = i32::max(max_num, nums[0] * nums[1] * nums[n - 1]);
+    }
+
+    max_num
+}
+
+/// p629
+const MOD: i64 = 1_0000_0000_7;
+
+pub fn k_inverse_pairs(n: i32, k: i32) -> i32 {
+    let (n, k) = (n as usize, k as usize);
+
+    let mut dp = vec![vec![0_i64; k + 1]; n + 1];
+
+    for i in 0..=n {
+        dp[i][0] = 1;
+    }
+
+    for i in 1..=n {
+        for j in 1..=k {
+            dp[i][j] = if j >= i {
+                (dp[i][j - 1] + MOD - dp[i - 1][j - i] + dp[i - 1][j]) % MOD
+            } else {
+                (dp[i][j - 1] + dp[i - 1][j]) % MOD
+            };
+        }
+    }
+
+    dp[n][k] as i32
+}
+
+/// p630
+pub fn schedule_course(courses: Vec<Vec<i32>>) -> i32 {
+    let mut courses: Vec<_> = courses
+        .into_iter()
+        .filter(|course| course[0] <= course[1])
+        .collect();
+    courses.sort_by_key(|c| c[1]);
+
+    if courses.is_empty() {
+        return 0;
+    }
+
+    let mut cur_time = 0;
+    let mut pq = BinaryHeap::new();
+
+    for course in courses {
+        let (duration, ddl) = (course[0], course[1]);
+        if cur_time + duration <= ddl {
+            cur_time += duration;
+            pq.push(duration);
+        } else {
+            if let Some(&d) = pq.peek() {
+                if duration < d {
+                    cur_time = cur_time - d + duration;
+                    pq.pop();
+                    pq.push(duration);
+                }
+            }
+        }
+    }
+
+    pq.len() as i32
 }
