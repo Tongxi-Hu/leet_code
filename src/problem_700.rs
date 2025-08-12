@@ -145,10 +145,6 @@ struct MyCircularQueue {
     curr_size: usize,
 }
 
-/**
- * `&self` means the method takes an immutable reference.
- * If you need a mutable reference, change it to `&mut self` instead.
- */
 impl MyCircularQueue {
     fn new(k: i32) -> Self {
         MyCircularQueue {
@@ -328,4 +324,50 @@ pub fn schedule_course(courses: Vec<Vec<i32>>) -> i32 {
     }
 
     pq.len() as i32
+}
+
+/// p632
+pub fn smallest_range(nums: Vec<Vec<i32>>) -> Vec<i32> {
+    let mut range_left = 0;
+    let mut range_right = i32::MAX;
+    let size = nums.len();
+    let mut next = vec![0; size];
+    let mut max_value = i32::MIN;
+    let mut pq = BinaryHeap::new();
+
+    for i in 0..size {
+        max_value = max_value.max(nums[i][0]);
+        pq.push(std::cmp::Reverse((nums[i][0], i)));
+    }
+
+    while let Some(std::cmp::Reverse((min_value, row))) = pq.pop() {
+        if max_value - min_value < range_right - range_left {
+            range_left = min_value;
+            range_right = max_value;
+        }
+        if next[row] == nums[row].len() - 1 {
+            break;
+        }
+        next[row] += 1;
+        max_value = max_value.max(nums[row][next[row]]);
+        pq.push(std::cmp::Reverse((nums[row][next[row]], row)));
+    }
+
+    vec![range_left, range_right]
+}
+
+/// p633
+pub fn judge_square_sum(c: i32) -> bool {
+    let (mut a, mut b) = (0, (c as f64).sqrt() as i32);
+    while a <= b {
+        if a * a == c - b * b {
+            return true;
+        }
+        if a * a < c - b * b {
+            a += 1
+        } else {
+            b -= 1;
+        }
+    }
+    false
 }
