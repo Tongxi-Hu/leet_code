@@ -371,3 +371,54 @@ pub fn judge_square_sum(c: i32) -> bool {
     }
     false
 }
+
+/// p636
+pub fn exclusive_time(n: i32, logs: Vec<String>) -> Vec<i32> {
+    let (mut ret, mut queue) = (vec![0; n as usize], Vec::new());
+    for log in logs {
+        let arr = log.split(":").collect::<Vec<_>>();
+        let (num, t) = (
+            arr[0].parse::<i32>().unwrap(),
+            arr[2].parse::<i32>().unwrap(),
+        );
+        if "start" == arr[1] {
+            queue.push((num, t))
+        } else {
+            if let Some(last) = queue.pop() {
+                let cost = t - last.1 + 1;
+                ret[num as usize] += cost;
+                queue.last().map_or((), |last| ret[last.0 as usize] -= cost);
+            }
+        }
+    }
+    ret
+}
+
+/// p637
+pub fn average_of_levels(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<f64> {
+    if let Some(node) = root.as_ref() {
+        let mut current_level: Vec<Rc<RefCell<TreeNode>>> = vec![node.clone()];
+        let mut average: Vec<f64> = vec![];
+        loop {
+            let length: usize = current_level.len();
+            let mut current_sum: f64 = 0.0;
+            for i in 0..length {
+                let node = current_level.remove(0).clone();
+                current_sum = (node.borrow().val as f64) + current_sum;
+                if let Some(left) = node.borrow().left.as_ref() {
+                    current_level.push(left.clone())
+                }
+                if let Some(right) = node.borrow().right.as_ref() {
+                    current_level.push(right.clone());
+                }
+            }
+            average.push(current_sum / (length as f64));
+            if current_level.len() == 0 {
+                break;
+            }
+        }
+        return average;
+    } else {
+        vec![]
+    }
+}
