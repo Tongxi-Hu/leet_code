@@ -422,3 +422,133 @@ pub fn average_of_levels(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<f64> {
         vec![]
     }
 }
+
+/// p638
+pub fn shopping_offers(price: Vec<i32>, special: Vec<Vec<i32>>, needs: Vec<i32>) -> i32 {
+    let n: usize = price.len();
+    fn dfs(price: &Vec<i32>, special: &Vec<Vec<i32>>, needs: &Vec<i32>, i: usize, n: usize) -> i32 {
+        let mut ans = 0;
+        for j in 0..n {
+            ans += needs[j] * price[j];
+        }
+        if special.is_empty() {
+            return ans;
+        }
+        let (curr, mut next_needs) = (&special[i], vec![]);
+        for j in 0..n {
+            if curr[j] > needs[j] {
+                break;
+            }
+            next_needs.push(needs[j] - curr[j]);
+        }
+
+        if next_needs.len() == n {
+            ans = ans.min(curr[n] + dfs(price, special, &next_needs, i, n));
+        }
+        if i + 1 < special.len() {
+            ans = ans.min(dfs(price, special, needs, i + 1, n));
+        }
+        ans
+    }
+
+    let mut filter_specials = Vec::new();
+    for s in special {
+        let (mut total_cnt, mut total_price) = (0, 0);
+        for i in 0..n {
+            total_cnt += s[i];
+            total_price += price[i] * s[i];
+        }
+        if total_cnt > 0 && total_price > s[s.len() - 1] {
+            filter_specials.push(s);
+        }
+    }
+
+    dfs(&price, &filter_specials, &needs, 0, n)
+}
+
+/// p639
+pub fn num_decodings(s: String) -> i32 {
+    let m = 1_000_000_007;
+    let (mut a, mut b, mut c) = (0i64, 1i64, 0i64);
+    let bytes = s.as_bytes();
+    for i in 0..bytes.len() {
+        c = b * check1digit(bytes[i]) % m;
+        if i > 0 {
+            c += a * check2digits(bytes[i - 1], bytes[i]) % m;
+        }
+        c %= m;
+        a = b;
+        b = c;
+    }
+    c as i32
+}
+
+fn check1digit(b: u8) -> i64 {
+    match b {
+        b'*' => 9,
+        b'0' => 0,
+        _ => 1,
+    }
+}
+
+fn check2digits(b1: u8, b2: u8) -> i64 {
+    match (b1, b2) {
+        (b'*', b'*') => 15,
+        (b'*', x) => {
+            if x > b'6' {
+                1
+            } else {
+                2
+            }
+        }
+        (x, b'*') => match x {
+            b'1' => 9,
+            b'2' => 6,
+            _ => 0,
+        },
+        (b'1', _) => 1,
+        (b'2', b'0'..=b'6') => 1,
+        _ => 0,
+    }
+}
+
+/// p640
+pub fn solve_equation(equation: String) -> String {
+    let arr = equation.split("=").collect::<Vec<_>>();
+
+    fn parse_expression(expression: &str) -> (i32, i32) {
+        let expression = expression.replace("+x", "+1x").replace("-x", "-1x");
+        let expression = if expression.chars().nth(0) == Some('x') {
+            format!("+1{}", expression)
+        } else {
+            expression
+        };
+        let expression = expression.replace("-", "+-");
+        let split_arr = expression
+            .split("+")
+            .filter(|x| x.len() > 0)
+            .collect::<Vec<_>>();
+
+        let prefix = split_arr
+            .iter()
+            .filter(|x| x.chars().rev().nth(0) == Some('x'))
+            .map(|x| x.trim_end_matches("x"))
+            .map(|x| x.parse::<i32>().unwrap())
+            .sum::<i32>();
+        let value = split_arr
+            .iter()
+            .filter(|x| x.chars().rev().nth(0) != Some('x'))
+            .map(|x| x.parse::<i32>().unwrap())
+            .sum::<i32>();
+        return (prefix, value);
+    }
+
+    let (mut left, mut right) = (parse_expression(arr[0]), parse_expression(arr[1]));
+    left.0 -= right.0;
+    right.1 -= left.1;
+    match (left.0, right.1) {
+        (0, 0) => "Infinite solutions".to_string(),
+        (0, _) => "No solution".to_string(),
+        (x, y) => format!("x={}", y / x),
+    }
+}
