@@ -1,6 +1,8 @@
+use core::f64;
 use std::{
     cell::RefCell,
     collections::{BinaryHeap, HashMap},
+    iter::Sum,
     rc::Rc,
 };
 
@@ -551,4 +553,33 @@ pub fn solve_equation(equation: String) -> String {
         (0, _) => "No solution".to_string(),
         (x, y) => format!("x={}", y / x),
     }
+}
+
+/// p643
+pub fn find_max_average(nums: Vec<i32>, k: i32) -> f64 {
+    let k = k as usize;
+    let mut sum: i32 = nums[0..k].iter().sum();
+    let mut max = sum;
+    for i in k..nums.len() {
+        sum = sum - nums[i - k] + nums[i];
+        max = max.max(sum);
+    }
+    max as f64 / k as f64
+}
+
+/// p645
+pub fn find_error_nums(nums: Vec<i32>) -> Vec<i32> {
+    let mut cnt = vec![0; nums.len() + 1];
+    for n in nums {
+        cnt[n as usize] += 1;
+    }
+    let mut ans = vec![0; 2];
+    for (i, &c) in cnt.iter().enumerate().skip(1) {
+        if c == 2 {
+            ans[0] = i as i32;
+        } else if c == 0 {
+            ans[1] = i as i32;
+        }
+    }
+    ans
 }
