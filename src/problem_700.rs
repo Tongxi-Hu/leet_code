@@ -583,3 +583,18 @@ pub fn find_error_nums(nums: Vec<i32>) -> Vec<i32> {
     }
     ans
 }
+
+/// p646
+pub fn find_longest_chain(pairs: Vec<Vec<i32>>) -> i32 {
+    let mut pairs = pairs;
+    pairs.sort_by(|a, b| a[1].cmp(&b[1]));
+    let mut cur = i32::MIN;
+    let mut count = 0;
+    pairs.iter().for_each(|p| {
+        if cur < p[0] {
+            cur = p[1];
+            count = count + 1;
+        }
+    });
+    count
+}
