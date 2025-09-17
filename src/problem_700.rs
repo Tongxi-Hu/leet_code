@@ -597,3 +597,90 @@ pub fn find_longest_chain(pairs: Vec<Vec<i32>>) -> i32 {
     });
     count
 }
+
+/// p647
+pub fn count_substrings(s: String) -> i32 {
+    let mut ans = 0;
+    let s = s.chars().collect::<Vec<_>>();
+    let mut dp = vec![vec![false; s.len()]; s.len()];
+    for i in (0..s.len()).rev() {
+        dp[i][i] = true;
+        ans += 1;
+        for j in i + 1..s.len() {
+            dp[i][j] = s[i] == s[j] && if i + 1 == j { true } else { dp[i + 1][j - 1] };
+            ans += if dp[i][j] { 1 } else { 0 };
+        }
+    }
+    ans
+}
+
+/// p648
+pub fn replace_words(dictionary: Vec<String>, sentence: String) -> String {
+    let words: Vec<&str> = sentence.split_whitespace().collect();
+    let mut dictionary = dictionary;
+    dictionary.sort_by(|a, b| a.len().cmp(&b.len()));
+    let mut ans: Vec<&str> = vec![];
+    for word in words {
+        let mut modified = false;
+        'b: for root in &dictionary {
+            if word.starts_with(root) {
+                ans.push(root);
+                modified = true;
+                break 'b;
+            }
+        }
+        if modified == false {
+            ans.push(word)
+        }
+    }
+    ans.join(&" ")
+}
+
+/// p649
+pub fn predict_party_victory(mut senate: String) -> String {
+    let (mut r_alive, mut d_alive) = (true, true);
+    let mut mark: i32 = 0;
+    while r_alive && d_alive {
+        (r_alive, d_alive) = (false, false);
+        for c in unsafe { senate.as_bytes_mut() } {
+            match c {
+                b'0' => {}
+                b'R' => {
+                    r_alive = true;
+                    if mark < 0 {
+                        *c = b'0';
+                    }
+                    mark += 1;
+                }
+                b'D' => {
+                    d_alive = true;
+                    if mark > 0 {
+                        *c = b'0';
+                    }
+                    mark -= 1;
+                }
+                _ => unsafe { std::hint::unreachable_unchecked() },
+            }
+        }
+    }
+    match mark.cmp(&0) {
+        std::cmp::Ordering::Greater => "Radiant".to_owned(),
+        std::cmp::Ordering::Less => "Dire".to_owned(),
+        std::cmp::Ordering::Equal => unreachable!(),
+    }
+}
+
+/// p650
+pub fn min_steps(n: i32) -> i32 {
+    let n = n as usize;
+    let mut dp: Vec<usize> = vec![usize::MAX; n + 1 as usize];
+    dp[1] = 0;
+    for i in 2..=n {
+        for j in 1..i {
+            if i % j == 0 {
+                dp[i] = dp[i].min(dp[j] + i / j)
+            }
+        }
+    }
+    dp[n] as i32
+}
