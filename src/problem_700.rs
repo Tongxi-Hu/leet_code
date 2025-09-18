@@ -388,7 +388,7 @@ pub fn exclusive_time(n: i32, logs: Vec<String>) -> Vec<i32> {
             if let Some(last) = queue.pop() {
                 let cost = t - last.1 + 1;
                 ret[num as usize] += cost;
-                queue.last().map_or((), |last| ret[last.0 as usize] -= cost);
+                let _ = queue.last().map_or((), |last| ret[last.0 as usize] -= cost);
             }
         }
     }
