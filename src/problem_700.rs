@@ -673,7 +673,7 @@ pub fn predict_party_victory(mut senate: String) -> String {
 /// p650
 pub fn min_steps(n: i32) -> i32 {
     let n = n as usize;
-    let mut dp: Vec<usize> = vec![usize::MAX; n + 1 as usize];
+    let mut dp: Vec<usize> = vec![usize::MAX; n + 1];
     dp[1] = 0;
     for i in 2..=n {
         for j in 1..i {
@@ -683,4 +683,127 @@ pub fn min_steps(n: i32) -> i32 {
         }
     }
     dp[n] as i32
+}
+
+/// p652
+pub fn find_duplicate_subtrees(
+    root: Option<Rc<RefCell<TreeNode>>>,
+) -> Vec<Option<Rc<RefCell<TreeNode>>>> {
+    let mut ans = vec![];
+    let mut cnt = HashMap::new();
+
+    fn dfs(
+        ans: &mut Vec<Option<Rc<RefCell<TreeNode>>>>,
+        cnt: &mut HashMap<String, i32>,
+        root: Option<Rc<RefCell<TreeNode>>>,
+    ) -> String {
+        if let Some(r) = root {
+            let left = dfs(ans, cnt, r.borrow().left.clone());
+            let right = dfs(ans, cnt, r.borrow().right.clone());
+            let key = format!("{} {} {}", r.borrow().val, left, right);
+
+            *cnt.entry(key.clone()).or_insert(0) += 1;
+
+            if let Some(&v) = cnt.get(&key) {
+                if v == 2 {
+                    ans.push(Some(r));
+                }
+            }
+
+            key
+        } else {
+            ",".to_string()
+        }
+    }
+
+    dfs(&mut ans, &mut cnt, root);
+
+    ans
+}
+
+/// p653
+pub fn find_target(root: Option<Rc<RefCell<TreeNode>>>, k: i32) -> bool {
+    let mut vals: Vec<i32> = vec![];
+    fn dfs(root: &Option<Rc<RefCell<TreeNode>>>, vals: &mut Vec<i32>) {
+        if let Some(node) = root.as_ref() {
+            dfs(&node.borrow().left, vals);
+            vals.push(node.borrow().val);
+            dfs(&node.borrow().right, vals);
+        }
+    }
+    dfs(&root, &mut vals);
+    let mut left = 0;
+    let mut right = vals.len() - 1;
+    while left < right {
+        let sum = vals[left] + vals[right];
+        if sum == k {
+            return true;
+        } else if sum < k {
+            left = left + 1;
+        } else {
+            right = right - 1;
+        }
+    }
+    false
+}
+
+/// p654
+pub fn construct_maximum_binary_tree(nums: Vec<i32>) -> Option<Rc<RefCell<TreeNode>>> {
+    fn build_tree(nums: &[i32]) -> Option<Rc<RefCell<TreeNode>>> {
+        let length = nums.len();
+        if length == 0 {
+            return None;
+        } else if let Some((i, max)) = nums.iter().enumerate().max_by_key(|(i, v)| *v) {
+            let node = Rc::new(RefCell::new(TreeNode::new(*max)));
+            if i > 0 {
+                node.borrow_mut().left = build_tree(&nums[0..i]);
+            }
+            if i + 1 < length {
+                node.borrow_mut().right = build_tree(&nums[i + 1..]);
+            }
+            return Some(node);
+        }
+        None
+    }
+    build_tree(&nums)
+}
+
+/// p655
+pub fn print_tree(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<Vec<String>> {
+    fn get_depth(root: &Option<Rc<RefCell<TreeNode>>>) -> usize {
+        if let Some(r) = root {
+            1 + get_depth(&r.borrow().left).max(get_depth(&r.borrow().right))
+        } else {
+            0
+        }
+    }
+
+    let n = get_depth(&root);
+    let m = (1 << n) - 1;
+    let mut queue = vec![];
+    let mut grid = vec![vec!["".to_string(); m]; n];
+    if let Some(r) = root {
+        queue.push((r, 0, (m - 1) / 2));
+
+        while queue.len() > 0 {
+            let mut tmp = vec![];
+
+            for i in 0..queue.len() {
+                let (ref node, row, col) = queue[i];
+                grid[row][col] = format!("{}", node.borrow().val);
+
+                if let Some(left) = node.borrow_mut().left.take() {
+                    tmp.push((left, row + 1, col - (1 << (n - row - 2))));
+                }
+
+                if let Some(right) = node.borrow_mut().right.take() {
+                    tmp.push((right, row + 1, col + (1 << (n - row - 2))));
+                }
+            }
+
+            queue = tmp;
+        }
+    }
+
+    grid
 }
