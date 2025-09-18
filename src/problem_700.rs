@@ -1,7 +1,7 @@
 use core::f64;
 use std::{
     cell::RefCell,
-    collections::{BinaryHeap, HashMap},
+    collections::{BinaryHeap, HashMap, hash_map::Keys},
     rc::Rc,
 };
 
@@ -806,4 +806,71 @@ pub fn print_tree(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<Vec<String>> {
     }
 
     grid
+}
+
+/// p657
+pub fn judge_circle(moves: String) -> bool {
+    let actions = moves.chars().collect::<Vec<char>>();
+    const ORIGIN: [i32; 2] = [0, 0];
+    let mut position = ORIGIN;
+    actions.iter().for_each(|action| match action {
+        'U' => {
+            position[1] = position[1] + 1;
+        }
+        'D' => {
+            position[1] = position[1] - 1;
+        }
+        'L' => {
+            position[0] = position[0] - 1;
+        }
+        'R' => {
+            position[0] = position[0] + 1;
+        }
+        _ => (),
+    });
+    position == ORIGIN
+}
+
+/// p658
+pub fn find_closest_elements(arr: Vec<i32>, k: i32, x: i32) -> Vec<i32> {
+    let length = arr.len();
+    let (mut left, mut right) = (0, length - 1);
+    while left < right {
+        let mid = (left + right) / 2;
+        if arr[mid] == x {
+            left = mid;
+            break;
+        } else if mid == left {
+            left = if (x - arr[left]) <= (arr[right] - x) {
+                mid
+            } else {
+                right
+            };
+            break;
+        } else if arr[mid] < x {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+
+    let k = k as usize;
+    let mut start = 0;
+    let mut end = length - 1;
+    if left > k {
+        start = left - k;
+    }
+    if length - left > k {
+        end = left + k;
+    }
+
+    let mut ans = arr[start..=end].to_vec();
+    while ans.len() > k {
+        if (x - ans.first().unwrap()) <= (ans.last().unwrap() - x) {
+            ans.pop();
+        } else {
+            ans.remove(0);
+        }
+    }
+    ans
 }
