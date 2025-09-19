@@ -219,11 +219,7 @@ pub fn min_sub_array_len(target: i32, nums: Vec<i32>) -> i32 {
             left += 1;
         }
     }
-    if ans <= n {
-        ans as i32
-    } else {
-        0
-    }
+    if ans <= n { ans as i32 } else { 0 }
 }
 
 /// p210
@@ -334,11 +330,7 @@ impl WordDictionary {
                 }
                 false
             } else {
-                if dt.is_end {
-                    true
-                } else {
-                    false
-                }
+                if dt.is_end { true } else { false }
             }
         }
         dfs(&self.tab, &word.as_bytes(), 0)
@@ -878,11 +870,7 @@ pub fn lowest_common_ancestor_1(
     if left.is_some() && right.is_some() {
         return root;
     }
-    if left.is_some() {
-        left
-    } else {
-        right
-    }
+    if left.is_some() { left } else { right }
 }
 
 /// p238
@@ -1184,7 +1172,7 @@ pub fn h_index_2(citations: Vec<i32>) -> i32 {
     }
 }
 
-fn isBadVersion(n: i32) -> bool {
+fn is_bad_version(n: i32) -> bool {
     todo!()
 }
 
@@ -1193,7 +1181,7 @@ pub fn first_bad_version(n: i32) -> i32 {
     let (mut left, mut right) = (1, n);
     while left < right {
         let mid = (right - left) / 2 + left;
-        if isBadVersion(mid) {
+        if is_bad_version(mid) {
             right = mid;
         } else {
             left = mid + 1;

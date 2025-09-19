@@ -558,8 +558,8 @@ struct DoubleList {
 }
 impl DoubleList {
     fn new() -> Self {
-        let mut head = Rc::new(RefCell::new(Node::new("".to_string())));
-        let mut tail = Rc::new(RefCell::new(Node::new("".to_string())));
+        let head = Rc::new(RefCell::new(Node::new("".to_string())));
+        let tail = Rc::new(RefCell::new(Node::new("".to_string())));
         head.borrow_mut().next = Some(tail.clone());
         tail.borrow_mut().prev = Some(head.clone());
         Self { head, tail }
@@ -1773,7 +1773,7 @@ pub fn find_complement(num: i32) -> i32 {
 /// p477
 pub fn total_hamming_distance(nums: Vec<i32>) -> i32 {
     let mut result = 0;
-    let mut zero = 0;
+    let mut zero;
     for i in 0..32 {
         zero = 0;
         for j in 0..nums.len() {
@@ -2071,7 +2071,7 @@ pub fn predict_the_winner(nums: Vec<i32>) -> bool {
 /// p488
 const INF: i32 = 6;
 pub fn find_min_step(board: String, hand: String) -> i32 {
-    let mut board: Vec<char> = board.chars().collect();
+    let board: Vec<char> = board.chars().collect();
     let mut hand: Vec<char> = hand.chars().collect();
     let mut map = HashMap::new();
     let ans = dfs(board, &mut hand, &mut map);
@@ -2274,7 +2274,7 @@ struct SolutionP497 {
     y: i32,
 }
 impl SolutionP497 {
-    fn new(mut rects: Vec<Vec<i32>>) -> Self {
+    fn new(rects: Vec<Vec<i32>>) -> Self {
         let len = rects.len();
         SolutionP497 {
             rects,

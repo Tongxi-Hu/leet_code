@@ -181,7 +181,7 @@ pub fn fib(n: i32) -> i32 {
         v => {
             let mut sum_pre = 0;
             let mut sum = 1;
-            let mut temp = 0;
+            let mut temp;
             for i in 0..=v {
                 if i >= 2 {
                     temp = sum;

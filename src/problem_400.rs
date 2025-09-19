@@ -99,12 +99,12 @@ fn is_can_added(first: i64, second: i64, num: &str, sum_idx: usize) -> bool {
 }
 
 /// p307
-struct NumArray_2 {
+struct NumArray2 {
     nums: Vec<i32>,
     tree: Vec<i32>,
 }
 
-impl NumArray_2 {
+impl NumArray2 {
     fn new(nums: Vec<i32>) -> Self {
         let mut na = Self {
             nums: vec![0; nums.len()],
@@ -399,15 +399,11 @@ pub fn is_power_of_three(n: i32) -> bool {
     while n % 3 == 0 {
         n = n / 3;
     }
-    if n == 1 {
-        true
-    } else {
-        false
-    }
+    if n == 1 { true } else { false }
 }
 
 /// p327
-pub fn count_range_sum(mut nums: Vec<i32>, lower: i32, upper: i32) -> i32 {
+pub fn count_range_sum(nums: Vec<i32>, lower: i32, upper: i32) -> i32 {
     let mut nums = nums.into_iter().map(|x| x as i64).collect::<Vec<i64>>();
     let mut count = 0;
     for i in 1..nums.len() {
@@ -707,8 +703,8 @@ pub fn count_bits(n: i32) -> Vec<i32> {
 /// p341
 struct NestedIterator(Vec<i32>);
 impl NestedIterator {
-    fn new(nestedList: Vec<NestedInteger>) -> Self {
-        let mut v = collect(nestedList);
+    fn new(nested_list: Vec<NestedInteger>) -> Self {
+        let mut v = collect(nested_list);
         v.reverse();
         Self(v)
     }
@@ -719,8 +715,8 @@ impl NestedIterator {
         self.0.len() != 0
     }
 }
-fn collect(nestedList: Vec<NestedInteger>) -> Vec<i32> {
-    nestedList
+fn collect(nested_list: Vec<NestedInteger>) -> Vec<i32> {
+    nested_list
         .into_iter()
         .map(|x| match x {
             NestedInteger::Int(x) => vec![x],
@@ -739,11 +735,7 @@ pub fn is_power_of_four(n: i32) -> bool {
     while n % 4 == 0 {
         n = n / 4;
     }
-    if n == 1 {
-        true
-    } else {
-        false
-    }
+    if n == 1 { true } else { false }
 }
 
 /// p343
@@ -1348,11 +1340,7 @@ pub fn first_uniq_char(s: String) -> i32 {
             location = *val
         }
     }
-    if location == flag {
-        -1
-    } else {
-        location
-    }
+    if location == flag { -1 } else { location }
 }
 
 /// p388
@@ -1613,7 +1601,7 @@ pub fn calc_equation(
         weight[x] = val * weight[idx2] / weight[idx1];
     }
 
-    fn find(parent: &mut Vec<usize>, weight: &mut Vec<f64>, mut idx: usize) -> usize {
+    fn find(parent: &mut Vec<usize>, weight: &mut Vec<f64>, idx: usize) -> usize {
         if idx != parent[idx] {
             let p = find(parent, weight, parent[idx]);
             weight[idx] *= weight[parent[idx]];

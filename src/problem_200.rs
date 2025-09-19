@@ -754,11 +754,7 @@ pub fn can_complete_circuit(gas: Vec<i32>, cost: Vec<i32>) -> i32 {
             cur = i + 1;
         }
     }
-    if pre + sum < 0 {
-        -1
-    } else {
-        cur as i32
-    }
+    if pre + sum < 0 { -1 } else { cur as i32 }
 }
 
 ///p135
@@ -1047,11 +1043,7 @@ pub fn max_points(points: Vec<Vec<i32>>) -> i32 {
                 // 约分
                 g = v3.iter().fold(v3[nzi as usize], |g, &x| {
                     // 不需要考虑0
-                    if x == 0 {
-                        g
-                    } else {
-                        gcd(g, x)
-                    }
+                    if x == 0 { g } else { gcd(g, x) }
                 });
                 g = g.abs();
                 if v3[nzi as usize] < 0 {
@@ -1326,7 +1318,7 @@ pub fn two_sum(numbers: Vec<i32>, target: i32) -> Vec<i32> {
 pub fn convert_to_title(column_number: i32) -> String {
     let mut sb = String::new();
     let mut n = column_number;
-    while (n > 0) {
+    while n > 0 {
         let pop = (n - 1) % 26;
         n = (n - 1) / 26;
         sb.push(('A' as u8 + pop as u8) as char);
@@ -1402,13 +1394,13 @@ impl BSTIterator {
     fn next(&mut self) -> i32 {
         let mut node = self.stack.pop().unwrap();
         while node.is_some() || !self.stack.is_empty() {
-            while let Some(mut cur) = node {
+            while let Some(cur) = node {
                 let left = cur.borrow_mut().left.take();
                 self.stack.push(Some(cur));
                 node = left;
             }
             if let Some(top) = self.stack.pop() {
-                if let Some(mut cur) = top {
+                if let Some(cur) = top {
                     node = cur.borrow_mut().right.take();
                     if node.is_some() {
                         self.stack.push(node);

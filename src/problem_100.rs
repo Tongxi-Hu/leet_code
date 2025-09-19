@@ -90,16 +90,12 @@ pub fn add_two_numbers(
                 let mut sum = acc;
                 if sum >= 10 {
                     let temp = sum - 10;
-                    acc = (sum - temp) / 10;
                     sum = temp;
-                } else {
-                    acc = 0;
                 }
                 if sum == 0 {
                     break;
                 }
                 *p = Some(Box::new(ListNode::new(sum)));
-                p = &mut (p.as_mut().unwrap().next);
                 break;
             }
         }
@@ -1194,7 +1190,7 @@ pub fn combination_sum2(mut candidates: Vec<i32>, target: i32) -> Vec<Vec<i32>> 
 }
 pub fn dfs2(
     candidates: &Vec<i32>,
-    mut remain: i32,
+    remain: i32,
     combine: &mut Vec<i32>,
     mut pointer: usize,
     ans: &mut Vec<Vec<i32>>,
@@ -1710,43 +1706,43 @@ pub fn length_of_last_word(s: String) -> i32 {
 ///p59
 pub fn generate_matrix(n: i32) -> Vec<Vec<i32>> {
     let mut res = vec![vec![0; n as usize]; n as usize];
-    let (mut startX, mut startY, mut offset): (usize, usize, usize) = (0, 0, 1);
-    let mut loopIdx = n / 2;
-    let mid: usize = loopIdx as usize;
+    let (mut start_x, mut start_y, mut offset): (usize, usize, usize) = (0, 0, 1);
+    let mut loop_idx = n / 2;
+    let mid: usize = loop_idx as usize;
     let mut count = 1;
-    let (mut i, mut j): (usize, usize) = (0, 0);
-    while loopIdx > 0 {
-        i = startX;
-        j = startY;
+    let (mut i, mut j): (usize, usize);
+    while loop_idx > 0 {
+        i = start_x;
+        j = start_y;
 
-        while j < (startY + (n as usize) - offset) {
+        while j < (start_y + (n as usize) - offset) {
             res[i][j] = count;
             count += 1;
             j += 1;
         }
 
-        while i < (startX + (n as usize) - offset) {
+        while i < (start_x + (n as usize) - offset) {
             res[i][j] = count;
             count += 1;
             i += 1;
         }
 
-        while j > startY {
+        while j > start_y {
             res[i][j] = count;
             count += 1;
             j -= 1;
         }
 
-        while i > startX {
+        while i > start_x {
             res[i][j] = count;
             count += 1;
             i -= 1;
         }
 
-        startX += 1;
-        startY += 1;
+        start_x += 1;
+        start_y += 1;
         offset += 2;
-        loopIdx -= 1;
+        loop_idx -= 1;
     }
 
     if n % 2 == 1 {
@@ -2062,18 +2058,18 @@ pub fn add_binary(a: String, b: String) -> String {
 
 ///p68
 pub fn full_justify(words: Vec<String>, max_width: i32) -> Vec<String> {
-    let L = words.len();
+    let l = words.len();
     let max_width = max_width as usize;
     let mut queue = Vec::new();
     let mut i = 0;
-    let mut count = 0;
-    let mut tmp = Vec::new();
+    let mut count;
+    let mut tmp;
 
-    while i < L {
+    while i < l {
         count = 0;
         tmp = Vec::new();
 
-        while i < L && count < max_width {
+        while i < l && count < max_width {
             // 按max_with将单词分组
             if count + words[i].len() > max_width {
                 break;
@@ -2084,7 +2080,7 @@ pub fn full_justify(words: Vec<String>, max_width: i32) -> Vec<String> {
             i += 1;
         }
 
-        if i == L {
+        if i == l {
             // 最后一行，在单词后增加空格
             let last_line = tmp[..].join(&" ");
             let len = last_line.len();
@@ -2096,10 +2092,10 @@ pub fn full_justify(words: Vec<String>, max_width: i32) -> Vec<String> {
             // 分组长度为1，在单词后增加空格
             queue.push(tmp[..].join(&"") + &" ".repeat(max_width - count + 1));
         } else {
-            let T = tmp.len() - 1;
-            let paddings = max_width - (count - T - 1);
-            let space = paddings / T; // 每个单词后应该增加的平均空格数
-            let mut extra = (paddings % T) as i32; // 如果每个单词后增加的空格数不能被平均，将额外空格分摊到前几个单词后面
+            let t = tmp.len() - 1;
+            let paddings = max_width - (count - t - 1);
+            let space = paddings / t; // 每个单词后应该增加的平均空格数
+            let mut extra = (paddings % t) as i32; // 如果每个单词后增加的空格数不能被平均，将额外空格分摊到前几个单词后面
             let res = tmp
                 .into_iter()
                 .enumerate()
@@ -2107,7 +2103,7 @@ pub fn full_justify(words: Vec<String>, max_width: i32) -> Vec<String> {
                     let times = space + if extra <= 0 { 0 } else { 1 };
                     extra -= 1;
 
-                    if i == T { x } else { x + &" ".repeat(times) }
+                    if i == t { x } else { x + &" ".repeat(times) }
                 })
                 .collect::<String>();
             queue.push(res);
@@ -2299,8 +2295,8 @@ pub fn sort_colors(nums: &mut Vec<i32>) {
 }
 
 ///p76
-pub fn min_window(S: String, t: String) -> String {
-    let s = S.as_bytes();
+pub fn min_window(s: String, t: String) -> String {
+    let s = s.as_bytes();
     let m = s.len();
     let mut ans_left = 0;
     let mut ans_right = m;
@@ -2369,7 +2365,7 @@ pub fn combine(n: i32, k: i32) -> Vec<Vec<i32>> {
 ///p78
 pub fn subsets(nums: Vec<i32>) -> Vec<Vec<i32>> {
     let mut result: Vec<Vec<i32>> = vec![];
-    let mut pointer: usize = 0;
+    let pointer: usize = 0;
     let length = nums.len();
     let mut current: Vec<i32> = vec![];
 
