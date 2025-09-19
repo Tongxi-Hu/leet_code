@@ -898,3 +898,112 @@ pub fn is_possible(nums: Vec<i32>) -> bool {
         }
     })
 }
+
+/// p661
+pub fn image_smoother(img: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+    let (r, c) = (img.len(), img[0].len());
+    let mut ans = vec![vec![0; c]; r];
+    for i in 0..r {
+        for j in 0..c {
+            let (mut cnt, mut sum) = (0, 0);
+            for (x, y) in [
+                (i - 1, j - 1),
+                (i - 1, j),
+                (i - 1, j + 1),
+                (i, j - 1),
+                (i, j),
+                (i, j + 1),
+                (i + 1, j - 1),
+                (i + 1, j),
+                (i + 1, j + 1),
+            ] {
+                if x < r && y < c {
+                    cnt += 1;
+                    sum += img[x][y];
+                }
+            }
+            ans[i][j] = sum / cnt;
+        }
+    }
+    ans
+}
+
+/// p662
+pub fn width_of_binary_tree(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    if let Some(node) = root {
+        let mut nodes = vec![node.clone()];
+        let mut positions = vec![1];
+        let mut width = 1;
+        fn bfs(
+            nodes: &mut Vec<Rc<RefCell<TreeNode>>>,
+            positions: &mut Vec<usize>,
+            width: &mut usize,
+        ) {
+            if positions.len() == 0 {
+                return;
+            }
+            if positions.len() >= 2 {
+                *width = (*width).max(positions.last().unwrap() - positions.first().unwrap() + 1);
+            }
+            for i in 0..nodes.len() {
+                let node = nodes.remove(0);
+                let position = positions.remove(0);
+                if let Some(left) = node.borrow().left.clone() {
+                    nodes.push(left);
+                    positions.push(position * 2 - 1);
+                }
+                if let Some(right) = node.borrow().right.clone() {
+                    nodes.push(right);
+                    positions.push(position * 2);
+                }
+            }
+            bfs(nodes, positions, width)
+        }
+        bfs(&mut nodes, &mut positions, &mut width);
+        width as i32
+    } else {
+        0
+    }
+}
+
+/// p664
+pub fn strange_printer(s: String) -> i32 {
+    let n = s.len();
+    let s = s.as_bytes();
+    let mut dp = vec![vec![0; n]; n];
+    for i in (0..n).rev() {
+        dp[i][i] = 1;
+        for j in i + 1..n {
+            dp[i][j] = if s[i] == s[j] {
+                dp[i][j - 1]
+            } else {
+                let mut min_count = i32::MAX;
+                for k in i..j {
+                    min_count = i32::min(min_count, dp[i][k] + dp[k + 1][j]);
+                }
+                min_count
+            };
+        }
+    }
+    dp[0][n - 1]
+}
+
+/// p665
+pub fn check_possibility(mut nums: Vec<i32>) -> bool {
+    let n = nums.len();
+    let mut flag = false;
+
+    for i in 0..n - 1 {
+        if nums[i] > nums[i + 1] {
+            if flag {
+                return false;
+            }
+            flag = true;
+            if i > 0 && nums[i - 1] > nums[i + 1] {
+                nums[i + 1] = nums[i];
+            }
+        }
+    }
+
+    true
+}
