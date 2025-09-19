@@ -2411,7 +2411,11 @@ pub fn exist(board: Vec<Vec<char>>, word: String) -> bool {
         let mut result = false;
         for dir in direction {
             let (new_i, new_j) = (i + dir.0 as usize, j + dir.1 as usize);
-            if new_i >= 0 && new_i < board.len() && new_j >= 0 && new_j < board[0].len() {
+            if new_i as i32 >= 0
+                && new_i < board.len()
+                && new_j as i32 >= 0
+                && new_j < board[0].len()
+            {
                 if visited[new_i][new_j] != true {
                     let next_result = check(new_i, new_j, board, visited, chars, k + 1);
                     if next_result == true {
