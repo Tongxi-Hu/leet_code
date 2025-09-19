@@ -363,7 +363,7 @@ pub fn shortest_palindrome(s: String) -> String {
     if palindrome_end <= 1 || is_palindrome(&chars) {
         return s;
     }
-    while palindrome_end >= 0 {
+    loop {
         if is_palindrome(&chars[0..palindrome_end]) {
             break;
         }
