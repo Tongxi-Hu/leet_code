@@ -1,7 +1,8 @@
 use core::f64;
 use std::{
     cell::RefCell,
-    collections::{BinaryHeap, HashMap, hash_map::Keys},
+    cmp::Reverse,
+    collections::{BinaryHeap, HashMap},
     rc::Rc,
 };
 
@@ -873,4 +874,27 @@ pub fn find_closest_elements(arr: Vec<i32>, k: i32, x: i32) -> Vec<i32> {
         }
     }
     ans
+}
+
+/// p659
+pub fn is_possible(nums: Vec<i32>) -> bool {
+    let mut map: HashMap<i32, BinaryHeap<Reverse<i32>>> = HashMap::new();
+    for &num in nums.iter() {
+        let cur_len = match map.get_mut(&(num - 1)) {
+            Some(min_heap) if !min_heap.is_empty() => {
+                let Reverse(prev_min_len) = min_heap.pop().unwrap();
+                prev_min_len + 1
+            }
+            _ => 1,
+        };
+        map.entry(num)
+            .or_insert(BinaryHeap::new())
+            .push(Reverse(cur_len));
+    }
+    map.values().all(|min_heap| -> bool {
+        match min_heap.peek() {
+            Some(&Reverse(len)) if len < 3 => false,
+            _ => true,
+        }
+    })
 }
