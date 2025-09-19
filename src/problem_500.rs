@@ -1576,7 +1576,7 @@ pub fn get_max_repetitions(s1: String, n1: i32, s2: String, n2: i32) -> i32 {
 
 /// p467
 pub fn find_substring_in_wrapround_string(p: String) -> i32 {
-    let (mut dp, p_arr, mut cnt, ret) = (vec![0; 32], p.as_bytes(), 0, 0);
+    let (mut dp, p_arr, mut cnt, _) = (vec![0; 32], p.as_bytes(), 0, 0);
     for i in 0..p.len() {
         if i > 0 && (p_arr[i] - p_arr[i - 1] == 1 || p_arr[i - 1] - p_arr[i] == 25) {
             cnt += 1;

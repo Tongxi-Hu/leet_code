@@ -1172,7 +1172,7 @@ pub fn h_index_2(citations: Vec<i32>) -> i32 {
     }
 }
 
-fn is_bad_version(n: i32) -> bool {
+fn is_bad_version(_: i32) -> bool {
     todo!()
 }
 
@@ -1258,7 +1258,7 @@ fn check(num: &str, target: i32) -> bool {
     let mut is_sign = false;
     let mut cur_val: i32 = 0;
 
-    for (i, b) in num.bytes().enumerate() {
+    for (_, b) in num.bytes().enumerate() {
         match b {
             b'+' | b'-' | b'*' => {
                 if let Some(prev_val) = prev_val {

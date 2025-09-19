@@ -215,9 +215,9 @@ pub fn add_one_row(
     }
     let mut queue = VecDeque::new();
     queue.push_back(root.clone());
-    for i in 0..depth - 2 {
+    for _ in 0..depth - 2 {
         let size = queue.len();
-        for j in 0..size {
+        for _ in 0..size {
             if let Some(node) = queue.pop_front() {
                 if node.as_ref().unwrap().borrow().left.is_some() {
                     queue.push_back(node.as_ref().unwrap().borrow().left.clone());
@@ -404,7 +404,7 @@ pub fn average_of_levels(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<f64> {
         loop {
             let length: usize = current_level.len();
             let mut current_sum: f64 = 0.0;
-            for i in 0..length {
+            for _ in 0..length {
                 let node = current_level.remove(0).clone();
                 current_sum = (node.borrow().val as f64) + current_sum;
                 if let Some(left) = node.borrow().left.as_ref() {
@@ -754,7 +754,7 @@ pub fn construct_maximum_binary_tree(nums: Vec<i32>) -> Option<Rc<RefCell<TreeNo
         let length = nums.len();
         if length == 0 {
             return None;
-        } else if let Some((i, max)) = nums.iter().enumerate().max_by_key(|(i, v)| *v) {
+        } else if let Some((i, max)) = nums.iter().enumerate().max_by_key(|(_, v)| *v) {
             let node = Rc::new(RefCell::new(TreeNode::new(*max)));
             if i > 0 {
                 node.borrow_mut().left = build_tree(&nums[0..i]);
@@ -945,7 +945,7 @@ pub fn width_of_binary_tree(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
             if positions.len() >= 2 {
                 *width = (*width).max(positions.last().unwrap() - positions.first().unwrap() + 1);
             }
-            for i in 0..nodes.len() {
+            for _ in 0..nodes.len() {
                 let node = nodes.remove(0);
                 let position = positions.remove(0);
                 if let Some(left) = node.borrow().left.clone() {

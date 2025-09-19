@@ -258,7 +258,7 @@ pub fn largest_values(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<i32> {
         let mut queue: Vec<Rc<RefCell<TreeNode>>> = vec![val.clone()];
         while queue.len() != 0 {
             let mut max = std::i32::MIN;
-            for i in 0..queue.len() {
+            for _ in 0..queue.len() {
                 let first = queue.remove(0);
                 max = max.max(first.borrow().val);
                 if let Some(left) = first.borrow().left.as_ref() {
@@ -890,7 +890,6 @@ pub fn subarray_sum(nums: Vec<i32>, k: i32) -> i32 {
 pub fn array_pair_sum(nums: Vec<i32>) -> i32 {
     let mut nums = nums;
     nums.sort();
-    let length = nums.len();
     nums.chunks(2).fold(0, |acc, cur| acc + cur[0])
 }
 

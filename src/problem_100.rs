@@ -2365,7 +2365,6 @@ pub fn combine(n: i32, k: i32) -> Vec<Vec<i32>> {
 ///p78
 pub fn subsets(nums: Vec<i32>) -> Vec<Vec<i32>> {
     let mut result: Vec<Vec<i32>> = vec![];
-    let pointer: usize = 0;
     let length = nums.len();
     let mut current: Vec<i32> = vec![];
 
@@ -2804,7 +2803,7 @@ pub fn reverse_between(
     }
     let mut curr = ptr.as_mut().unwrap().next.take();
     let mut next;
-    for i in left..right {
+    for _ in left..right {
         next = curr.as_mut().unwrap().next.take();
         curr.as_mut().unwrap().next = next.as_mut().unwrap().next.take();
         next.as_mut().unwrap().next = ptr.as_mut().unwrap().next.take();
