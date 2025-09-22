@@ -1012,7 +1012,7 @@ pub fn check_possibility(mut nums: Vec<i32>) -> bool {
 pub fn construct_array(n: i32, mut k: i32) -> Vec<i32> {
     let (mut l, mut r, mut ret) = (1, n, vec![0; n as usize]);
     for i in 0..n {
-        let mut offset = 0;
+        let offset;
         if k % 2 == 0 {
             offset = r;
             r -= 1;
