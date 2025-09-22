@@ -1007,3 +1007,94 @@ pub fn check_possibility(mut nums: Vec<i32>) -> bool {
 
     true
 }
+
+/// p667
+pub fn construct_array(n: i32, mut k: i32) -> Vec<i32> {
+    let (mut l, mut r, mut ret) = (1, n, vec![0; n as usize]);
+    for i in 0..n {
+        let mut offset = 0;
+        if k % 2 == 0 {
+            offset = r;
+            r -= 1;
+        } else {
+            offset = l;
+            l += 1;
+        };
+        ret[i as usize] = offset;
+        if k > 1 {
+            k -= 1;
+        }
+    }
+    ret
+}
+
+/// p668
+pub fn find_kth_number(m: i32, n: i32, k: i32) -> i32 {
+    let (mut l, mut r) = (1, m * n + 1);
+    while l < r {
+        let (mid, mut cnt) = (l + ((r - l) >> 1), 0);
+        for i in 1..=m {
+            cnt += n.min(mid / i);
+        }
+        if cnt >= k {
+            r = mid;
+        } else {
+            l = mid + 1;
+        }
+    }
+    r
+}
+
+/// p669
+pub fn trim_bst(
+    root: Option<Rc<RefCell<TreeNode>>>,
+    low: i32,
+    high: i32,
+) -> Option<Rc<RefCell<TreeNode>>> {
+    fn dfs(
+        root: &Option<Rc<RefCell<TreeNode>>>,
+        low: i32,
+        high: i32,
+    ) -> Option<Rc<RefCell<TreeNode>>> {
+        if let Some(node) = root.as_ref() {
+            let v = node.borrow().val;
+            let right_node = dfs(&node.borrow().right, low, high);
+            let left_node = dfs(&node.borrow().left, low, high);
+            if v < low {
+                return right_node;
+            } else if v > high {
+                return left_node;
+            } else {
+                let new_node = Rc::new(RefCell::new(TreeNode::new(v)));
+                new_node.borrow_mut().left = left_node;
+                new_node.borrow_mut().right = right_node;
+                Some(new_node)
+            }
+        } else {
+            None
+        }
+    }
+    dfs(&root, low, high)
+}
+
+/// p670
+pub fn maximum_swap(num: i32) -> i32 {
+    let mut s = num.to_string().into_bytes();
+    let n = s.len();
+    let mut max_idx = n - 1;
+    let mut p = n;
+    let mut q = 0;
+    for i in (0..n - 1).rev() {
+        if s[i] > s[max_idx] {
+            max_idx = i;
+        } else if s[i] < s[max_idx] {
+            p = i;
+            q = max_idx;
+        }
+    }
+    if p == n {
+        return num;
+    }
+    s.swap(p, q);
+    unsafe { String::from_utf8_unchecked(s).parse().unwrap() }
+}
