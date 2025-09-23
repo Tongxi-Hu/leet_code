@@ -1098,3 +1098,154 @@ pub fn maximum_swap(num: i32) -> i32 {
     s.swap(p, q);
     unsafe { String::from_utf8_unchecked(s).parse().unwrap() }
 }
+
+/// p671
+pub fn find_second_minimum_value(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    let mut first = -1;
+    let mut second = -1;
+    fn dfs(root: Rc<RefCell<TreeNode>>, first: &mut i32, second: &mut i32) {
+        let val = root.borrow().val;
+        if *first == -1 || *first == val {
+            *first = val;
+            if let Some(left) = root.borrow_mut().left.take() {
+                dfs(left, first, second);
+            }
+            if let Some(right) = root.borrow_mut().right.take() {
+                dfs(right, first, second);
+            }
+        } else if *second == -1 || *second > val {
+            *second = val;
+        }
+    }
+
+    dfs(root.unwrap(), &mut first, &mut second);
+
+    second
+}
+
+/// p672
+pub fn flip_lights(n: i32, presses: i32) -> i32 {
+    match presses {
+        0 => 1,
+        1 => {
+            if n == 2 {
+                3
+            } else {
+                (1 << n.min(4)).min(4)
+            }
+        }
+        2 => (1 << n.min(4)).min(7),
+        _ => (1 << n.min(4)).min(8),
+    }
+}
+
+/// p673
+pub fn find_number_of_lis(nums: Vec<i32>) -> i32 {
+    let n = nums.len();
+    let mut max = -1;
+    let mut dp = vec![1; n];
+    let mut count = vec![1; n];
+    for i in 0..n {
+        for j in 0..i {
+            if nums[i] > nums[j] {
+                if dp[i] < dp[j] + 1 {
+                    dp[i] = dp[j] + 1;
+                    count[i] = count[j];
+                } else if dp[i] == dp[j] + 1 {
+                    count[i] += count[j];
+                }
+            }
+        }
+        if max < dp[i] {
+            max = dp[i];
+        }
+    }
+    let mut ret = 0;
+    for i in 0..n {
+        if dp[i] == max {
+            ret += count[i];
+        }
+    }
+    ret
+}
+
+/// p674
+pub fn find_length_of_lcis(nums: Vec<i32>) -> i32 {
+    let mut ans = 1;
+    let mut len = 1;
+    nums.windows(2).for_each(|x| {
+        if x[1] > x[0] {
+            len += 1;
+        } else {
+            ans = ans.max(len);
+            len = 1;
+        }
+    });
+    ans.max(len)
+}
+
+/// p675
+pub fn cut_off_tree(forest: Vec<Vec<i32>>) -> i32 {
+    let (m, n, mut ret) = (forest.len(), forest[0].len(), 0);
+    let mut cache = Vec::new();
+    for i in 0..m {
+        for j in 0..n {
+            if forest[i][j] > 1 {
+                cache.push(vec![forest[i][j], i as i32, j as i32]);
+            }
+        }
+    }
+    let bfs = |i1: i32, j1: i32, i2: i32, j2: i32| -> i32 {
+        use ::std::collections::VecDeque;
+        if i1 == i2 && j1 == j2 {
+            return 0;
+        }
+        let mut step = 0;
+        let (mut queue, mut visited) = (VecDeque::new(), vec![vec![false; n]; m]);
+        queue.push_back(vec![i1, j1]);
+        visited[i1 as usize][j1 as usize] = true;
+        while !queue.is_empty() {
+            step += 1;
+            let mut size = queue.len();
+            while size > 0 {
+                size -= 1;
+                let curr = queue.pop_front().unwrap_or(Vec::new());
+                let (curr_i, curr_j) = (curr[0], curr[1]);
+                if curr_i == i2 && curr_j == j2 {
+                    return step;
+                }
+                for dir in [[0, 1], [0, -1], [1, 0], [-1, 0]] {
+                    let (x, y) = (curr_i + dir[0], curr_j + dir[1]);
+                    if x < 0
+                        || y < 0
+                        || x >= m as i32
+                        || y >= n as i32
+                        || forest[x as usize][y as usize] == 0
+                        || visited[x as usize][y as usize]
+                    {
+                        continue;
+                    }
+                    if x == i2 && y == j2 {
+                        return step;
+                    }
+                    visited[x as usize][y as usize] = true;
+                    queue.push_back(vec![x, y]);
+                }
+            }
+        }
+        -1
+    };
+
+    cache.sort_by(|a, b| a[0].cmp(&b[0]));
+    let (mut i, mut j) = (0, 0);
+    for c in cache {
+        let step = bfs(i, j, c[1], c[2]);
+        if step == -1 {
+            return -1;
+        }
+        ret += step;
+        i = c[1];
+        j = c[2];
+    }
+    ret
+}
