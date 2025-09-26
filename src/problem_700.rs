@@ -2,7 +2,7 @@ use core::f64;
 use std::{
     cell::RefCell,
     cmp::Reverse,
-    collections::{BinaryHeap, HashMap},
+    collections::{BinaryHeap, HashMap, HashSet},
     rc::Rc,
 };
 
@@ -1248,4 +1248,185 @@ pub fn cut_off_tree(forest: Vec<Vec<i32>>) -> i32 {
         j = c[2];
     }
     ret
+}
+
+/// p676
+struct MagicDictionary {
+    contents: RefCell<HashMap<usize, HashSet<String>>>,
+}
+
+impl MagicDictionary {
+    fn new() -> Self {
+        MagicDictionary {
+            contents: RefCell::new(HashMap::new()),
+        }
+    }
+
+    fn build_dict(&self, dictionary: Vec<String>) {
+        let mut contents = self.contents.borrow_mut();
+        for word in dictionary {
+            let length = word.len();
+            if let Some(words) = contents.get_mut(&length) {
+                words.insert(word.clone());
+            } else {
+                let mut words = HashSet::new();
+                words.insert(word.clone());
+                contents.insert(length, words);
+            }
+        }
+    }
+
+    fn search(&self, search_word: String) -> bool {
+        let length = search_word.len();
+        let search_chars = search_word.chars().collect::<Vec<char>>();
+        if let Some(words) = self.contents.borrow().get(&length) {
+            let mut has_target = false;
+            words.iter().for_each(|word| {
+                let chars = word.chars().collect::<Vec<char>>();
+                let mut differ_count = 0;
+                for i in 0..length {
+                    if chars[i] != search_chars[i] {
+                        differ_count = differ_count + 1;
+                    }
+                }
+                if differ_count == 1 {
+                    has_target = true;
+                }
+            });
+            return has_target;
+        } else {
+            return false;
+        }
+    }
+}
+
+/// p677
+struct MapSum {
+    contents: RefCell<HashMap<String, i32>>,
+}
+
+impl MapSum {
+    fn new() -> Self {
+        MapSum {
+            contents: RefCell::new(HashMap::new()),
+        }
+    }
+
+    fn insert(&self, key: String, val: i32) {
+        self.contents.borrow_mut().insert(key, val);
+    }
+
+    fn sum(&self, prefix: String) -> i32 {
+        self.contents.borrow().iter().fold(0, |acc, (word, val)| {
+            if word.starts_with(&prefix) {
+                return acc + val;
+            } else {
+                acc
+            }
+        })
+    }
+}
+
+/// p678
+pub fn check_valid_string(s: String) -> bool {
+    let mut left_stack: Vec<usize> = Vec::new();
+    let mut asterisk_stack: Vec<usize> = Vec::new();
+
+    for (i, b) in s.bytes().enumerate() {
+        match b {
+            b'(' => {
+                left_stack.push(i);
+            }
+            b')' => {
+                if !left_stack.is_empty() {
+                    left_stack.pop();
+                } else if !asterisk_stack.is_empty() {
+                    asterisk_stack.pop();
+                } else {
+                    return false;
+                }
+            }
+            b'*' => {
+                asterisk_stack.push(i);
+            }
+            _ => panic!("input error"),
+        }
+    }
+
+    while !left_stack.is_empty() && !asterisk_stack.is_empty() {
+        let left_idx = left_stack.pop().unwrap();
+        let asterisk_idx = asterisk_stack.pop().unwrap();
+        if left_idx >= asterisk_idx {
+            return false;
+        }
+    }
+
+    left_stack.is_empty()
+}
+
+/// p679
+pub fn judge_point24(cards: Vec<i32>) -> bool {
+    const EPS: f64 = 1e-9;
+
+    fn dfs(cards: Vec<f64>) -> bool {
+        let n = cards.len();
+        if n == 1 {
+            return (cards[0] - 24.0).abs() < EPS;
+        }
+
+        for (i, x) in cards.iter().enumerate() {
+            for j in i + 1..n {
+                let y = cards[j];
+
+                let mut candidates = vec![x + y, x - y, y - x, x * y];
+                if y.abs() > EPS {
+                    candidates.push(x / y);
+                }
+                if x.abs() > EPS {
+                    candidates.push(y / x);
+                }
+
+                for res in candidates {
+                    let mut new_cards = cards.clone();
+                    new_cards.remove(j);
+                    new_cards[i] = res;
+                    if dfs(new_cards) {
+                        return true;
+                    }
+                }
+            }
+        }
+        false
+    }
+
+    let a = cards.into_iter().map(|x| x as f64).collect::<Vec<_>>();
+    dfs(a)
+}
+
+/// p680
+pub fn valid_palindrome(s: String) -> bool {
+    fn is_palindrome(s: &str, low: usize, high: usize) -> bool {
+        let (mut low, mut high) = (low, high);
+        let chars = s.chars().collect::<Vec<char>>();
+        while low < high {
+            if chars[low] != chars[high] {
+                return false;
+            } else {
+                low = low + 1;
+                high = high - 1;
+            }
+        }
+        true
+    }
+    let chars = s.chars().collect::<Vec<char>>();
+    let (mut low, mut high) = (0, chars.len() - 1);
+    while low < high {
+        if chars[low] == chars[high] {
+            low = low + 1;
+            high = high - 1;
+        } else {
+            return is_palindrome(&s, low, high - 1) || is_palindrome(&s, low + 1, high);
+        }
+    }
+    true
 }
