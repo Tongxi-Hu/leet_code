@@ -1430,3 +1430,111 @@ pub fn valid_palindrome(s: String) -> bool {
     }
     true
 }
+
+/// p682
+pub fn cal_points(operations: Vec<String>) -> i32 {
+    let mut points = Vec::new();
+    operations.iter().for_each(|op| match op {
+        d if d == &"D".to_string() => {
+            if let Some(v) = points.last() {
+                points.push(v * 2);
+            }
+        }
+        c if c == &"C".to_string() => {
+            points.pop();
+        }
+        add if add == &"+".to_string() => {
+            let length = points.len();
+            points.push(points[length - 1] + points[length - 2]);
+        }
+        num => {
+            if let Ok(v) = num.parse::<i32>() {
+                points.push(v)
+            }
+        }
+    });
+    points.iter().fold(0, |acc, cur| acc + cur)
+}
+
+/// p684
+pub fn find_redundant_connection(edges: Vec<Vec<i32>>) -> Vec<i32> {
+    let mut parent: Vec<_> = (0..=1000).collect();
+    let mut ans = vec![];
+
+    fn union(parent: &mut Vec<usize>, idx1: usize, idx2: usize) {
+        let idx1 = find(parent, idx1);
+        let idx2 = find(parent, idx2);
+        parent[idx1] = idx2;
+    }
+    fn find(parent: &mut Vec<usize>, mut idx: usize) -> usize {
+        while parent[idx] != idx {
+            parent[idx] = parent[parent[idx]];
+            idx = parent[idx];
+        }
+        idx
+    }
+    for edge in edges.iter() {
+        if find(&mut parent, edge[0] as usize) == find(&mut parent, edge[1] as usize) {
+            ans = edge.clone();
+            break;
+        } else {
+            union(&mut parent, edge[0] as usize, edge[1] as usize);
+        }
+    }
+    ans
+}
+
+/// p685
+pub fn find_redundant_directed_connection(edges: Vec<Vec<i32>>) -> Vec<i32> {
+    let n = edges.len();
+    let mut father: Vec<i32> = Vec::with_capacity(n + 1);
+    let mut union_set: Vec<usize> = Vec::with_capacity(n + 1);
+
+    let mut triangle: Option<(i32, i32, i32)> = None;
+    let mut cycle: Option<(i32, i32)> = None;
+
+    for i in 0..=n {
+        father.push(i as i32);
+        union_set.push(i);
+    }
+    for e in edges.iter() {
+        let r = e[0];
+        let t = e[1];
+        let ru = r as usize;
+        let tu = t as usize;
+
+        if father[tu] != t {
+            triangle = Some((father[tu], r, t));
+        } else {
+            father[tu] = r;
+
+            let mut rx = ru;
+            let mut tx = tu;
+            while union_set[rx] != rx {
+                rx = union_set[rx];
+            }
+            while union_set[tx] != tx {
+                tx = union_set[tx];
+            }
+
+            if rx == tx {
+                cycle = Some((r, t));
+            } else {
+                union_set[tx] = rx;
+            }
+        }
+    }
+    return if let Some((a, b, c)) = triangle {
+        if let Some(_) = cycle {
+            vec![a, c]
+        } else {
+            vec![b, c]
+        }
+    } else {
+        if let Some((r, t)) = cycle {
+            vec![r, t]
+        } else {
+            panic!()
+        }
+    };
+}
