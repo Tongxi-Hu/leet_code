@@ -2,7 +2,7 @@ use core::f64;
 use std::{
     cell::RefCell,
     cmp::Reverse,
-    collections::{BinaryHeap, HashMap, HashSet},
+    collections::{BinaryHeap, HashMap, HashSet, VecDeque},
     rc::Rc,
 };
 
@@ -1562,4 +1562,242 @@ pub fn repeated_string_match(a: String, b: String) -> i32 {
         s += &a;
     }
     -1
+}
+
+/// p687
+pub fn longest_univalue_path(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    if root.is_none() {
+        return 0;
+    }
+    let mut maximum = 0;
+    fn recursive(node: &Option<Rc<RefCell<TreeNode>>>, val: i32, maximum: &mut i32) -> i32 {
+        if node.is_none() {
+            return 0;
+        }
+        let (l, r) = (
+            recursive(
+                &node.as_ref().unwrap().borrow().left,
+                node.as_ref().unwrap().borrow().val,
+                maximum,
+            ),
+            recursive(
+                &node.as_ref().unwrap().borrow().right,
+                node.as_ref().unwrap().borrow().val,
+                maximum,
+            ),
+        );
+        *maximum = *maximum.max(&mut (l + r));
+        if node.as_ref().unwrap().borrow().val == val {
+            l.max(r) + 1
+        } else {
+            0
+        }
+    }
+    recursive(&root, root.as_ref().unwrap().borrow().val, &mut maximum);
+    maximum
+}
+
+/// p688
+pub fn knight_probability(n: i32, k: i32, row: i32, column: i32) -> f64 {
+    const DIRS: [[i32; 2]; 8] = [
+        [-2, -1],
+        [-2, 1],
+        [2, -1],
+        [2, 1],
+        [-1, -2],
+        [-1, 2],
+        [1, -2],
+        [1, 2],
+    ];
+    let n = n as usize;
+    let k = k as usize;
+    let mut dp = vec![vec![vec![0.0; n]; n]; k + 1];
+
+    for step in 0..=k {
+        for i in 0..n {
+            for j in 0..n {
+                if step == 0 {
+                    dp[step][i][j] = 1.0;
+                } else {
+                    for dir in &DIRS {
+                        let ni = i as i32 + dir[0];
+                        let nj = j as i32 + dir[1];
+                        if ni >= 0 && ni < n as i32 && nj >= 0 && nj < n as i32 {
+                            dp[step][i][j] += dp[step - 1][ni as usize][nj as usize] / 8.0;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    dp[k][row as usize][column as usize]
+}
+
+/// p689
+pub fn max_sum_of_three_subarrays(nums: Vec<i32>, k: i32) -> Vec<i32> {
+    let (n, k) = (nums.len(), k as usize);
+    let (mut sum1, mut sum2, mut sum3) = (0, 0, 0);
+    let (mut max_sum1, mut max_sum12, mut max_sum123) = (0, 0, 0);
+    let (mut idx1, mut idx2, mut idx3) = (-1, -1, -1);
+    let mut max_idx1 = -1;
+    let mut res = Vec::new();
+
+    for i in 2 * k..n {
+        sum1 += nums[i - 2 * k];
+        sum2 += nums[i - k];
+        sum3 += nums[i];
+
+        if i + 1 >= 3 * k {
+            if sum1 > max_sum1 {
+                max_sum1 = sum1;
+                idx1 = (i - 3 * k + 1) as i32;
+            }
+            if max_sum1 + sum2 > max_sum12 {
+                max_sum12 = max_sum1 + sum2;
+                max_idx1 = idx1;
+                idx2 = (i - 2 * k + 1) as i32;
+            }
+            if max_sum12 + sum3 > max_sum123 {
+                max_sum123 = max_sum12 + sum3;
+                idx3 = (i - k + 1) as i32;
+                res = vec![max_idx1, idx2, idx3];
+            }
+            sum1 -= nums[i - 3 * k + 1];
+            sum2 -= nums[i - 2 * k + 1];
+            sum3 -= nums[i - k + 1];
+        }
+    }
+
+    res
+}
+
+/// p691
+pub fn min_stickers(stickers: Vec<String>, target: String) -> i32 {
+    fn remove_dominated_stickers(stickers_cnt: &mut Vec<Vec<i32>>) -> i32 {
+        let (mut start, m, n) = (0, stickers_cnt.len(), stickers_cnt[0].len());
+        for i in 0..m {
+            for j in start..m {
+                if j != i {
+                    let mut k = 0;
+                    while k < n && stickers_cnt[i][k] <= stickers_cnt[j][k] {
+                        k += 1;
+                    }
+                    if k == n {
+                        stickers_cnt.swap(i, start);
+                        start += 1;
+                        break;
+                    }
+                }
+            }
+        }
+        start as i32
+    }
+
+    fn to_string(freq: &Vec<i32>) -> String {
+        let (mut s, mut ch) = (String::new(), 'a');
+        for f in freq {
+            let mut k = *f;
+            while k > 0 {
+                k -= 1;
+                s.push(ch)
+            }
+            ch = (ch as u8 + 1) as char
+        }
+        s
+    }
+
+    let mut target_native_cnt = vec![0; 26];
+    target
+        .chars()
+        .for_each(|ch| target_native_cnt[(ch as u8 - 'a' as u8) as usize] += 1);
+    let (mut index, mut n): (Vec<i32>, _) = (vec![0; 26], 0);
+    for i in 0..26 {
+        if target_native_cnt[i as usize] > 0 {
+            index[i as usize] = n;
+            n += 1
+        } else {
+            index[i as usize] = -1;
+        }
+    }
+    let (mut target_cnt, mut t) = (vec![0; n as usize], 0);
+    target_native_cnt.iter().for_each(|c| {
+        if *c > 0 {
+            target_cnt[t] = *c;
+            t += 1;
+        }
+    });
+    let m = stickers.len();
+    let mut stickers_cnt = vec![vec![0; n as usize]; m];
+    for i in 0..m {
+        for ch in stickers[i].chars() {
+            let j = index[(ch as u8 - 'a' as u8) as usize];
+            if j >= 0 {
+                stickers_cnt[i][j as usize] += 1;
+            }
+        }
+    }
+    let start = remove_dominated_stickers(&mut stickers_cnt);
+    let (mut queue, mut visited, mut step) = (VecDeque::new(), HashSet::new(), 0);
+    queue.push_back(target_cnt);
+    while !queue.is_empty() {
+        step += 1;
+        let mut size = queue.len();
+        while size > 0 {
+            size -= 1;
+            let freq = queue.pop_front().unwrap_or(vec![]);
+            let curr = to_string(&freq);
+            if visited.contains(&curr) {
+                continue;
+            }
+            let first = (curr.chars().collect::<Vec<_>>()[0] as u8 - 'a' as u8) as usize;
+            visited.insert(curr);
+            for i in start as usize..stickers.len() {
+                if stickers_cnt[i][first] > 0 {
+                    let (mut next, mut k) = (freq.clone(), 0);
+                    for j in 0..n {
+                        next[j as usize] = (next[j as usize] - stickers_cnt[i][j as usize]).max(0);
+                        if next[j as usize] == 0 {
+                            k += 1;
+                            if k == n {
+                                return step;
+                            }
+                        }
+                    }
+                    queue.push_back(next);
+                }
+            }
+        }
+    }
+    -1
+}
+
+/// p692
+pub fn top_k_frequent(words: Vec<String>, k: i32) -> Vec<String> {
+    let mut map = HashMap::<String, usize>::new();
+    words
+        .into_iter()
+        .for_each(|word| *map.entry(word).or_default() += 1);
+    map.into_iter()
+        .map(|(w, n)| (Reverse(n), w))
+        .collect::<BinaryHeap<_>>()
+        .into_sorted_vec()
+        .into_iter()
+        .map(|(_, w)| w)
+        .take(k as usize)
+        .collect()
+}
+
+///p693
+pub fn has_alternating_bits(n: i32) -> bool {
+    let mut n = n;
+    let mut prv = 1 - n % 2;
+    while n > 0 {
+        if prv == n % 2 {
+            return false;
+        }
+        prv = n % 2;
+        n /= 2;
+    }
+    true
 }
