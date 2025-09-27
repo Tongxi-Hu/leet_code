@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-
+#![allow(unused_assignments)]
 mod common;
 mod problem_100;
 mod problem_200;
