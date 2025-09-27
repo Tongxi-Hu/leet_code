@@ -1538,3 +1538,28 @@ pub fn find_redundant_directed_connection(edges: Vec<Vec<i32>>) -> Vec<i32> {
         }
     };
 }
+
+/// p686
+pub fn repeated_string_match(a: String, b: String) -> i32 {
+    let m = a.len();
+    let n = b.len();
+    let ret = n / m;
+    let mut exist = vec![false; 26];
+
+    a.chars()
+        .for_each(|ch| exist[(ch as i32 - 'a' as i32) as usize] = true);
+    for ch in b.chars() {
+        if !exist[(ch as i32 - 'a' as i32) as usize] {
+            return -1;
+        }
+    }
+
+    let mut s = a.repeat(ret);
+    for i in 0..3 {
+        if s.contains(&b) {
+            return ret as i32 + i;
+        }
+        s += &a;
+    }
+    -1
+}
