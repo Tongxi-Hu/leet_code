@@ -2,6 +2,7 @@ use core::f64;
 use std::{
     cell::RefCell,
     cmp::Reverse,
+    cmp::max,
     collections::{BinaryHeap, HashMap, HashSet, VecDeque},
     rc::Rc,
 };
@@ -1832,4 +1833,225 @@ pub fn max_area_of_island(grid: Vec<Vec<i32>>) -> i32 {
         }
     }
     max
+}
+
+/// p696
+pub fn count_binary_substrings(s: String) -> i32 {
+    let s = s.as_bytes();
+    let n = s.len();
+
+    let mut dp = vec![0_usize; n];
+
+    for (i, &b) in s.iter().enumerate().rev() {
+        dp[i] = if i + 1 >= n || s[i + 1] != b {
+            1
+        } else {
+            1 + dp[i + 1]
+        };
+    }
+
+    let mut count = 0;
+    for i in 0..n {
+        if i + dp[i] >= n {
+            break;
+        }
+        if dp[i + dp[i]] >= dp[i] {
+            count += 1;
+        }
+    }
+
+    count
+}
+
+/// p697
+pub fn find_shortest_sub_array(nums: Vec<i32>) -> i32 {
+    let mut count: HashMap<i32, Vec<usize>> = HashMap::new();
+    nums.iter().enumerate().for_each(|(i, &num)| {
+        let positions = count.entry(num).or_insert(vec![]);
+        positions.push(i)
+    });
+    let (mut max_frequency, mut min_size) = (0, usize::MAX);
+    count.values().for_each(|positions| {
+        let frequency = positions.len();
+        if frequency > max_frequency {
+            max_frequency = frequency;
+            min_size = positions.last().unwrap() - positions[0] + 1;
+        } else if frequency == max_frequency {
+            min_size = min_size.min(positions.last().unwrap() - positions[0] + 1);
+        }
+    });
+    min_size as i32
+}
+
+/// p698
+pub fn can_partition_k_subsets(mut nums: Vec<i32>, k: i32) -> bool {
+    fn back_trace(
+        nums: &Vec<i32>,
+        visited: &mut Vec<bool>,
+        i: usize,
+        s: i32,
+        k: i32,
+        t: i32,
+    ) -> bool {
+        if s > t {
+            return false;
+        }
+        if k == 0 {
+            return true;
+        }
+        if s == t {
+            return back_trace(nums, visited, nums.len() - 1, 0, k - 1, t);
+        }
+        for j in (0..=i).rev() {
+            if j >= nums.len() {
+                break;
+            }
+            if visited[j]
+                || (j + 1 < nums.len() && nums[j] == nums[j + 1] && !visited[j + 1])
+                || nums[j] > t
+                || s + nums[j] > t
+            {
+                continue;
+            }
+            visited[j] = true;
+            if back_trace(nums, visited, j - 1, s + nums[j], k, t) {
+                return true;
+            }
+            visited[j] = false;
+        }
+        false
+    }
+    let sum = nums.iter().sum::<i32>();
+    if sum % k != 0 {
+        return false;
+    }
+    nums.sort_unstable();
+    if nums[nums.len() - 1] > sum / k {
+        return false;
+    }
+    back_trace(
+        &nums,
+        &mut vec![false; nums.len()],
+        nums.len() - 1,
+        0,
+        k,
+        sum / k,
+    )
+}
+
+/// p699
+#[derive(Clone)]
+struct Node {
+    low: i32,
+    high: i32,
+    val: i32,
+    left: Option<Box<Node>>,
+    right: Option<Box<Node>>,
+}
+
+impl Node {
+    fn new(low: i32, high: i32, val: i32) -> Self {
+        Node {
+            low,
+            high,
+            val,
+            left: None,
+            right: None,
+        }
+    }
+}
+
+pub fn falling_squares(positions: Vec<Vec<i32>>) -> Vec<i32> {
+    fn query(node: &Node, l: i32, r: i32) -> i32 {
+        if l <= node.low && node.high <= r {
+            return node.val;
+        }
+
+        let mid = (node.low + node.high) / 2;
+        let mut res = 0;
+
+        if let Some(ref left) = node.left {
+            if l <= mid {
+                res = max(res, query(left, l, r));
+            }
+        } else if l <= mid {
+            let new_left = Node::new(node.low, mid, node.val);
+            res = max(res, query(&new_left, l, r));
+        }
+
+        if let Some(ref right) = node.right {
+            if r > mid {
+                res = max(res, query(right, l, r));
+            }
+        } else if r > mid {
+            let new_right = Node::new(mid + 1, node.high, node.val);
+            res = max(res, query(&new_right, l, r));
+        }
+        res
+    }
+
+    fn update(node: &mut Node, l: i32, r: i32, val: i32) {
+        if l <= node.low && node.high <= r {
+            node.val = val;
+            node.left = None;
+            node.right = None;
+            return;
+        }
+
+        let mid = (node.low + node.high) / 2;
+        if node.left.is_none() {
+            node.left = Some(Box::new(Node::new(node.low, mid, node.val)));
+        }
+        if node.right.is_none() {
+            node.right = Some(Box::new(Node::new(mid + 1, node.high, node.val)));
+        }
+
+        if l <= mid {
+            if let Some(ref mut left) = node.left {
+                update(left, l, r, val);
+            }
+        }
+        if r > mid {
+            if let Some(ref mut right) = node.right {
+                update(right, l, r, val);
+            }
+        }
+
+        node.val = max(
+            node.left.as_ref().map_or(0, |left| left.val),
+            node.right.as_ref().map_or(0, |right| right.val),
+        );
+    }
+    let mut res = vec![];
+    let mut root = Node::new(0, 1000_000_10, 0);
+    let mut max_height = 0;
+
+    for pos in positions {
+        let left = pos[0];
+        let size = pos[1];
+        let right = left + size - 1;
+
+        let val = query(&root, left, right);
+        update(&mut root, left, right, val + size);
+
+        max_height = max(max_height, root.val);
+        res.push(max_height);
+    }
+    res
+}
+
+/// p700
+pub fn search_bst(root: Option<Rc<RefCell<TreeNode>>>, val: i32) -> Option<Rc<RefCell<TreeNode>>> {
+    if let Some(node) = root.as_ref().clone() {
+        let v = node.borrow().val;
+        if v == val {
+            return Some(node.clone());
+        } else if v < val {
+            return search_bst(node.borrow().right.clone(), val);
+        } else {
+            return search_bst(node.borrow().left.clone(), val);
+        }
+    } else {
+        None
+    }
 }
