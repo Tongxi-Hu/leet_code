@@ -1801,3 +1801,35 @@ pub fn has_alternating_bits(n: i32) -> bool {
     }
     true
 }
+
+/// p695
+pub fn max_area_of_island(grid: Vec<Vec<i32>>) -> i32 {
+    const DIRECTIONS: [[i32; 2]; 4] = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+    let mut grid = grid;
+    let mut max = 0;
+    let width = grid.len();
+    let length = grid[0].len();
+    fn dfs(grid: &mut Vec<Vec<i32>>, width: usize, length: usize, i: i32, j: i32) -> i32 {
+        if i < 0
+            || j < 0
+            || i as usize == width
+            || j as usize == length
+            || grid[i as usize][j as usize] == 0
+        {
+            return 0;
+        } else {
+            grid[i as usize][j as usize] = 0;
+            let mut acc = 1;
+            for direction in DIRECTIONS {
+                acc = acc + dfs(grid, width, length, i + direction[0], j + direction[1])
+            }
+            acc
+        }
+    }
+    for i in 0..width {
+        for j in 0..length {
+            max = max.max(dfs(&mut grid, width, length, i as i32, j as i32));
+        }
+    }
+    max
+}
