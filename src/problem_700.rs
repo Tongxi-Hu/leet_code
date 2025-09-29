@@ -1197,7 +1197,6 @@ pub fn cut_off_tree(forest: Vec<Vec<i32>>) -> i32 {
         }
     }
     let bfs = |i1: i32, j1: i32, i2: i32, j2: i32| -> i32 {
-        use ::std::collections::VecDeque;
         if i1 == i2 && j1 == j2 {
             return 0;
         }
