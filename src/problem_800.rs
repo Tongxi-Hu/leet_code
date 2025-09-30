@@ -259,3 +259,25 @@ impl MyLinkedList {
 pub fn to_lower_case(s: String) -> String {
     s.to_lowercase()
 }
+
+/// p712
+pub fn minimum_delete_sum(s1: String, s2: String) -> i32 {
+    let s1 = s1.bytes().collect::<Vec<_>>();
+    let s2 = s2.bytes().collect::<Vec<_>>();
+    let mut dp = vec![0; s2.len() + 1];
+    s1.iter().for_each(|&c| {
+        let mut pre = 0;
+        for j in 1..=s2.len() {
+            let tmp = dp[j];
+            if c == s2[j - 1] {
+                dp[j] = pre + c as i32;
+            } else {
+                dp[j] = dp[j].max(dp[j - 1]);
+            }
+            pre = tmp;
+        }
+    });
+    let sum1: i32 = s1.iter().map(|&x| x as i32).sum();
+    let sum2: i32 = s2.iter().map(|&x| x as i32).sum();
+    sum1 + sum2 - 2 * dp[s2.len()]
+}
