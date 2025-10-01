@@ -281,3 +281,123 @@ pub fn minimum_delete_sum(s1: String, s2: String) -> i32 {
     let sum2: i32 = s2.iter().map(|&x| x as i32).sum();
     sum1 + sum2 - 2 * dp[s2.len()]
 }
+
+/// p713
+pub fn num_subarray_product_less_than_k(nums: Vec<i32>, k: i32) -> i32 {
+    let mut count = 0;
+    let mut product = 1;
+    let mut l = 0;
+
+    for r in 0..nums.len() {
+        product = product * nums[r];
+        while l <= r && product >= k {
+            product = product / nums[l];
+            l = l + 1;
+        }
+        count = count + r - l + 1;
+    }
+
+    count as i32
+}
+
+/// p714
+pub fn max_profit(prices: Vec<i32>, fee: i32) -> i32 {
+    let (mut sell, mut buy) = (0, -prices[0]);
+    prices.iter().skip(1).for_each(|x| {
+        sell = sell.max(buy + x - fee);
+        buy = buy.max(sell - x);
+    });
+    sell
+}
+
+/// p715
+struct RangeModule {
+    range_tab: Vec<Range>,
+}
+
+#[derive(PartialEq, Eq, PartialOrd, Ord)]
+struct Range(i32, i32);
+
+impl RangeModule {
+    fn new() -> Self {
+        Self { range_tab: vec![] }
+    }
+
+    fn add_range(&mut self, left: i32, right: i32) {
+        if self.range_tab.is_empty() {
+            self.range_tab.push(Range(left, right));
+        } else {
+            let idx_start = self.range_tab.partition_point(|Range(_, r)| *r < left);
+            let i = idx_start;
+
+            let mut new_left = left;
+            let mut new_right = right;
+            while i < self.range_tab.len() && right >= self.range_tab[i].0 {
+                let l = self.range_tab[i].0;
+                let r = self.range_tab[i].1;
+                if l < new_left {
+                    new_left = l;
+                }
+                if r > new_right {
+                    new_right = r;
+                }
+                self.range_tab.remove(i);
+            }
+
+            self.range_tab.insert(i, Range(new_left, new_right));
+        }
+    }
+
+    fn query_range(&self, left: i32, right: i32) -> bool {
+        if self.range_tab.is_empty() {
+            return false;
+        }
+
+        let idx_start = self.range_tab.partition_point(|Range(_, r)| *r < left);
+        if idx_start == self.range_tab.len() || right <= self.range_tab[idx_start].0 {
+            return false;
+        }
+
+        let mut i = idx_start;
+        while i < self.range_tab.len() && right >= self.range_tab[i].0 {
+            let l = self.range_tab[i].0;
+            let r = self.range_tab[i].1;
+            if l <= left && r >= right {
+                return true;
+            }
+            i += 1;
+        }
+
+        false
+    }
+
+    fn remove_range(&mut self, left: i32, right: i32) {
+        if self.range_tab.is_empty() {
+            return;
+        }
+        let idx_start = self.range_tab.partition_point(|Range(_, r)| *r < left);
+        let mut i = idx_start;
+
+        while i < self.range_tab.len() && right >= self.range_tab[i].0 {
+            let l = self.range_tab[i].0;
+            let r = self.range_tab[i].1;
+            //如[1,6)中移除[2,3)
+            if l < left && r > right {
+                self.range_tab[i].1 = left;
+                self.range_tab.insert(i + 1, Range(right, r));
+                return;
+            }
+            //如[1,4), [6, 10)中移除[2,8)
+            //移除后要变成[1,2),[8,10)
+            if l < left {
+                self.range_tab[i].1 = left;
+            } else if r > right {
+                self.range_tab[i].0 = right;
+            } else {
+                self.range_tab.remove(i);
+                continue;
+            }
+            i += 1;
+        }
+    }
+}
