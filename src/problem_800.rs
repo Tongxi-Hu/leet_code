@@ -1,11 +1,11 @@
 use std::{
     cell::RefCell,
     cmp::Reverse,
-    collections::{BinaryHeap, HashSet},
+    collections::{BinaryHeap, HashMap, HashSet},
     rc::Rc,
 };
 
-use crate::common::TreeNode;
+use crate::common::{ListNode, TreeNode};
 
 /// p701
 pub fn insert_into_bst(
@@ -132,30 +132,30 @@ impl MyHashMap {
 }
 
 /// p707
-struct ListNode {
-    prev: Option<Rc<RefCell<ListNode>>>,
-    next: Option<Rc<RefCell<ListNode>>>,
+struct MyListNode {
+    prev: Option<Rc<RefCell<MyListNode>>>,
+    next: Option<Rc<RefCell<MyListNode>>>,
     val: i32,
 }
 
-impl ListNode {
+impl MyListNode {
     fn new(
         val: i32,
-        prev: Option<Rc<RefCell<ListNode>>>,
-        next: Option<Rc<RefCell<ListNode>>>,
-    ) -> ListNode {
-        ListNode { prev, next, val }
+        prev: Option<Rc<RefCell<MyListNode>>>,
+        next: Option<Rc<RefCell<MyListNode>>>,
+    ) -> MyListNode {
+        MyListNode { prev, next, val }
     }
 }
 
 struct MyLinkedList {
-    head: Option<Rc<RefCell<ListNode>>>,
+    head: Option<Rc<RefCell<MyListNode>>>,
     size: i32,
 }
 
 impl MyLinkedList {
     fn new() -> Self {
-        let head = Rc::new(RefCell::new(ListNode::new(-1, None, None)));
+        let head = Rc::new(RefCell::new(MyListNode::new(-1, None, None)));
         head.borrow_mut().prev = Some(head.clone());
         head.borrow_mut().next = Some(head.clone());
         MyLinkedList {
@@ -173,7 +173,7 @@ impl MyLinkedList {
 
     fn add_at_head(&mut self, val: i32) {
         let next = self.head.as_ref().unwrap().borrow().next.clone();
-        let curr = Rc::new(RefCell::new(ListNode::new(
+        let curr = Rc::new(RefCell::new(MyListNode::new(
             val,
             self.head.clone(),
             next.clone(),
@@ -185,7 +185,7 @@ impl MyLinkedList {
 
     fn add_at_tail(&mut self, val: i32) {
         let prev = self.head.as_ref().unwrap().borrow().prev.clone();
-        let curr = Rc::new(RefCell::new(ListNode::new(
+        let curr = Rc::new(RefCell::new(MyListNode::new(
             val,
             prev.clone(),
             self.head.clone(),
@@ -208,7 +208,7 @@ impl MyLinkedList {
             return;
         }
         let curr = self.find_node(index);
-        let new_node = Rc::new(RefCell::new(ListNode::new(
+        let new_node = Rc::new(RefCell::new(MyListNode::new(
             val,
             curr.as_ref().unwrap().borrow().prev.clone(),
             curr.clone(),
@@ -244,7 +244,7 @@ impl MyLinkedList {
         self.size -= 1;
     }
 
-    fn find_node(&self, index: i32) -> Option<Rc<RefCell<ListNode>>> {
+    fn find_node(&self, index: i32) -> Option<Rc<RefCell<MyListNode>>> {
         if self.size == 0 {
             return self.head.as_ref().unwrap().borrow().next.clone();
         }
@@ -464,4 +464,154 @@ pub fn longest_word(mut words: Vec<String>) -> String {
         })
         .0
         .to_string()
+}
+
+/// p721
+pub fn accounts_merge(accounts: Vec<Vec<String>>) -> Vec<Vec<String>> {
+    let mut email_to_idx = HashMap::new();
+    for (i, account) in accounts.iter().enumerate() {
+        for email in account.iter().skip(1) {
+            email_to_idx
+                .entry(email.clone())
+                .or_insert_with(Vec::new)
+                .push(i);
+        }
+    }
+
+    fn dfs(
+        i: usize,
+        accounts: &Vec<Vec<String>>,
+        email_to_idx: &HashMap<String, Vec<usize>>,
+        vis: &mut Vec<bool>,
+        email_set: &mut HashSet<String>,
+    ) {
+        vis[i] = true;
+        for email in accounts[i].iter().skip(1) {
+            if email_set.contains(email) {
+                continue;
+            }
+            email_set.insert(email.clone());
+            for &j in email_to_idx.get(email).unwrap() {
+                if !vis[j] {
+                    dfs(j, accounts, email_to_idx, vis, email_set);
+                }
+            }
+        }
+    }
+
+    let mut ans = vec![];
+    let mut vis = vec![false; accounts.len()];
+    for (i, account) in accounts.iter().enumerate() {
+        if vis[i] {
+            continue;
+        }
+        let mut email_set = HashSet::new();
+        dfs(i, &accounts, &email_to_idx, &mut vis, &mut email_set);
+
+        let mut res = email_set.into_iter().collect::<Vec<_>>();
+        res.sort_unstable();
+        res.insert(0, account[0].clone());
+
+        ans.push(res);
+    }
+    ans
+}
+
+/// p722
+pub fn remove_comments(source: Vec<String>) -> Vec<String> {
+    let mut ans: Vec<String> = Vec::new();
+    let mut t: Vec<String> = Vec::new();
+    let mut block_comment = false;
+
+    for s in &source {
+        let m = s.len();
+        let mut i = 0;
+        while i < m {
+            if block_comment {
+                if i + 1 < m && &s[i..i + 2] == "*/" {
+                    block_comment = false;
+                    i += 2;
+                } else {
+                    i += 1;
+                }
+            } else {
+                if i + 1 < m && &s[i..i + 2] == "/*" {
+                    block_comment = true;
+                    i += 2;
+                } else if i + 1 < m && &s[i..i + 2] == "//" {
+                    break;
+                } else {
+                    t.push(s.chars().nth(i).unwrap().to_string());
+                    i += 1;
+                }
+            }
+        }
+        if !block_comment && !t.is_empty() {
+            ans.push(t.join(""));
+            t.clear();
+        }
+    }
+    ans
+}
+
+/// p724
+pub fn pivot_index(nums: Vec<i32>) -> i32 {
+    let mut sum: Vec<i32> = vec![];
+    nums.iter().enumerate().for_each(|(i, &num)| {
+        if i == 0 {
+            sum.push(num);
+        } else {
+            sum.push(num + sum[i - 1]);
+        }
+    });
+    let length = nums.len();
+    if sum[length - 1] - nums[0] == 0 {
+        return 0;
+    }
+
+    for i in 1..length - 1 {
+        if sum[i - 1] as f32 == (sum[length - 1] - nums[i]) as f32 / 2.0 {
+            return i as i32;
+        }
+    }
+
+    if sum[length - 1] - nums[length - 1] == 0 {
+        return (length - 1) as i32;
+    }
+
+    return -1;
+}
+
+/// p725
+pub fn split_list_to_parts(root: Option<Box<ListNode>>, k: i32) -> Vec<Option<Box<ListNode>>> {
+    let k = k as usize;
+    let mut cnt = 0usize;
+    let mut ptr = root.as_ref();
+
+    while let Some(node) = ptr {
+        cnt += 1;
+        ptr = node.next.as_ref();
+    }
+
+    let mut vec = vec![];
+    let (a, b) = (cnt / k, cnt % k);
+    let mut node = root;
+
+    for i in 0..k {
+        let mut num = a;
+        if i < b {
+            num += 1;
+        }
+        if num == 0 {
+            vec.push(None);
+            continue;
+        }
+        vec.push(node);
+        let mut ptr = vec[i].as_mut().unwrap();
+        for _ in 0..num - 1 {
+            ptr = ptr.next.as_mut().unwrap();
+        }
+        node = ptr.next.take();
+    }
+    vec
 }
