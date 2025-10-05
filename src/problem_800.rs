@@ -437,7 +437,7 @@ pub fn smallest_distance_pair(mut nums: Vec<i32>, k: i32) -> i32 {
     let n = nums.len();
     let (mut l, mut r) = (0, nums[n - 1] - nums[0]);
     while l < r {
-        let (mut cnt, mut j, mut mid) = (0, 0, l + ((r - l) >> 1));
+        let (mut cnt, mut j, mid) = (0, 0, l + ((r - l) >> 1));
         for i in 0..n {
             while j < n && nums[j] - nums[i] <= mid {
                 j += 1;
