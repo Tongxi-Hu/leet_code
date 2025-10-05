@@ -1,4 +1,9 @@
-use std::{cell::RefCell, cmp::Reverse, collections::BinaryHeap, rc::Rc};
+use std::{
+    cell::RefCell,
+    cmp::Reverse,
+    collections::{BinaryHeap, HashSet},
+    rc::Rc,
+};
 
 use crate::common::TreeNode;
 
@@ -400,4 +405,63 @@ impl RangeModule {
             i += 1;
         }
     }
+}
+
+/// p717
+pub fn is_one_bit_character(bits: Vec<i32>) -> bool {
+    let (mut i, length) = (0, bits.len());
+    while i < length - 1 {
+        i = i + bits[i] as usize + 1;
+    }
+    return i == length - 1;
+}
+
+/// p718
+pub fn find_length(nums1: Vec<i32>, nums2: Vec<i32>) -> i32 {
+    let mut ans = 0;
+    let mut f = vec![vec![0; nums2.len() + 1]; nums1.len() + 1];
+    for (i, x) in nums1.into_iter().enumerate() {
+        for (j, &y) in nums2.iter().enumerate() {
+            if x == y {
+                f[i + 1][j + 1] = f[i][j] + 1;
+                ans = ans.max(f[i + 1][j + 1]);
+            }
+        }
+    }
+    ans
+}
+
+/// p719
+pub fn smallest_distance_pair(mut nums: Vec<i32>, k: i32) -> i32 {
+    nums.sort();
+    let n = nums.len();
+    let (mut l, mut r) = (0, nums[n - 1] - nums[0]);
+    while l < r {
+        let (mut cnt, mut j, mut mid) = (0, 0, l + ((r - l) >> 1));
+        for i in 0..n {
+            while j < n && nums[j] - nums[i] <= mid {
+                j += 1;
+            }
+            cnt += (j - i - 1) as i32;
+        }
+        if cnt >= k { r = mid } else { l = mid + 1 }
+    }
+    l
+}
+
+/// p720
+pub fn longest_word(mut words: Vec<String>) -> String {
+    words.sort();
+    words
+        .iter()
+        .fold(("", HashSet::new()), |(ret, mut cache), word| {
+            if word.len() == 1 || cache.contains(&word[..word.len() - 1]) {
+                cache.insert(word.as_str());
+                (if ret.len() < word.len() { word } else { ret }, cache)
+            } else {
+                (ret, cache)
+            }
+        })
+        .0
+        .to_string()
 }
