@@ -615,3 +615,203 @@ pub fn split_list_to_parts(root: Option<Box<ListNode>>, k: i32) -> Vec<Option<Bo
     }
     vec
 }
+
+/// p726
+type Atom<'a> = (&'a [u8], usize);
+type Atoms<'a> = std::collections::BTreeMap<&'a [u8], usize>;
+
+pub struct Parser<'a> {
+    src: &'a [u8],
+    idx: usize,
+}
+
+impl<'a> Parser<'a> {
+    pub fn new(src: &str) -> Parser<'_> {
+        Parser {
+            src: src.as_bytes(),
+            idx: 0,
+        }
+    }
+
+    pub fn r#try<T>(&mut self, f: impl FnOnce(&mut Self) -> Option<T>) -> Option<T> {
+        let mut s = Self {
+            idx: self.idx,
+            src: self.src,
+        };
+        match f(&mut s) {
+            Some(t) => {
+                self.idx = s.idx;
+                Some(t)
+            }
+            None => None,
+        }
+    }
+}
+
+fn get_number(p: &mut Parser) -> Option<usize> {
+    let nums = p.src[p.idx..]
+        .iter()
+        .take_while(|c| c.is_ascii_digit())
+        .copied()
+        .collect::<Vec<_>>();
+    p.idx += nums.len();
+    unsafe { String::from_utf8_unchecked(nums) }
+        .parse::<usize>()
+        .ok()
+}
+
+fn get_symbol<'a>(p: &mut Parser<'a>) -> Option<&'a [u8]> {
+    let start_idx = p.idx;
+    let mut iter = p.src[p.idx..].iter();
+    if !iter.next()?.is_ascii_uppercase() {
+        return None;
+    }
+    let len = iter.take_while(|c| c.is_ascii_lowercase()).count();
+    p.idx += len + 1;
+    Some(&p.src[start_idx..p.idx])
+}
+
+fn get_single<'a>(p: &mut Parser<'a>) -> Option<Atom<'a>> {
+    let symbol = p.r#try(get_symbol)?;
+    let number = p.r#try(get_number).unwrap_or(1);
+    Some((symbol, number))
+}
+
+fn get_bracket<'a>(p: &mut Parser<'a>) -> Option<Atoms<'a>> {
+    if !p.src.get(p.idx)? == b'(' {
+        return None;
+    }
+    p.idx += 1;
+
+    let mut map = get_multiple(p)?;
+    if !p.src.get(p.idx)? == b')' {
+        return None;
+    }
+
+    p.idx += 1;
+    let scal = p.r#try(get_number).unwrap_or(1);
+    for v in map.values_mut() {
+        *v *= scal;
+    }
+    Some(map)
+}
+
+fn get_single_or_bracket<'a>(p: &mut Parser<'a>) -> Option<Atoms<'a>> {
+    let start = *p.src.get(p.idx)?;
+    if start == b'(' {
+        p.r#try(get_bracket)
+    } else {
+        p.r#try(get_single).map(|kv| std::iter::once(kv).collect())
+    }
+}
+
+fn get_multiple<'a>(p: &mut Parser<'a>) -> Option<Atoms<'a>> {
+    let mut map = Atoms::new();
+    while let Some(sub_map) = p.r#try(get_single_or_bracket) {
+        for (k, v) in sub_map {
+            *map.entry(k).or_default() += v;
+        }
+    }
+    Some(map)
+}
+
+pub fn count_of_atoms(formula: String) -> String {
+    let mut parser = Parser::new(&formula);
+    get_multiple(&mut parser)
+        .unwrap()
+        .into_iter()
+        .fold(String::new(), |buffer, (k, v)| {
+            buffer
+                + &format!(
+                    "{}{}",
+                    String::from_utf8_lossy(k),
+                    if v == 1 { "".to_owned() } else { v.to_string() }
+                )
+        })
+}
+
+/// p728
+pub fn self_dividing_numbers(left: i32, right: i32) -> Vec<i32> {
+    (left..=right)
+        .into_iter()
+        .filter(|&x| {
+            let mut t = x;
+            while t > 0 {
+                let m = t % 10;
+                if m == 0 || x % m != 0 {
+                    return false;
+                }
+                t = t / 10;
+            }
+            true
+        })
+        .collect()
+}
+
+/// p729
+#[derive(Default)]
+struct MyCalendar {
+    map: std::collections::BTreeMap<i32, i32>,
+}
+
+impl MyCalendar {
+    fn new() -> Self {
+        Default::default()
+    }
+
+    fn book(&mut self, start_time: i32, end_time: i32) -> bool {
+        if let Some((_, &prev_end_time)) = self.map.range(..end_time).next_back() {
+            if prev_end_time > start_time {
+                return false;
+            }
+        }
+        self.map.insert(start_time, end_time);
+        true
+    }
+}
+
+/// p730
+pub fn count_palindromic_subsequences(s: String) -> i32 {
+    let n = s.len();
+    let p = 1000000007;
+    let mut dp = vec![vec![vec![0; 4]; n]; n];
+    let sv = s.as_bytes();
+
+    for i in (0..n).rev() {
+        for j in i..n {
+            for k in 0..4 {
+                let c = b'a' + k as u8;
+                if i == j {
+                    if sv[i] == c {
+                        dp[i][j][k] = 1
+                    }
+                } else {
+                    if sv[i] != c {
+                        dp[i][j][k] = dp[i + 1][j][k];
+                    } else if sv[j] != c {
+                        dp[i][j][k] = dp[i][j - 1][k];
+                    } else {
+                        if j == i + 1 {
+                            dp[i][j][k] = 2;
+                        } else {
+                            dp[i][j][k] = 2;
+                            for m in 0..4 {
+                                dp[i][j][k] += dp[i + 1][j - 1][m];
+                                dp[i][j][k] %= p;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    let mut ans = 0;
+
+    for k in 0..4 {
+        ans += dp[0][n - 1][k];
+        ans %= p;
+    }
+
+    ans
+}
