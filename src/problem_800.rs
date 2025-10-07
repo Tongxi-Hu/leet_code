@@ -1,7 +1,7 @@
 use std::{
     cell::RefCell,
     cmp::Reverse,
-    collections::{BinaryHeap, HashMap, HashSet},
+    collections::{BTreeMap, BinaryHeap, HashMap, HashSet},
     rc::Rc,
 };
 
@@ -814,4 +814,390 @@ pub fn count_palindromic_subsequences(s: String) -> i32 {
     }
 
     ans
+}
+
+/// p731
+const MAX_TIME: i32 = 1_0000_0000_0;
+
+struct SegmentTree {
+    start: i32,
+    end: i32,
+    max_count: i32,
+    lazy_flag: i32,
+    left_node: Option<Rc<RefCell<SegmentTree>>>,
+    right_node: Option<Rc<RefCell<SegmentTree>>>,
+}
+
+impl SegmentTree {
+    fn new(start: i32, end: i32) -> Self {
+        Self {
+            start,
+            end,
+            max_count: 0,
+            lazy_flag: 0,
+            left_node: None,
+            right_node: None,
+        }
+    }
+
+    fn update_cur_node(&mut self, count: i32) {
+        self.max_count += count;
+        self.lazy_flag += count;
+    }
+
+    fn update(&mut self, left: i32, right: i32) {
+        if left >= self.end || right <= self.start {
+            return;
+        }
+        if left <= self.start && right >= self.end {
+            self.update_cur_node(1);
+            return;
+        }
+
+        self.update_cross_range(left, right);
+    }
+
+    fn update_cross_range(&mut self, left: i32, right: i32) {
+        let mid = self.start + (self.end - self.start) / 2;
+        let left_node = self
+            .left_node
+            .get_or_insert(Rc::new(RefCell::new(SegmentTree::new(self.start, mid))));
+        let right_node = self
+            .right_node
+            .get_or_insert(Rc::new(RefCell::new(SegmentTree::new(mid, self.end))));
+
+        if self.lazy_flag > 0 {
+            left_node.borrow_mut().update_cur_node(self.lazy_flag);
+            right_node.borrow_mut().update_cur_node(self.lazy_flag);
+            self.lazy_flag = 0;
+        }
+
+        left_node.borrow_mut().update(left, right);
+        right_node.borrow_mut().update(left, right);
+
+        self.max_count = i32::max(left_node.borrow().max_count, right_node.borrow().max_count);
+    }
+
+    fn query(&mut self, left: i32, right: i32) -> i32 {
+        if left >= self.end || right <= self.start {
+            return 0;
+        }
+        if left <= self.start && right >= self.end {
+            return self.max_count;
+        }
+
+        self.query_cross_range(left, right)
+    }
+
+    fn query_cross_range(&mut self, left: i32, right: i32) -> i32 {
+        let mid = self.start + (self.end - self.start) / 2;
+        let left_node = self
+            .left_node
+            .get_or_insert(Rc::new(RefCell::new(SegmentTree::new(self.start, mid))));
+        let right_node = self
+            .right_node
+            .get_or_insert(Rc::new(RefCell::new(SegmentTree::new(mid, self.end))));
+
+        if self.lazy_flag > 0 {
+            left_node.borrow_mut().update_cur_node(self.lazy_flag);
+            right_node.borrow_mut().update_cur_node(self.lazy_flag);
+            self.lazy_flag = 0;
+        }
+
+        i32::max(
+            left_node.borrow_mut().query(left, right),
+            right_node.borrow_mut().query(left, right),
+        )
+    }
+}
+
+struct MyCalendarTwo {
+    root: SegmentTree,
+}
+
+impl MyCalendarTwo {
+    fn new() -> Self {
+        Self {
+            root: SegmentTree::new(0, MAX_TIME),
+        }
+    }
+
+    fn book(&mut self, start: i32, end: i32) -> bool {
+        if self.root.query(start, end) >= 2 {
+            return false;
+        }
+        self.root.update(start, end);
+        true
+    }
+}
+
+/// p732
+struct MyCalendarThree {
+    map: BTreeMap<i32, i32>,
+}
+
+impl MyCalendarThree {
+    fn new() -> Self {
+        Self {
+            map: BTreeMap::new(),
+        }
+    }
+
+    fn book(&mut self, start_time: i32, end_time: i32) -> i32 {
+        *self.map.entry(start_time).or_insert(0) += 1;
+        *self.map.entry(end_time).or_insert(0) -= 1;
+
+        let (mut ans, mut step) = (0, 0);
+        for &count in self.map.values() {
+            step += count;
+            ans = ans.max(step);
+        }
+
+        ans
+    }
+}
+
+/// p733
+pub fn flood_fill(mut image: Vec<Vec<i32>>, sr: i32, sc: i32, color: i32) -> Vec<Vec<i32>> {
+    let (r, c) = (sr as usize, sc as usize);
+    if image[r][c] == color {
+        return image;
+    }
+    let mut stack: Vec<(usize, usize)> = vec![];
+    let old_color = image[r][c];
+    image[r][c] = color;
+    stack.push((r, c));
+    while !stack.is_empty() {
+        let (r, c) = stack.pop().unwrap();
+        for (i, j) in [(r + 1, c), (r - 1, c), (r, c + 1), (r, c - 1)] {
+            if i < image.len() && j < image[0].len() && image[i][j] == old_color {
+                image[i][j] = color;
+                stack.push((i, j));
+            }
+        }
+    }
+    image
+}
+
+/// p735
+pub fn asteroid_collision(mut asteroids: Vec<i32>) -> Vec<i32> {
+    let (mut index, mut i): (i32, usize) = (-1, 0);
+    while i < asteroids.len() {
+        if asteroids[i] > 0 || index == -1 || asteroids[index as usize] < 0 {
+            index += 1;
+            asteroids[index as usize] = asteroids[i];
+        } else if asteroids[index as usize] <= -asteroids[i] {
+            if asteroids[index as usize] < -asteroids[i] {
+                i -= 1;
+            }
+            index -= 1;
+        }
+        i += 1;
+    }
+    asteroids[0..(index + 1).max(0) as usize].to_vec()
+}
+
+/// p736
+pub fn evaluate(expression: String) -> i32 {
+    let mut tokens = Tokens::new(expression.as_str());
+    let mut env = Environment::new();
+    eval(&mut tokens, &mut env)
+}
+
+fn eval<'a>(tokens: &mut Tokens<'a>, env: &mut Environment<'a>) -> i32 {
+    match tokens.next().unwrap() {
+        Token::Num(n) => n,
+        Token::Var(v) => env.get(v),
+        Token::Start => match tokens.next().unwrap() {
+            Token::Add => {
+                let left = eval(tokens, env);
+                let right = eval(tokens, env);
+                let res = left + right;
+                assert_eq!(Token::End, tokens.next().unwrap());
+                res
+            }
+            Token::Mul => {
+                let left = eval(tokens, env);
+                let right = eval(tokens, env);
+                let res = left * right;
+                assert_eq!(Token::End, tokens.next().unwrap());
+                res
+            }
+            Token::Let => {
+                let mut vars_to_pop = vec![];
+                loop {
+                    match tokens.peek().unwrap() {
+                        Token::Var(v) => {
+                            tokens.next().unwrap();
+                            if tokens.peek().unwrap() == Token::End {
+                                let res = env.get(v);
+                                for var in vars_to_pop {
+                                    env.pop(var);
+                                }
+                                assert_eq!(Token::End, tokens.next().unwrap());
+                                return res;
+                            } else {
+                                let val = eval(tokens, env);
+                                env.put(v, val);
+                                vars_to_pop.push(v);
+                            }
+                        }
+                        _ => {
+                            let res = eval(tokens, env);
+                            for var in vars_to_pop {
+                                env.pop(var);
+                            }
+                            assert_eq!(Token::End, tokens.next().unwrap());
+                            return res;
+                        }
+                    }
+                }
+            }
+            _ => panic!("Invalid expr after '('"),
+        },
+        _ => panic!("Invalid start of expression"),
+    }
+}
+
+struct Tokens<'a> {
+    expr: &'a [u8],
+    start: usize,
+    end: usize,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+enum Token<'a> {
+    Start,
+    End,
+    Add,
+    Mul,
+    Let,
+    Num(i32),
+    Var(&'a [u8]),
+}
+
+impl<'a> Tokens<'a> {
+    fn new(expr: &'a str) -> Self {
+        Tokens {
+            expr: expr.as_bytes(),
+            start: 0,
+            end: 0,
+        }
+    }
+
+    fn peek(&mut self) -> Option<Token<'a>> {
+        let start = self.start;
+        let end = self.end;
+        let res = self.next();
+        self.start = start;
+        self.end = end;
+        res
+    }
+}
+
+impl<'a> Iterator for Tokens<'a> {
+    type Item = Token<'a>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.end == self.expr.len() {
+            return None;
+        }
+        while self.expr[self.end] == b' ' {
+            self.end += 1;
+            if self.end == self.expr.len() {
+                return None;
+            }
+        }
+        self.start = self.end;
+        self.end += 1;
+        match self.expr[self.start] {
+            b'(' => return Some(Token::Start),
+            b')' => return Some(Token::End),
+            _ => {}
+        }
+        while !(self.expr[self.end] == b' ' || self.expr[self.end] == b')') {
+            self.end += 1;
+            if self.end == self.expr.len() {
+                return None;
+            }
+        }
+        if self.expr[self.start] == b'-'
+            || (self.expr[self.start] >= b'0' && self.expr[self.start] <= b'9')
+        {
+            let as_str = unsafe { std::str::from_utf8_unchecked(&self.expr[self.start..self.end]) };
+            return Some(Token::Num(as_str.parse::<i32>().unwrap()));
+        }
+        let token = match &self.expr[self.start..self.end] {
+            b"mult" => Token::Mul,
+            b"add" => Token::Add,
+            b"let" => Token::Let,
+            var => Token::Var(var),
+        };
+        Some(token)
+    }
+}
+
+struct Environment<'a> {
+    vars: HashMap<&'a [u8], Vec<i32>>,
+}
+
+impl<'a> Environment<'a> {
+    fn new() -> Self {
+        Environment {
+            vars: HashMap::new(),
+        }
+    }
+
+    fn get(&self, var: &[u8]) -> i32 {
+        self.vars.get(var).map(|v| v[v.len() - 1]).unwrap()
+    }
+
+    fn put(&mut self, var: &'a [u8], val: i32) {
+        let entry = self.vars.entry(var).or_insert(vec![]);
+        (*entry).push(val);
+    }
+
+    fn pop(&mut self, var: &[u8]) {
+        self.vars.get_mut(var).map(|v| v.pop().unwrap()).unwrap();
+    }
+}
+
+/// p738
+pub fn monotone_increasing_digits(n: i32) -> i32 {
+    let mut ans = 0;
+    let mut ones = 111111111;
+    (0..9).for_each(|_| {
+        while ans + ones > n {
+            ones /= 10;
+        }
+        ans += ones;
+    });
+    ans
+}
+
+/// p739
+pub fn daily_temperatures(temperatures: Vec<i32>) -> Vec<i32> {
+    let mut ans = vec![0; temperatures.len()];
+    let mut stack: Vec<(usize, i32)> = vec![];
+    for (i, &t) in temperatures.iter().enumerate() {
+        while !stack.is_empty() && stack.last().unwrap().1 < t {
+            let (ii, _) = stack.pop().unwrap();
+            ans[ii] = (i - ii) as i32;
+        }
+        stack.push((i, t));
+    }
+    ans
+}
+
+/// p740
+pub fn delete_and_earn(nums: Vec<i32>) -> i32 {
+    let mut sum = vec![0; *nums.iter().max().unwrap() as usize + 1];
+    nums.iter().for_each(|&n| sum[n as usize] += n);
+    let (mut first, mut second) = (sum[0], sum[0].max(sum[1]));
+    sum.iter().skip(2).for_each(|&val| {
+        let cur = second.max(first + val);
+        first = second;
+        second = cur;
+    });
+    first.max(second)
 }
