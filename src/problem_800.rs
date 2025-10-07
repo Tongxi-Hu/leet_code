@@ -1201,3 +1201,133 @@ pub fn delete_and_earn(nums: Vec<i32>) -> i32 {
     });
     first.max(second)
 }
+
+/// p741
+pub fn cherry_pickup(grid: Vec<Vec<i32>>) -> i32 {
+    let n = grid.len();
+    let mut dp = vec![vec![vec![i32::MIN; n]; n]; 2 * n - 1];
+
+    dp[0][0][0] = grid[0][0];
+
+    for k in 1..(2 * n - 1) {
+        for r1 in std::cmp::max(0, k as i32 - (n as i32 - 1)) as usize..=std::cmp::min(n - 1, k) {
+            let c1 = k - r1;
+            if c1 >= n || grid[r1][c1] == -1 {
+                continue;
+            }
+
+            for r2 in std::cmp::max(0, k as i32 - (n as i32 - 1)) as usize..=std::cmp::min(n - 1, k)
+            {
+                let c2 = k - r2;
+                if c2 >= n || grid[r2][c2] == -1 {
+                    continue;
+                }
+
+                let mut max_cherries = i32::MIN;
+
+                if r1 > 0 {
+                    max_cherries = std::cmp::max(max_cherries, dp[k - 1][r1 - 1][r2]);
+                }
+                if r2 > 0 {
+                    max_cherries = std::cmp::max(max_cherries, dp[k - 1][r1][r2 - 1]);
+                }
+                if r1 > 0 && r2 > 0 {
+                    max_cherries = std::cmp::max(max_cherries, dp[k - 1][r1 - 1][r2 - 1]);
+                }
+                max_cherries = std::cmp::max(max_cherries, dp[k - 1][r1][r2]);
+
+                if max_cherries != i32::MIN {
+                    max_cherries += if r1 == r2 {
+                        grid[r1][c1]
+                    } else {
+                        grid[r1][c1] + grid[r2][c2]
+                    };
+                    dp[k][r1][r2] = max_cherries;
+                }
+            }
+        }
+    }
+
+    std::cmp::max(0, dp[2 * n - 2][n - 1][n - 1])
+}
+
+/// p743
+pub fn network_delay_time(times: Vec<Vec<i32>>, n: i32, k: i32) -> i32 {
+    const INF: i32 = i32::MAX / 2;
+    let n = n as usize;
+    let mut g = vec![vec![INF; n]; n];
+    for t in times {
+        g[t[0] as usize - 1][t[1] as usize - 1] = t[2];
+    }
+
+    let mut dis = vec![INF; n];
+    dis[k as usize - 1] = 0;
+    let mut done = vec![false; n];
+    loop {
+        let mut x = n;
+        for (i, &ok) in done.iter().enumerate() {
+            if !ok && (x == n || dis[i] < dis[x]) {
+                x = i;
+            }
+        }
+        if x == n {
+            return *dis.iter().max().unwrap();
+        }
+        if dis[x] == INF {
+            return -1;
+        }
+        done[x] = true;
+        for (y, &d) in g[x].iter().enumerate() {
+            dis[y] = dis[y].min(dis[x] + d);
+        }
+    }
+}
+
+/// p744
+pub fn next_greatest_letter(letters: Vec<char>, target: char) -> char {
+    letters[letters
+        .binary_search(&((u32::from(target) + 1) as u8).into())
+        .unwrap_or_else(std::convert::identity)
+        % letters.len()]
+}
+
+/// p745
+#[derive(Default)]
+struct Trie {
+    index: i32,
+    next: [Option<Box<Trie>>; 27],
+}
+
+struct WordFilter {
+    trie: Trie,
+}
+
+impl WordFilter {
+    fn new(words: Vec<String>) -> Self {
+        let mut trie = Trie::default();
+        for (i, word) in words.iter().enumerate() {
+            let s = String::new() + &word + "{" + &word;
+            for j in 0..word.len() {
+                let mut curr = &mut trie;
+                for &b in &s.as_bytes()[j..] {
+                    curr = curr.next[(b - b'a') as usize].get_or_insert_with(Default::default);
+                    curr.index = i as i32;
+                }
+            }
+        }
+        Self { trie }
+    }
+
+    fn f(&self, prefix: String, suffix: String) -> i32 {
+        let mut curr = &self.trie;
+        let s = String::new() + &suffix + "{" + &prefix;
+        for &b in s.as_bytes() {
+            if let Some(n) = &curr.next[(b - b'a') as usize] {
+                curr = n.as_ref();
+            } else {
+                return -1;
+            }
+        }
+        curr.index
+    }
+}
