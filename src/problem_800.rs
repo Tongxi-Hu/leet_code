@@ -1392,7 +1392,6 @@ pub fn shortest_completing_word(license_plate: String, words: Vec<String>) -> St
 }
 
 /// p749
-
 const DIRS: &'static [isize] = &[0, -1, 0, 1, 0];
 const INFECTED: i32 = 1;
 const UNINFECTED: i32 = 0;
@@ -1629,4 +1628,73 @@ pub fn reach_number(target: i32) -> i32 {
         target = target - k;
     }
     return if target % 2 == 0 { k } else { k + 1 + k % 2 };
+}
+
+/// p756
+pub fn pyramid_transition(bottom: String, allowed: Vec<String>) -> bool {
+    let n = bottom.len();
+    let mut matrix = vec![vec![0_u8; n]; n];
+    for (i, b) in bottom.bytes().enumerate() {
+        matrix[0][i] = b - b'A';
+    }
+
+    let mut allowed_map: HashMap<u8, Vec<u8>> = HashMap::new();
+    for bytes in allowed.iter().map(|s| s.as_bytes()) {
+        let key = (bytes[0] - b'A') * 10 + (bytes[1] - b'A');
+        let val = bytes[2] - b'A';
+        allowed_map.entry(key).or_insert(vec![]).push(val);
+    }
+    fn backtracing(
+        matrix: &mut Vec<Vec<u8>>,
+        row: usize,
+        col: usize,
+        allowed: &HashMap<u8, Vec<u8>>,
+    ) -> bool {
+        let n = matrix.len();
+        if row >= n {
+            return true;
+        }
+        if row + col == n {
+            return Self::backtracing(matrix, row + 1, 0, allowed);
+        }
+
+        let key = matrix[row - 1][col] * 10 + matrix[row - 1][col + 1];
+        if let Some(next) = allowed.get(&key) {
+            for &b in next.iter() {
+                matrix[row][col] = b;
+                if Self::backtracing(matrix, row, col + 1, allowed) {
+                    return true;
+                }
+            }
+        }
+
+        false
+    }
+
+    backtracing(&mut matrix, 1, 0, &allowed_map)
+}
+
+/// p757
+pub fn intersection_size_two(mut intervals: Vec<Vec<i32>>) -> i32 {
+    intervals.sort_by(|a, b| a[1].partial_cmp(&b[1]).unwrap());
+    intervals
+        .iter()
+        .fold((0, -1, -1), |(cnt, second_end, first_end), interval| {
+            if interval[0] > first_end {
+                (cnt + 2, interval[1] - 1, interval[1])
+            } else if interval[0] > second_end {
+                (
+                    cnt + 1,
+                    if first_end == interval[1] {
+                        first_end - 1
+                    } else {
+                        first_end
+                    },
+                    interval[1],
+                )
+            } else {
+                (cnt, second_end, first_end)
+            }
+        })
+        .0
 }
