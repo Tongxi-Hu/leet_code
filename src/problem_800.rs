@@ -1,7 +1,7 @@
 use std::{
     cell::RefCell,
     cmp::{Ordering, Reverse},
-    collections::{BTreeMap, BinaryHeap, HashMap, HashSet},
+    collections::{BTreeMap, BinaryHeap, HashMap, HashSet, VecDeque},
     rc::Rc,
 };
 
@@ -1515,3 +1515,118 @@ impl PartialEq for Region {
 }
 
 impl Eq for Region {}
+
+/// p752
+pub fn open_lock(deadends: Vec<String>, target: String) -> i32 {
+    if target == "0000" {
+        return 0;
+    }
+    let target: u16 = target.parse().unwrap();
+    let dead: HashSet<u16> = deadends.iter().map(|s| s.parse::<u16>().unwrap()).collect();
+    if dead.contains(&0) || dead.contains(&target) {
+        return -1;
+    }
+
+    fn get_next(num: u16) -> Vec<u16> {
+        let mut ans = vec![];
+        for i in 0..4 {
+            let exp = 10_u16.pow(i);
+            let n = num / exp % 10;
+            ans.push(if n == 9 { num - 9 * exp } else { num + exp });
+            ans.push(if n == 0 { num + 9 * exp } else { num - exp });
+        }
+        ans
+    }
+
+    let (mut top_q, mut bottom_q) = (VecDeque::new(), VecDeque::new());
+    top_q.push_back(0);
+    bottom_q.push_back(target);
+    let mut step = 0;
+    let (mut top_set, mut bottom_set) = (HashSet::new(), HashSet::new());
+    top_set.insert(0);
+    bottom_set.insert(target);
+    while !top_q.is_empty() && !bottom_q.is_empty() {
+        step += 1;
+        let (q, this, other) = if top_q.len() > bottom_q.len() {
+            (&mut bottom_q, &mut bottom_set, &mut top_set)
+        } else {
+            (&mut top_q, &mut top_set, &mut bottom_set)
+        };
+        for _ in 0..q.len() {
+            let cur = q.pop_front().unwrap();
+            for &next in get_next(cur).iter() {
+                if other.contains(&next) {
+                    return step;
+                }
+                if !dead.contains(&next) && !this.contains(&next) {
+                    this.insert(next);
+                    q.push_back(next);
+                }
+            }
+        }
+    }
+    -1
+}
+
+/// p753
+pub fn crack_safe(n: i32, k: i32) -> String {
+    let mut selected = vec![0; n as usize];
+    let mut vis = HashSet::new();
+    vis.insert(selected.clone());
+
+    fn dfs(
+        n: usize,
+        k: usize,
+        total: usize,
+        selected: &mut Vec<usize>,
+        vis: &mut HashSet<Vec<usize>>,
+        cur: usize,
+    ) -> bool {
+        if vis.len() == total {
+            return true;
+        }
+
+        for i in 0..k {
+            let mut sub = selected[cur..].to_vec();
+            sub.push(i);
+
+            if vis.insert(sub.clone()) {
+                selected.push(i);
+
+                if dfs(n, k, total, selected, vis, cur + 1) {
+                    return true;
+                }
+
+                selected.pop();
+                vis.remove(&sub);
+            }
+        }
+
+        false
+    }
+
+    dfs(
+        n as usize,
+        k as usize,
+        k.pow(n as u32) as usize,
+        &mut selected,
+        &mut vis,
+        1,
+    );
+
+    selected
+        .into_iter()
+        .map(|s| (s as u8 + b'0') as char)
+        .collect()
+}
+
+/// p754
+pub fn reach_number(target: i32) -> i32 {
+    let mut target = target.abs();
+    let mut k = 0;
+    while target > 0 {
+        k = k + 1;
+        target = target - k;
+    }
+    return if target % 2 == 0 { k } else { k + 1 + k % 2 };
+}
