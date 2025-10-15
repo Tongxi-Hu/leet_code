@@ -1655,14 +1655,14 @@ pub fn pyramid_transition(bottom: String, allowed: Vec<String>) -> bool {
             return true;
         }
         if row + col == n {
-            return Self::backtracing(matrix, row + 1, 0, allowed);
+            return backtracing(matrix, row + 1, 0, allowed);
         }
 
         let key = matrix[row - 1][col] * 10 + matrix[row - 1][col + 1];
         if let Some(next) = allowed.get(&key) {
             for &b in next.iter() {
                 matrix[row][col] = b;
-                if Self::backtracing(matrix, row, col + 1, allowed) {
+                if backtracing(matrix, row, col + 1, allowed) {
                     return true;
                 }
             }
