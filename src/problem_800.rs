@@ -2016,3 +2016,97 @@ pub fn is_ideal_permutation(nums: Vec<i32>) -> bool {
     }
     true
 }
+
+/// p777
+pub fn can_transform(start: String, end: String) -> bool {
+    let (mut i, mut j, m, n, start_arr, end_arr) = (
+        0,
+        0,
+        start.len(),
+        end.len(),
+        start.as_bytes(),
+        end.as_bytes(),
+    );
+    while i < m || j < n {
+        while i < m && start_arr[i] == b'X' {
+            i += 1;
+        }
+        while j < n && end_arr[j] == b'X' {
+            j += 1;
+        }
+        if i >= m || j >= n {
+            break;
+        }
+        if start_arr[i] != end_arr[j]
+            || start_arr[i] == b'L' && i < j
+            || start_arr[i] == b'R' && i > j
+        {
+            return false;
+        }
+        i += 1;
+        j += 1;
+    }
+    i == j
+}
+
+/// p778
+pub fn swim_in_water(grid: Vec<Vec<i32>>) -> i32 {
+    let n = grid.len();
+    let m = n * n;
+    let mut p: Vec<usize> = (0..m).collect();
+    let mut hi = vec![0usize; m];
+
+    for i in 0..n {
+        for j in 0..n {
+            hi[grid[i][j] as usize] = i * n + j;
+        }
+    }
+
+    fn find(x: usize, p: &mut Vec<usize>) -> usize {
+        if p[x] != x {
+            p[x] = find(p[x], p);
+        }
+        p[x]
+    }
+
+    let dirs = [-1isize, 0, 1, 0, -1];
+
+    for t in 0..m {
+        let id = hi[t];
+        let x = id / n;
+        let y = id % n;
+
+        for k in 0..4 {
+            let nx = x as isize + dirs[k];
+            let ny = y as isize + dirs[k + 1];
+            if nx >= 0 && nx < n as isize && ny >= 0 && ny < n as isize {
+                let nx = nx as usize;
+                let ny = ny as usize;
+                if grid[nx][ny] as usize <= t {
+                    let a = find(x * n + y, &mut p);
+                    let b = find(nx * n + ny, &mut p);
+                    p[a] = b;
+                }
+            }
+        }
+
+        if find(0, &mut p) == find(m - 1, &mut p) {
+            return t as i32;
+        }
+    }
+
+    0
+}
+
+/// p779
+pub fn kth_grammar(_: i32, k: i32) -> i32 {
+    (k - 1).count_ones() as i32 & 1
+}
+
+/// p780
+pub fn reaching_points(sx: i32, sy: i32, mut tx: i32, mut ty: i32) -> bool {
+    while tx > sx && ty > sy {
+        if tx > ty { tx -= ty } else { ty -= tx }
+    }
+    tx == sx && ty >= sy && (ty - sy) % tx == 0 || tx >= sx && ty == sy && (tx - sx) % ty == 0
+}
