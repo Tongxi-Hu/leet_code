@@ -1872,3 +1872,147 @@ pub fn max_chunks_to_sorted_2(arr: Vec<i32>) -> i32 {
         })
         .0
 }
+
+/// p771
+pub fn num_jewels_in_stones(jewels: String, stones: String) -> i32 {
+    let jewel = jewels.chars().collect::<HashSet<char>>();
+    stones
+        .chars()
+        .fold(0, |acc, c| if jewel.contains(&c) { acc + 1 } else { acc })
+}
+
+/// p773
+pub fn sliding_puzzle(board: Vec<Vec<i32>>) -> i32 {
+    const TARGET: i32 = 123450;
+
+    fn vec_to_i32(cur_board: &Vec<Vec<i32>>) -> i32 {
+        let mut val = 0;
+        for i in 0..2 {
+            for j in 0..3 {
+                val = val * 10 + cur_board[i][j];
+            }
+        }
+        val
+    }
+
+    fn get_next_state(
+        mut cur_state: i32,
+        q: &mut VecDeque<i32>,
+        records: &mut HashSet<i32>,
+    ) -> bool {
+        let mut cur_board = vec![vec![0; 3]; 2];
+        let (mut zero_x, mut zero_y) = (0, 0);
+
+        for i in (0..2).rev() {
+            for j in (0..3).rev() {
+                cur_board[i][j] = cur_state % 10;
+                if cur_board[i][j] == 0 {
+                    zero_x = i;
+                    zero_y = j;
+                }
+                cur_state /= 10;
+            }
+        }
+
+        if zero_x > 0 {
+            cur_board[zero_x][zero_y] = cur_board[zero_x - 1][zero_y];
+            cur_board[zero_x - 1][zero_y] = 0;
+
+            let next_state = vec_to_i32(&cur_board);
+            if next_state == TARGET {
+                return true;
+            }
+            if !records.contains(&next_state) {
+                records.insert(next_state);
+                q.push_back(next_state);
+            }
+
+            cur_board[zero_x - 1][zero_y] = cur_board[zero_x][zero_y];
+            cur_board[zero_x][zero_y] = 0;
+        }
+        if zero_x + 1 < 2 {
+            cur_board[zero_x][zero_y] = cur_board[zero_x + 1][zero_y];
+            cur_board[zero_x + 1][zero_y] = 0;
+
+            let next_state = vec_to_i32(&cur_board);
+            if next_state == TARGET {
+                return true;
+            }
+            if !records.contains(&next_state) {
+                records.insert(next_state);
+                q.push_back(next_state);
+            }
+
+            cur_board[zero_x + 1][zero_y] = cur_board[zero_x][zero_y];
+            cur_board[zero_x][zero_y] = 0;
+        }
+        if zero_y > 0 {
+            cur_board[zero_x][zero_y] = cur_board[zero_x][zero_y - 1];
+            cur_board[zero_x][zero_y - 1] = 0;
+
+            let next_state = vec_to_i32(&cur_board);
+            if next_state == TARGET {
+                return true;
+            }
+            if !records.contains(&next_state) {
+                records.insert(next_state);
+                q.push_back(next_state);
+            }
+
+            cur_board[zero_x][zero_y - 1] = cur_board[zero_x][zero_y];
+            cur_board[zero_x][zero_y] = 0;
+        }
+        if zero_y + 1 < 3 {
+            cur_board[zero_x][zero_y] = cur_board[zero_x][zero_y + 1];
+            cur_board[zero_x][zero_y + 1] = 0;
+
+            let next_state = vec_to_i32(&cur_board);
+            if next_state == TARGET {
+                return true;
+            }
+            if !records.contains(&next_state) {
+                records.insert(next_state);
+                q.push_back(next_state);
+            }
+
+            cur_board[zero_x][zero_y + 1] = cur_board[zero_x][zero_y];
+            cur_board[zero_x][zero_y] = 0;
+        }
+
+        false
+    }
+
+    let init = vec_to_i32(&board);
+    if init == TARGET {
+        return 0;
+    }
+
+    let mut q = VecDeque::new();
+    let mut records = HashSet::new();
+    q.push_back(init);
+    records.insert(init);
+
+    let mut count = 1;
+    while !q.is_empty() {
+        let size = q.len();
+        for _ in 0..size {
+            let cur_state = q.pop_front().unwrap();
+            if get_next_state(cur_state, &mut q, &mut records) {
+                return count;
+            }
+        }
+        count += 1;
+    }
+
+    -1
+}
+
+/// p775
+pub fn is_ideal_permutation(nums: Vec<i32>) -> bool {
+    for i in 0..nums.len() {
+        if (nums[i] - i as i32).abs() > 1 {
+            return false;
+        }
+    }
+    true
+}
