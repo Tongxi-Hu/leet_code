@@ -1698,3 +1698,108 @@ pub fn intersection_size_two(mut intervals: Vec<Vec<i32>>) -> i32 {
         })
         .0
 }
+
+/// p761
+pub fn make_largest_special(s: String) -> String {
+    let mut cnt = 0;
+    let mut arr = s
+        .split_inclusive(|ch| {
+            cnt += if ch == '1' { 1 } else { -1 };
+            cnt == 0
+        })
+        .map(|curr| {
+            format!(
+                "1{}0",
+                make_largest_special(curr[1..curr.len() - 1].to_string())
+            )
+        })
+        .collect::<Vec<_>>();
+    arr.sort_by(|a, b| b.cmp(a));
+    arr.concat()
+}
+
+/// p762
+pub fn count_prime_set_bits(left: i32, right: i32) -> i32 {
+    (left..=right).fold(0, |mut ret, i| {
+        let (mut cnt, mut j) = (0, i);
+        while j > 0 {
+            cnt += &j & 1;
+            j >>= 1;
+        }
+        if [2, 3, 5, 7, 11, 13, 17, 19].contains(&cnt) {
+            ret += 1;
+        }
+        ret
+    })
+}
+
+/// p763
+pub fn partition_labels(s: String) -> Vec<i32> {
+    let mut pos = [0; 26];
+    s.chars()
+        .enumerate()
+        .for_each(|(i, c)| pos[c as usize - 'a' as usize] = i);
+    let (mut start, mut end) = (0, 0);
+    let mut ans = vec![];
+    s.chars().enumerate().for_each(|(i, c)| {
+        let idx = c as usize - 'a' as usize;
+        end = end.max(pos[idx]);
+        if i == end {
+            ans.push((i - start) as i32 + 1);
+            start = i + 1;
+        }
+    });
+    ans
+}
+
+/// p764
+pub fn order_of_largest_plus_sign(n: i32, mines: Vec<Vec<i32>>) -> i32 {
+    let (mut grid, ret) = (vec![vec![n; n as usize]; n as usize], 0);
+    for mine in mines {
+        grid[mine[0] as usize][mine[1] as usize] = 0;
+    }
+    for i in 0..n as usize {
+        let (mut j, mut k, mut u, mut d, mut l, mut r) = (0, n as usize - 1, 0, 0, 0, 0);
+        while j < n as usize {
+            r = if grid[i][j] == 0 { 0 } else { r + 1 };
+            d = if grid[j][i] == 0 { 0 } else { d + 1 };
+            l = if grid[i][k] == 0 { 0 } else { l + 1 };
+            u = if grid[k][i] == 0 { 0 } else { u + 1 };
+            grid[i][j] = grid[i][j].min(r);
+            grid[j][i] = grid[j][i].min(d);
+            grid[i][k] = grid[i][k].min(l);
+            grid[k][i] = grid[k][i].min(u);
+            k -= 1;
+            j += 1;
+        }
+    }
+    ret.max(*grid.iter().map(|v| v.iter().max().unwrap()).max().unwrap())
+}
+
+/// p765
+pub fn min_swaps_couples(row: Vec<i32>) -> i32 {
+    let mut parent = (0..60).collect::<Vec<usize>>();
+    for i in 0..30 {
+        parent[i * 2 + 1] = parent[i * 2];
+    }
+    fn union(parent: &mut Vec<usize>, idx1: usize, idx2: usize) {
+        let idx1 = find(parent, idx1);
+        let idx2 = find(parent, idx2);
+        parent[idx1] = idx2;
+    }
+    fn find(parent: &mut Vec<usize>, mut idx: usize) -> usize {
+        while parent[idx] != idx {
+            parent[idx] = parent[parent[idx]];
+            idx = parent[idx];
+        }
+        idx
+    }
+    let mut ans = row.len() / 2;
+    for i in 0..row.len() / 2 {
+        if find(&mut parent, row[2 * i] as usize) != find(&mut parent, row[2 * i + 1] as usize) {
+            union(&mut parent, row[2 * i] as usize, row[2 * i + 1] as usize);
+            ans -= 1;
+        }
+    }
+    (row.len() / 2 - ans) as i32
+}
