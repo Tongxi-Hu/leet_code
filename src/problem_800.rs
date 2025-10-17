@@ -1803,3 +1803,72 @@ pub fn min_swaps_couples(row: Vec<i32>) -> i32 {
     }
     (row.len() / 2 - ans) as i32
 }
+
+/// p766
+pub fn is_toeplitz_matrix(matrix: Vec<Vec<i32>>) -> bool {
+    let (width, height) = (matrix.len(), matrix[0].len());
+    for r in 0..width {
+        for c in 0..height {
+            if r - 1 < width && c - 1 < height && matrix[r][c] != matrix[r - 1][c - 1] {
+                return false;
+            }
+        }
+    }
+    true
+}
+
+/// p767
+pub fn reorganize_string(s: String) -> String {
+    let n = s.len();
+    let mut count = HashMap::new();
+    for c in s.bytes() {
+        *count.entry(c).or_insert(0) += 1;
+    }
+
+    let mut a = count.into_iter().collect::<Vec<_>>();
+    a.sort_unstable_by(|p, q| q.1.cmp(&p.1));
+    let m = a[0].1;
+    if m > n - m + 1 {
+        return "".to_string();
+    }
+
+    let mut ans = vec![b'\0'; n];
+    let mut i = 0;
+    for (ch, cnt) in a {
+        for _ in 0..cnt {
+            ans[i] = ch;
+            i += 2;
+            if i >= n {
+                i = 1;
+            }
+        }
+    }
+    unsafe { String::from_utf8_unchecked(ans) }
+}
+
+/// p768
+pub fn max_chunks_to_sorted(arr: Vec<i32>) -> i32 {
+    let mut arr_copy = arr.clone();
+    arr_copy.sort();
+    arr.iter()
+        .zip(arr_copy.iter())
+        .fold((0, 0, 0), |(ret, sum1, sum2), (x, y)| {
+            (ret + if sum1 == sum2 { 1 } else { 0 }, sum1 + x, sum2 + y)
+        })
+        .0
+}
+
+/// p769
+pub fn max_chunks_to_sorted_2(arr: Vec<i32>) -> i32 {
+    arr.iter()
+        .enumerate()
+        .fold((0, i32::MIN), |(cnt, mut maximum), (i, &num)| {
+            maximum = maximum.max(num as i32);
+            if maximum == i as i32 {
+                (cnt + 1, maximum)
+            } else {
+                (cnt, maximum)
+            }
+        })
+        .0
+}
