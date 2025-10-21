@@ -2341,3 +2341,18 @@ pub fn num_tilings(n: i32) -> i32 {
         })
         .2
 }
+
+/// p791
+pub fn custom_sort_string(order: String, s: String) -> String {
+    let mut weights: HashMap<char, i32> = HashMap::new();
+    order.chars().enumerate().for_each(|(i, c)| {
+        weights.insert(c, i as i32);
+    });
+    let mut s_chars = s.chars().collect::<Vec<char>>();
+    s_chars.sort_by(|l, r| {
+        let l_w = weights.get(l).unwrap_or(&-1);
+        let r_w = weights.get(r).unwrap_or(&-1);
+        l_w.cmp(r_w)
+    });
+    s_chars.into_iter().collect()
+}
