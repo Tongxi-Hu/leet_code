@@ -1,5 +1,4 @@
 #![allow(dead_code)]
-#![allow(unused_assignments)]
 mod common;
 mod problem_100;
 mod problem_200;
@@ -9,5 +8,6 @@ mod problem_500;
 mod problem_600;
 mod problem_700;
 mod problem_800;
+mod problem_900;
 
 fn main() {}
