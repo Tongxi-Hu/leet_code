@@ -2,6 +2,7 @@ use std::{
     cell::RefCell,
     cmp::{Ordering, Reverse},
     collections::{BTreeMap, BinaryHeap, HashMap, HashSet, VecDeque},
+    i32,
     rc::Rc,
 };
 
@@ -2109,4 +2110,146 @@ pub fn reaching_points(sx: i32, sy: i32, mut tx: i32, mut ty: i32) -> bool {
         if tx > ty { tx -= ty } else { ty -= tx }
     }
     tx == sx && ty >= sy && (ty - sy) % tx == 0 || tx >= sx && ty == sy && (tx - sx) % ty == 0
+}
+
+/// p781
+pub fn num_rabbits(answers: Vec<i32>) -> i32 {
+    let mut count: HashMap<i32, i32> = HashMap::new();
+    answers.iter().for_each(|ans| {
+        let count = count.entry(*ans).or_insert(0);
+        *count = *count + 1;
+    });
+    count
+        .iter()
+        .fold(0, |total, (k, v)| total + ((v + k) / (k + 1)) * (k + 1))
+}
+
+/// p782
+pub fn moves_to_chessboard(board: Vec<Vec<i32>>) -> i32 {
+    let n = board.len();
+
+    let mut row_mask = 0;
+    let mut col_mask = 0;
+    for i in 0..n {
+        row_mask |= board[0][i] << i;
+        col_mask |= board[i][0] << i;
+    }
+
+    let reverse_row_mask = ((1 << n) - 1) ^ row_mask;
+    let reverse_col_mask = ((1 << n) - 1) ^ col_mask;
+    let mut row_cnt = 0;
+    let mut col_cnt = 0;
+
+    for i in 0..n {
+        let mut curr_row_mask = 0;
+        let mut curr_col_mask = 0;
+        for j in 0..n {
+            curr_row_mask |= board[i][j] << j;
+            curr_col_mask |= board[j][i] << j;
+        }
+
+        if (curr_row_mask != row_mask && curr_row_mask != reverse_row_mask)
+            || (curr_col_mask != col_mask && curr_col_mask != reverse_col_mask)
+        {
+            return -1;
+        }
+
+        if curr_row_mask == row_mask {
+            row_cnt += 1;
+        }
+        if curr_col_mask == col_mask {
+            col_cnt += 1;
+        }
+    }
+
+    fn get_moves(mask: usize, count: i32, n: usize) -> i32 {
+        let ones = mask.count_ones() as i32;
+        if n % 2 == 1 {
+            if (n as i32 - 2 * ones).abs() != 1 || (n as i32 - 2 * count).abs() != 1 {
+                return -1;
+            }
+            if ones == (n / 2) as i32 {
+                return (n as i32 / 2) - (mask & 0xAAAAAAAA).count_ones() as i32;
+            } else {
+                return ((n as i32 + 1) / 2) - (mask & 0x55555555).count_ones() as i32;
+            }
+        } else {
+            if ones != (n / 2) as i32 || count != (n / 2) as i32 {
+                return -1;
+            }
+            let count0 = (n as i32 / 2) - (mask & 0xAAAAAAAA).count_ones() as i32;
+            let count1 = (n as i32 / 2) - (mask & 0x55555555).count_ones() as i32;
+            return std::cmp::min(count0, count1);
+        }
+    }
+
+    let row_moves = get_moves(row_mask as usize, row_cnt, n);
+    let col_moves = get_moves(col_mask as usize, col_cnt, n);
+    if row_moves == -1 || col_moves == -1 {
+        return -1;
+    } else {
+        return row_moves + col_moves;
+    }
+}
+
+/// p783
+pub fn min_diff_in_bst(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    let mut vals: Vec<i32> = vec![];
+    fn dfs(root: Option<Rc<RefCell<TreeNode>>>, vals: &mut Vec<i32>) {
+        if let Some(node) = root.as_ref() {
+            dfs(node.borrow().left.clone(), vals);
+            vals.push(node.borrow().val);
+            dfs(node.borrow().right.clone(), vals);
+        }
+    }
+    dfs(root, &mut vals);
+    vals.windows(2)
+        .fold(i32::MAX, |min, vals| (vals[1] - vals[0]).min(min))
+}
+
+/// p784
+pub fn letter_case_permutation(s: String) -> Vec<String> {
+    let chars = s.chars().collect::<Vec<char>>();
+    let mut ans: Vec<String> = vec!["".to_string()];
+    chars.iter().for_each(|c| {
+        let mut new_ans: Vec<String> = vec![];
+        ans.iter_mut().for_each(|s| {
+            if c.is_ascii_alphabetic() {
+                s.push(c.to_ascii_lowercase());
+                new_ans.push(s.clone());
+                s.pop();
+                s.push(c.to_ascii_uppercase());
+                new_ans.push(s.clone());
+            } else {
+                s.push(*c);
+                new_ans.push(s.clone());
+            }
+        });
+        ans = new_ans;
+    });
+    ans
+}
+
+/// p785
+pub fn is_bipartite(graph: Vec<Vec<i32>>) -> bool {
+    fn dfs(x: usize, c: i8, graph: &[Vec<i32>], colors: &mut [i8]) -> bool {
+        colors[x] = c;
+        for &y in &graph[x] {
+            let y = y as usize;
+            if colors[y] == c || colors[y] == 0 && !dfs(y, -c, graph, colors) {
+                return false;
+            }
+        }
+        true
+    }
+
+    let n = graph.len();
+    let mut colors = vec![0; n];
+
+    for i in 0..n {
+        if colors[i] == 0 && !dfs(i, 1, &graph, &mut colors) {
+            return false;
+        }
+    }
+    true
 }
