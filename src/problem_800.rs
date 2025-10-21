@@ -2253,3 +2253,91 @@ pub fn is_bipartite(graph: Vec<Vec<i32>>) -> bool {
     }
     true
 }
+
+/// p786
+pub fn kth_smallest_prime_fraction(arr: Vec<i32>, k: i32) -> Vec<i32> {
+    let length = arr.len();
+    let mut fractions: Vec<Vec<i32>> = vec![];
+    for i in 0..length - 1 {
+        for j in i + 1..length {
+            fractions.push(vec![arr[i], arr[j]])
+        }
+    }
+    fractions.sort_by(|first, second| (first[0] * second[1]).cmp(&(first[1] * second[0])));
+    fractions[(k - 1) as usize].clone()
+}
+
+/// p787
+pub fn find_cheapest_price(n: i32, flights: Vec<Vec<i32>>, src: i32, dst: i32, k: i32) -> i32 {
+    let mut graph = vec![vec![]; n as usize];
+    for flight in flights {
+        let from = flight[0] as usize;
+        let to = flight[1] as usize;
+        let price = flight[2];
+        graph[from].push((to, price));
+    }
+    let mut dist = vec![vec![i32::MAX; k as usize + 2]; n as usize];
+    for i in 0..k as usize + 2 {
+        dist[src as usize][i] = 0;
+    }
+    let mut binary_heap = std::collections::BinaryHeap::new();
+    binary_heap.push((0, src as usize, 0));
+    while let Some((price, v, count)) = binary_heap.pop() {
+        if v == dst as usize {
+            return -price;
+        }
+        if count > k {
+            continue;
+        }
+
+        let price = -price;
+        for (nv, nprice) in &graph[v] {
+            let tmp = nprice + price;
+            let count = count + 1;
+            if tmp < dist[*nv][count as usize] {
+                dist[*nv][count as usize] = tmp;
+                binary_heap.push((-tmp, *nv, count));
+            }
+        }
+    }
+    -1
+}
+
+/// p788
+pub fn rotated_digits(n: i32) -> i32 {
+    let (mut cnt, mut dp) = (0, vec![0; n as usize + 1]);
+    dp[0] = 1;
+    for i in 1..=n {
+        let (a, b) = (i / 10, i % 10);
+        if [3, 4, 7].contains(&b) {
+            continue;
+        }
+        if [0, 1, 8].contains(&b) {
+            dp[i as usize] = dp[a as usize];
+        } else {
+            dp[i as usize] = if dp[a as usize] == 0 { 0 } else { 2 };
+        }
+        cnt += if dp[i as usize] == 2 { 1 } else { 0 };
+    }
+    cnt
+}
+
+/// p789
+pub fn escape_ghosts(ghosts: Vec<Vec<i32>>, target: Vec<i32>) -> bool {
+    let target_distance = target[0].abs() + target[1].abs();
+    for ghost in ghosts {
+        if (target[0] - ghost[0]).abs() + (target[1] - ghost[1]).abs() <= target_distance {
+            return false;
+        }
+    }
+    true
+}
+
+/// p790
+pub fn num_tilings(n: i32) -> i32 {
+    (1..n)
+        .fold((0, 1, 1, 1e9 as i32 + 7), |(a, b, c, m), _| {
+            (b, c, (2 * c % m + a) % m, m)
+        })
+        .2
+}
