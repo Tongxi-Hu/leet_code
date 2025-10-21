@@ -2357,3 +2357,194 @@ pub fn custom_sort_string(order: String, s: String) -> String {
     });
     s_chars.into_iter().collect()
 }
+
+/// p792
+pub fn num_matching_subseq(s: String, words: Vec<String>) -> i32 {
+    let mut records: Vec<VecDeque<(usize, usize)>> = vec![VecDeque::new(); 26];
+    for (i, word) in words.iter().enumerate() {
+        let idx = (word.as_bytes()[0] - b'a') as usize;
+        records[idx].push_back((i, 0));
+    }
+
+    let mut count = 0;
+    for idx in s.bytes().map(|b| (b - b'a') as usize) {
+        let size = records[idx].len();
+        for _ in 0..size {
+            let (words_idx, inner_idx) = records[idx].pop_front().unwrap();
+            let inner_idx = inner_idx + 1;
+            if inner_idx == words[words_idx].len() {
+                count += 1;
+            } else {
+                records[(words[words_idx].as_bytes()[inner_idx] - b'a') as usize]
+                    .push_back((words_idx, inner_idx));
+            }
+        }
+    }
+
+    count
+}
+
+/// p793
+pub fn preimage_size_fzf(k: i32) -> i32 {
+    let (mut l, mut r) = (0, i32::MAX);
+    while l < r {
+        let m = l + ((r - l) >> 1);
+        let (mut i, mut c) = (5, m);
+        while m / i > 0 {
+            c += m / i;
+            i *= 5;
+        }
+        if c == k {
+            return 5;
+        }
+        if c < k {
+            l = m + 1;
+        } else {
+            r = m;
+        }
+    }
+    0
+}
+
+/// p794
+pub fn valid_tic_tac_toe(board: Vec<String>) -> bool {
+    let (mut x_count, mut o_count) = (0, 0);
+    for s in board.iter() {
+        for b in s.bytes() {
+            if b == b'X' {
+                x_count += 1;
+            } else if b == b'O' {
+                o_count += 1;
+            }
+        }
+    }
+
+    if x_count != o_count && x_count != o_count + 1 {
+        return false;
+    }
+
+    fn win(board: &Vec<String>, c: u8) -> bool {
+        let s0 = board[0].as_bytes();
+        let s1 = board[1].as_bytes();
+        let s2 = board[2].as_bytes();
+
+        if s0[0] == c && s0[1] == c && s0[2] == c {
+            return true;
+        }
+        if s1[0] == c && s1[1] == c && s1[2] == c {
+            return true;
+        }
+        if s2[0] == c && s2[1] == c && s2[2] == c {
+            return true;
+        }
+        if s0[0] == c && s1[0] == c && s2[0] == c {
+            return true;
+        }
+        if s0[1] == c && s1[1] == c && s2[1] == c {
+            return true;
+        }
+        if s0[2] == c && s1[2] == c && s2[2] == c {
+            return true;
+        }
+        if s0[0] == c && s1[1] == c && s2[2] == c {
+            return true;
+        }
+        if s0[2] == c && s1[1] == c && s2[0] == c {
+            return true;
+        }
+
+        false
+    }
+
+    if win(&board, b'X') && x_count != o_count + 1 {
+        return false;
+    }
+    if win(&board, b'O') && x_count != o_count {
+        return false;
+    }
+
+    true
+}
+
+/// p795
+pub fn num_subarray_bounded_max(nums: Vec<i32>, left: i32, right: i32) -> i32 {
+    let (mut l, mut r) = (-1, -1);
+    (0..nums.len()).fold(0, |cnt, i| {
+        if nums[i] > right {
+            l = i as i32;
+        }
+        if nums[i] >= left {
+            r = i as i32;
+        }
+        cnt + r - l
+    })
+}
+
+/// p796
+pub fn rotate_string(s: String, goal: String) -> bool {
+    if s.len() != goal.len() {
+        return false;
+    } else {
+        let double = s.clone() + &s;
+        return double.contains(&goal);
+    }
+}
+
+/// p797
+pub fn all_paths_source_target(graph: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+    fn dfs(graph: &Vec<Vec<i32>>, stk: &mut Vec<i32>, ans: &mut Vec<Vec<i32>>, i: usize) {
+        if i == graph.len() - 1 {
+            ans.push(stk.to_vec());
+            return;
+        }
+        for &n in &graph[i] {
+            stk.push(n);
+            dfs(graph, stk, ans, n as usize);
+            stk.pop();
+        }
+    }
+    let mut ans = vec![];
+    dfs(&graph, &mut vec![0], &mut ans, 0);
+    ans
+}
+
+/// p798
+pub fn best_rotation(nums: Vec<i32>) -> i32 {
+    let n = nums.len();
+    let mut score = (0..n).fold(vec![0; n], |mut score, i| {
+        score[(i - nums[i] as usize + 1 + n) % n] -= 1;
+        score
+    });
+    (1..n).fold(0, |max_idx, i| {
+        score[i] += score[i - 1] + 1;
+        if score[i] > score[max_idx as usize] {
+            i as i32
+        } else {
+            max_idx
+        }
+    })
+}
+
+/// p799
+pub fn champagne_tower(poured: i32, query_row: i32, query_glass: i32) -> f64 {
+    let mut f = vec![vec![]; query_row as usize + 1];
+    f[0].push(poured as f64);
+
+    for i in 1..=(query_row as usize) {
+        for j in 0..=i {
+            let mut tmp = 0.0f64;
+
+            if let Some(l) = f.get(i - 1).and_then(|row| row.get(j - 1)).copied() {
+                tmp += (l - 1.).max(0.) / 2.;
+            }
+
+            if let Some(r) = f.get(i - 1).and_then(|row| row.get(j)).copied() {
+                tmp += (r - 1.).max(0.) / 2.;
+            }
+
+            f[i].push(tmp);
+        }
+    }
+
+    f[query_row as usize][query_glass as usize].min(1.)
+}
