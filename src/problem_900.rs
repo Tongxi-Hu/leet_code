@@ -173,7 +173,7 @@ pub fn split_array_same_average(nums: Vec<i32>) -> bool {
     for num in nums {
         for s in (num..=sum).rev() {
             if dp[(s - num) as usize] > 0 {
-                dp[s as usize] |= (dp[(s - num) as usize] << 1);
+                dp[s as usize] |= dp[(s - num) as usize] << 1;
             }
         }
     }
