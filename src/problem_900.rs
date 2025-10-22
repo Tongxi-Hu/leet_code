@@ -188,3 +188,101 @@ pub fn split_array_same_average(nums: Vec<i32>) -> bool {
     }
     false
 }
+
+/// p806
+pub fn number_of_lines(widths: Vec<i32>, s: String) -> Vec<i32> {
+    if s.len() == 0 {
+        return vec![0, 0];
+    } else {
+        s.chars().fold(vec![1, 0], |mut cur, c| {
+            let char_width = widths[((c as u8).abs_diff('a' as u8)) as usize];
+            if char_width + cur[1] > 100 {
+                cur[0] = cur[0] + 1;
+                cur[1] = char_width;
+            } else {
+                cur[1] = cur[1] + char_width;
+            }
+            cur
+        })
+    }
+}
+
+/// p807
+pub fn max_increase_keeping_skyline(grid: Vec<Vec<i32>>) -> i32 {
+    let (height, width) = (grid.len(), grid[0].len());
+    let (mut max_by_col, mut max_by_row) = (vec![0; width], vec![0; height]);
+    for r in 0..height {
+        for c in 0..width {
+            max_by_row[r] = max_by_row[r].max(grid[r][c]);
+            max_by_col[c] = max_by_col[c].max(grid[r][c]);
+        }
+    }
+    let mut acc = 0;
+    for r in 0..height {
+        for c in 0..width {
+            acc = acc + max_by_row[r].min(max_by_col[c]) - grid[r][c]
+        }
+    }
+    acc
+}
+
+/// p808
+pub fn soup_servings(n: i32) -> f64 {
+    if n > 4800 {
+        return 1.0;
+    }
+    fn dfs(i: i32, j: i32) -> f64 {
+        static mut F: [[f64; 200]; 200] = [[0.0; 200]; 200];
+
+        unsafe {
+            if i <= 0 && j <= 0 {
+                return 0.5;
+            }
+            if i <= 0 {
+                return 1.0;
+            }
+            if j <= 0 {
+                return 0.0;
+            }
+            if F[i as usize][j as usize] > 0.0 {
+                return F[i as usize][j as usize];
+            }
+
+            let ans =
+                0.25 * (dfs(i - 4, j) + dfs(i - 3, j - 1) + dfs(i - 2, j - 2) + dfs(i - 1, j - 3));
+            F[i as usize][j as usize] = ans;
+            ans
+        }
+    }
+
+    dfs((n + 24) / 25, (n + 24) / 25)
+}
+
+/// p809
+pub fn expressive_words(s: String, words: Vec<String>) -> i32 {
+    let expand = |s: &[u8], w: &[u8]| -> bool {
+        let (mut i, mut j, m, n) = (0, 0, s.len(), w.len());
+        while i < m || j < n {
+            if i < m && j < n && s[i] == w[j] {
+                i += 1;
+                j += 1;
+            } else if i > 1 && i < m && s[i] == s[i - 1] && s[i - 1] == s[i - 2]
+                || i > 0 && i < m - 1 && s[i] == s[i - 1] && s[i] == s[i + 1]
+            {
+                i += 1;
+            } else {
+                return false;
+            }
+        }
+        j == n
+    };
+    words
+        .iter()
+        .filter(|w| expand(s.as_bytes(), w.as_bytes()))
+        .count() as i32
+}
+
+/// p810
+pub fn xor_game(nums: Vec<i32>) -> bool {
+    nums.len() % 2 == 0 || nums.iter().fold(0, |pre, cur| pre ^ cur) == 0
+}
