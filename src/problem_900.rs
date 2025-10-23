@@ -4,7 +4,7 @@ use std::{
     rc::Rc,
 };
 
-use crate::common::TreeNode;
+use crate::common::{ListNode, TreeNode};
 
 /// p801
 pub fn min_swap(nums1: Vec<i32>, nums2: Vec<i32>) -> i32 {
@@ -421,4 +421,142 @@ pub fn num_buses_to_destination(mut routes: Vec<Vec<i32>>, source: i32, target: 
     }
 
     dis.get(&target).copied().unwrap_or(-1)
+}
+
+/// p816
+pub fn ambiguous_coordinates(s: String) -> Vec<String> {
+    fn solve(s: &str) -> Vec<String> {
+        let (mut ret, arr) = (vec![], s.chars().collect::<Vec<_>>());
+        if arr.len() == 0 || arr.len() > 1 && arr[0] == '0' && arr[arr.len() - 1] == '0' {
+            return ret;
+        }
+        if arr.len() > 1 && arr[0] == '0' {
+            ret.push(format!("0.{}", &arr[1..].iter().collect::<String>()));
+            return ret;
+        }
+        ret.push(s.to_string());
+        if arr.len() == 0 || arr[arr.len() - 1] == '0' {
+            return ret;
+        }
+        for i in 1..arr.len() {
+            ret.push(format!(
+                "{}.{}",
+                &arr[0..i].iter().collect::<String>(),
+                &arr[i..].iter().collect::<String>()
+            ));
+        }
+        ret
+    }
+    let mut ret = vec![];
+    for i in 1..s.len() - 2 {
+        let (left, right) = (solve(&s[1..i + 1]), solve(&s[i + 1..s.len() - 1]));
+        for l in left.iter() {
+            for r in right.iter() {
+                ret.push(format!("({}, {})", l, r));
+            }
+        }
+    }
+    ret
+}
+
+/// p817
+pub fn num_components(head: Option<Box<ListNode>>, nums: Vec<i32>) -> i32 {
+    let nums: HashSet<i32> = nums.into_iter().collect();
+    let mut head_ref = &head;
+    let (mut is_in_component, mut component) = (false, 0);
+    while let Some(node) = head_ref.as_ref() {
+        if nums.contains(&node.val) {
+            if is_in_component == false {
+                is_in_component = true;
+            }
+        } else {
+            if is_in_component == true {
+                is_in_component = false;
+                component = component + 1;
+            }
+        }
+        head_ref = &node.next;
+    }
+    if is_in_component == true {
+        component = component + 1;
+    }
+    component
+}
+
+/// p818
+pub fn racecar(target: i32) -> i32 {
+    let mut dp = vec![u32::MAX; target as usize + 3];
+    dp[0] = 0;
+    dp[1] = 1;
+    dp[2] = 4;
+    for t in 3..=target {
+        let k = 32 - t.leading_zeros();
+        if t == (1 << k) - 1 {
+            dp[t as usize] = k;
+            continue;
+        }
+        let t = t as usize;
+        for j in 0..k - 1 {
+            dp[t] = dp[t].min(dp[t - (1 << (k - 1)) + (1 << j)] + k - 1 + j + 2);
+        }
+        if (1 << k) - 1 - t < t {
+            dp[t] = dp[t].min(dp[(1 << k) - 1 - t] + k + 1);
+        }
+    }
+    dp[target as usize] as i32
+}
+
+/// p819
+pub fn most_common_word(paragraph: String, banned: Vec<String>) -> String {
+    use std::iter::FromIterator;
+    let banned: HashSet<String> = HashSet::from_iter(banned);
+    let mut count: HashMap<String, usize> = HashMap::new();
+    paragraph
+        .split(|c: char| c.is_ascii_punctuation() || c.is_ascii_whitespace())
+        .for_each(|w| {
+            let word = w.to_ascii_lowercase();
+            if !word.is_empty() && !banned.contains(&word) {
+                let accuracy = count.entry(word).or_insert(0);
+                *accuracy = *accuracy + 1;
+            }
+        });
+    count.iter().max_by(|a, b| a.1.cmp(b.1)).unwrap().0.clone()
+}
+
+/// p820
+pub fn minimum_length_encoding(words: Vec<String>) -> i32 {
+    let mut s = words.iter().map(|x| x.as_str()).collect::<HashSet<&str>>();
+    for word in words.iter() {
+        for k in 1..word.len() {
+            s.remove(&word[k..]);
+        }
+    }
+    let mut ans = 0;
+    for w in s.iter() {
+        ans += w.len() + 1;
+    }
+    ans as i32
+}
+
+/// p821
+pub fn shortest_to_char(s: String, c: char) -> Vec<i32> {
+    let mut locations: Vec<i32> = vec![];
+    let chars = s.chars().collect::<Vec<char>>();
+    chars.iter().enumerate().for_each(|(i, l)| {
+        if *l == c {
+            locations.push(i as i32);
+        }
+    });
+    let mut distance: Vec<i32> = vec![];
+    chars.iter().enumerate().for_each(|(i, l)| {
+        if *l == c {
+            distance.push(0)
+        } else {
+            distance.push(locations.iter().fold(i32::MAX, |mut distance, location| {
+                distance = distance.min((location - (i as i32)).abs());
+                distance
+            }));
+        }
+    });
+    distance
 }
