@@ -1,4 +1,10 @@
-use std::collections::{HashSet, VecDeque};
+use std::{
+    cell::RefCell,
+    collections::{HashMap, HashSet, VecDeque},
+    rc::Rc,
+};
+
+use crate::common::TreeNode;
 
 /// p801
 pub fn min_swap(nums1: Vec<i32>, nums2: Vec<i32>) -> i32 {
@@ -285,4 +291,134 @@ pub fn expressive_words(s: String, words: Vec<String>) -> i32 {
 /// p810
 pub fn xor_game(nums: Vec<i32>) -> bool {
     nums.len() % 2 == 0 || nums.iter().fold(0, |pre, cur| pre ^ cur) == 0
+}
+
+/// p811
+pub fn subdomain_visits(cpdomains: Vec<String>) -> Vec<String> {
+    let mut count: HashMap<String, usize> = HashMap::new();
+    cpdomains.iter().for_each(|visit| {
+        let mut stats = visit.split(' ');
+        let time = stats.next().unwrap().parse::<usize>().unwrap();
+        let domain = stats.next().unwrap();
+        domain
+            .split('.')
+            .rev()
+            .fold("".to_string(), |mut acc, cur| {
+                if acc == "".to_string() {
+                    acc = cur.to_string();
+                } else {
+                    acc = cur.to_string() + "." + &acc;
+                }
+                let size = count.entry(acc.clone()).or_insert(0);
+                *size = *size + time;
+                acc
+            });
+    });
+    count
+        .into_iter()
+        .map(|(k, v)| v.to_string() + " " + &k)
+        .collect::<Vec<String>>()
+}
+
+/// p812
+pub fn largest_triangle_area(points: Vec<Vec<i32>>) -> f64 {
+    let points: Vec<Vec<f64>> = points
+        .iter()
+        .map(|point| point.iter().map(|coordinate| *coordinate as f64).collect())
+        .collect();
+    let count = points.len();
+    let mut max_area = 0_f64;
+    for i in 0..count - 2 {
+        for j in i..count - 1 {
+            for k in j..count {
+                max_area = max_area.max(
+                    0.5 * (points[i][0] * points[j][1]
+                        + points[j][0] * points[k][1]
+                        + points[k][0] * points[i][1]
+                        - points[i][0] * points[k][1]
+                        - points[j][0] * points[i][1]
+                        - points[k][0] * points[j][1])
+                        .abs(),
+                );
+            }
+        }
+    }
+    max_area
+}
+
+/// p813
+pub fn largest_sum_of_averages(nums: Vec<i32>, k: i32) -> f64 {
+    let n = nums.len();
+    let mut pre_sum = vec![0; n + 1];
+
+    (0..n).for_each(|i| pre_sum[i + 1] = pre_sum[i] + nums[i]);
+
+    let mut dp = vec![0.0; n];
+
+    (0..n).for_each(|i| dp[i] = (pre_sum[n] - pre_sum[i]) as f64 / (n - i) as f64);
+
+    (0..k - 1).for_each(|_| {
+        (0..n).for_each(|i| {
+            (i + 1..n).for_each(|j| {
+                let v = (pre_sum[j] - pre_sum[i]) as f64 / (j - i) as f64 + dp[j];
+
+                if v > dp[i] {
+                    dp[i] = v;
+                }
+            })
+        })
+    });
+
+    dp[0]
+}
+
+/// p814
+pub fn prune_tree(mut root: Option<Rc<RefCell<TreeNode>>>) -> Option<Rc<RefCell<TreeNode>>> {
+    fn dfs(root: &mut Option<Rc<RefCell<TreeNode>>>) {
+        if let Some(node) = root.as_ref() {
+            dfs(&mut node.borrow_mut().left);
+            dfs(&mut node.borrow_mut().right);
+            if node.borrow().left.is_none()
+                && node.borrow().right.is_none()
+                && node.borrow().val == 0
+            {
+                *root = None;
+            }
+        }
+    }
+    dfs(&mut root);
+    root
+}
+
+/// p815
+pub fn num_buses_to_destination(mut routes: Vec<Vec<i32>>, source: i32, target: i32) -> i32 {
+    let mut stop_to_buses: HashMap<i32, Vec<usize>> = HashMap::new();
+    for (i, route) in routes.iter().enumerate() {
+        for &x in route {
+            stop_to_buses.entry(x).or_default().push(i);
+        }
+    }
+
+    if !stop_to_buses.contains_key(&source) || !stop_to_buses.contains_key(&target) {
+        return if source != target { -1 } else { 0 };
+    }
+
+    let mut dis = HashMap::new();
+    dis.insert(source, 0);
+    let mut q = VecDeque::new();
+    q.push_back(source);
+    while let Some(x) = q.pop_front() {
+        let dis_x = dis[&x];
+        for &i in &stop_to_buses[&x] {
+            for &y in &routes[i] {
+                if !dis.contains_key(&y) {
+                    dis.insert(y, dis_x + 1);
+                    q.push_back(y);
+                }
+            }
+            routes[i].clear();
+        }
+    }
+
+    dis.get(&target).copied().unwrap_or(-1)
 }
