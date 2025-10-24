@@ -560,3 +560,91 @@ pub fn shortest_to_char(s: String, c: char) -> Vec<i32> {
     });
     distance
 }
+
+/// p822
+pub fn flipgame(fronts: Vec<i32>, backs: Vec<i32>) -> i32 {
+    let n = fronts.len();
+    let mut set = HashSet::new();
+
+    for i in 0..n {
+        if fronts[i] == backs[i] {
+            set.insert(fronts[i]);
+        }
+    }
+
+    let mut min_val = i32::MAX;
+    for i in 0..n {
+        if fronts[i] != backs[i] {
+            if !set.contains(&fronts[i]) {
+                min_val = i32::min(min_val, fronts[i]);
+            }
+            if !set.contains(&backs[i]) {
+                min_val = i32::min(min_val, backs[i]);
+            }
+        }
+    }
+
+    if min_val == i32::MAX { 0 } else { min_val }
+}
+
+/// p823
+pub fn num_factored_binary_trees(mut arr: Vec<i32>) -> i32 {
+    const MOD: i64 = 1_000_000_007;
+    arr.sort_unstable();
+    let mut count_map = HashMap::<i32, i64>::new();
+    arr.into_iter()
+        .map(|n| {
+            let count: i64 = count_map
+                .iter()
+                .map(|(&k, &v)| {
+                    if n % k == 0 && count_map.contains_key(&(n / k)) {
+                        (v * count_map[&(n / k)]) % MOD
+                    } else {
+                        0
+                    }
+                })
+                .fold(1, |sum, c| (sum + c) % MOD);
+            count_map.insert(n, count);
+            count
+        })
+        .fold(0, |sum, c| (sum + c) % MOD) as i32
+}
+
+/// p824
+pub fn to_goat_latin(sentence: String) -> String {
+    sentence
+        .split_ascii_whitespace()
+        .enumerate()
+        .map(|(i, s)| {
+            match s[..1]
+                .to_lowercase()
+                .starts_with(&['a', 'e', 'i', 'o', 'u'][..])
+            {
+                true => s.to_string() + "ma" + "a".repeat(i + 1).as_str(),
+                false => s[1..].to_string() + &s[0..1] + "ma" + "a".repeat(i + 1).as_str(),
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+/// p825
+pub fn num_friend_requests(mut ages: Vec<i32>) -> i32 {
+    ages.sort();
+    let length = ages.len();
+    let (mut ans, mut l, mut r) = (0, 0, 0);
+    for &age in ages.iter() {
+        if age < 15 {
+            continue;
+        } else {
+            while ages[l] as f32 <= age as f32 * 0.5 + 7 as f32 {
+                l = l + 1;
+            }
+            while r + 1 < length && ages[r + 1] <= age {
+                r = r + 1;
+            }
+            ans = ans + r - l;
+        }
+    }
+    ans as i32
+}
