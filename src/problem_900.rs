@@ -910,3 +910,112 @@ pub fn largest_overlap(img1: Vec<Vec<i32>>, img2: Vec<Vec<i32>>) -> i32 {
 
     ans
 }
+
+/// p836
+pub fn is_rectangle_overlap(rec1: Vec<i32>, rec2: Vec<i32>) -> bool {
+    let (x1, y1, x2, y2) = (rec1[0], rec1[1], rec1[2], rec1[3]);
+    let (x3, y3, x4, y4) = (rec2[0], rec2[1], rec2[2], rec2[3]);
+    !(x3 >= x2 || x4 <= x1 || y3 >= y2 || y4 <= y1)
+}
+
+/// p837
+pub fn new21_game(n: i32, k: i32, max_pts: i32) -> f64 {
+    let n = n as usize;
+    let k = k as usize;
+    let max_pts = max_pts as usize;
+    let mut f = vec![0.0; n + 1];
+    let mut s = 0.0;
+    for i in (0..=n).rev() {
+        f[i] = if i >= k { 1.0 } else { s / max_pts as f64 };
+        s += f[i];
+        if i + max_pts <= n {
+            s -= f[i + max_pts];
+        }
+    }
+    f[0]
+}
+
+/// p838
+pub fn push_dominoes(dominoes: String) -> String {
+    let mut arr: Vec<char> = dominoes.chars().collect();
+    let (mut l, mut r) = (-1, -1);
+    (0..=dominoes.len()).for_each(|i| {
+        if i == dominoes.len() || arr[i] == 'R' {
+            if r > l {
+                while r < i as i32 {
+                    arr[r as usize] = 'R';
+                    r += 1;
+                }
+            }
+            r = i as i32;
+        } else if arr[i] == 'L' {
+            if l > r || r == -1 {
+                l += 1;
+                while l < i as i32 {
+                    arr[l as usize] = 'L';
+                    l += 1;
+                }
+            } else {
+                l = i as i32;
+                let (mut lo, mut hi) = (r + 1, l - 1);
+                while lo < hi {
+                    arr[lo as usize] = 'R';
+                    arr[hi as usize] = 'L';
+                    lo += 1;
+                    hi -= 1;
+                }
+            }
+        }
+    });
+    arr.iter().collect::<String>()
+}
+
+/// p839
+pub fn num_similar_groups(strs: Vec<String>) -> i32 {
+    let n = strs.len();
+    let mut parents = (0..n).collect::<Vec<_>>();
+
+    fn is_similar(s1: &[u8], s2: &[u8]) -> bool {
+        let (mut idx1, mut idx2) = (None, None);
+
+        for (i, (&b1, &b2)) in s1.iter().zip(s2.iter()).enumerate() {
+            if b1 == b2 {
+                continue;
+            }
+
+            match (idx1, idx2) {
+                (None, None) => {
+                    idx1 = Some(i);
+                }
+                (Some(id), None) if s1[id] == b2 && s2[id] == b1 => {
+                    idx2 = Some(i);
+                }
+                _ => return false,
+            }
+        }
+
+        !(idx1.is_some() && idx2.is_none())
+    }
+    fn parent(parents: &mut Vec<usize>, mut v: usize) -> usize {
+        while v != parents[v] {
+            parents[v] = parents[parents[v]];
+            v = parents[v];
+        }
+        v
+    }
+
+    let mut count = n as i32;
+    for i in 1..n {
+        for j in 0..i {
+            if is_similar(strs[i].as_bytes(), strs[j].as_bytes()) {
+                let p = parent(&mut parents, j);
+                if i != p {
+                    parents[p] = i;
+                    count -= 1;
+                }
+            }
+        }
+    }
+
+    count
+}
