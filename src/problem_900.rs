@@ -648,3 +648,135 @@ pub fn num_friend_requests(mut ages: Vec<i32>) -> i32 {
     }
     ans as i32
 }
+
+/// p826
+pub fn max_profit_assignment(difficulty: Vec<i32>, profit: Vec<i32>, mut worker: Vec<i32>) -> i32 {
+    let mut jobs = difficulty
+        .into_iter()
+        .zip(profit)
+        .collect::<Vec<(i32, i32)>>();
+    jobs.sort();
+    worker.sort();
+    let mut gain = vec![];
+    worker.iter().for_each(|ability| {
+        let mut profit = 0;
+        for job in jobs.iter() {
+            if job.0 > *ability {
+                break;
+            } else {
+                profit = profit.max(job.1)
+            }
+        }
+        gain.push(profit);
+    });
+    gain.iter().fold(0, |acc, cur| acc + cur)
+}
+
+/// p827
+pub fn largest_island(mut grid: Vec<Vec<i32>>) -> i32 {
+    fn dfs(grid: &mut Vec<Vec<i32>>, i: usize, j: usize, id: i32) -> i32 {
+        grid[i][j] = id;
+        let mut size = 1;
+        for (x, y) in [
+            (i.saturating_sub(1), j),
+            (i + 1, j),
+            (i, j.saturating_sub(1)),
+            (i, j + 1),
+        ] {
+            if x < grid.len() && y < grid[0].len() && grid[x][y] == 1 {
+                size += dfs(grid, x, y, id);
+            }
+        }
+        size
+    }
+
+    let n = grid.len();
+    let mut area = vec![];
+    for i in 0..n {
+        for j in 0..n {
+            if grid[i][j] == 1 {
+                area.push(dfs(&mut grid, i, j, area.len() as i32 + 2));
+            }
+        }
+    }
+
+    if area.is_empty() {
+        return 1;
+    }
+
+    let mut ans = 0;
+    let mut s = HashSet::new();
+    for (i, row) in grid.iter().enumerate() {
+        for (j, &x) in row.iter().enumerate() {
+            if x != 0 {
+                continue;
+            }
+            s.clear();
+            let mut new_area = 1;
+            for (x, y) in [
+                (i.saturating_sub(1), j),
+                (i + 1, j),
+                (i, j.saturating_sub(1)),
+                (i, j + 1),
+            ] {
+                if x < n && y < n && grid[x][y] != 0 && s.insert(grid[x][y]) {
+                    new_area += area[(grid[x][y] - 2) as usize];
+                }
+            }
+            ans = ans.max(new_area);
+        }
+    }
+
+    if ans == 0 { (n * n) as _ } else { ans }
+}
+
+/// p828
+pub fn unique_letter_string(s: String) -> i32 {
+    let mut d: Vec<Vec<i32>> = vec![vec![-1; 1]; 26];
+    for (i, c) in s.chars().enumerate() {
+        d[(c as usize) - ('A' as usize)].push(i as i32);
+    }
+    let mut ans = 0;
+    for v in d.iter_mut() {
+        v.push(s.len() as i32);
+        for i in 1..v.len() - 1 {
+            ans += (v[i] - v[i - 1]) * (v[i + 1] - v[i]);
+        }
+    }
+    ans as i32
+}
+
+/// p829
+pub fn consecutive_numbers_sum(mut n: i32) -> i32 {
+    let (mut cnt, k) = (0, ((2 * n) as f64).sqrt() as i32);
+    for i in 1..=k {
+        n -= i;
+        cnt += if n % i == 0 { 1 } else { 0 }
+    }
+    cnt
+}
+
+/// p830
+pub fn large_group_positions(s: String) -> Vec<Vec<i32>> {
+    let length = s.len();
+    s.chars()
+        .into_iter()
+        .enumerate()
+        .fold((vec![], ' ', 1, -1), |mut acc, (i, c)| {
+            if c == acc.1 {
+                acc.2 = acc.2 + 1;
+                if i == length - 1 && acc.2 >= 3 {
+                    acc.0.push(vec![acc.3, acc.3 + acc.2 - 1]);
+                }
+            } else {
+                if acc.2 >= 3 {
+                    acc.0.push(vec![acc.3, acc.3 + acc.2 - 1]);
+                }
+                acc.1 = c;
+                acc.2 = 1;
+                acc.3 = i as i32;
+            }
+            return acc;
+        })
+        .0
+}
