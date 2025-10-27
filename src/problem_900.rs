@@ -1,6 +1,6 @@
 use std::{
     cell::RefCell,
-    collections::{HashMap, HashSet, VecDeque},
+    collections::{BTreeMap, HashMap, HashSet, VecDeque},
     rc::Rc,
 };
 
@@ -779,4 +779,134 @@ pub fn large_group_positions(s: String) -> Vec<Vec<i32>> {
             return acc;
         })
         .0
+}
+
+/// p831
+pub fn mask_pii(s: String) -> String {
+    const COUNTRY_CODE: [&str; 4] = ["", "+*-", "+**-", "+***-"];
+    match s.find('@') {
+        Some(idx) => s[0..1].to_lowercase() + "*****" + &s[(idx - 1)..].to_lowercase(),
+        None => {
+            let numbers = s.matches(char::is_numeric).collect::<String>();
+            let n = numbers.len();
+            COUNTRY_CODE[n - 10].to_string() + "***-***-" + &numbers[(n - 4)..]
+        }
+    }
+}
+
+/// p832
+pub fn flip_and_invert_image(mut image: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+    image.iter_mut().for_each(|row| {
+        row.reverse();
+        row.iter_mut()
+            .for_each(|pixel| *pixel = if *pixel == 1 { 0 } else { 1 });
+    });
+    image
+}
+
+/// p833
+pub fn find_replace_string(
+    s: String,
+    indices: Vec<i32>,
+    sources: Vec<String>,
+    targets: Vec<String>,
+) -> String {
+    let n = s.len();
+    let mut records: BTreeMap<usize, usize> = BTreeMap::new();
+    for (i, idx) in indices.iter().map(|&idx| idx as usize).enumerate() {
+        let len = sources[i].len();
+        if idx + len <= n && &s[idx..idx + len] == sources[i].as_str() {
+            records.insert(idx, i);
+        }
+    }
+    let mut replace = String::new();
+    let mut expect_idx = 0;
+    for (idx, i) in records.into_iter() {
+        if expect_idx != idx {
+            replace.push_str(&s[expect_idx..idx]);
+        }
+        replace.push_str(targets[i].as_str());
+        expect_idx = idx + sources[i].len();
+    }
+    if expect_idx != n {
+        replace.push_str(&s[expect_idx..]);
+    }
+    replace
+}
+
+/// p834
+pub fn sum_of_distances_in_tree(n: i32, edges: Vec<Vec<i32>>) -> Vec<i32> {
+    let n = n as usize;
+
+    let mut graph: Vec<Vec<usize>> = vec![vec![]; n];
+    for edge in edges.iter() {
+        let (node1, node2) = (edge[0] as usize, edge[1] as usize);
+        graph[node1].push(node2);
+        graph[node2].push(node1);
+    }
+
+    fn re_root(
+        graph: &Vec<Vec<usize>>,
+        result: &mut Vec<i32>,
+        counts: &Vec<i32>,
+        cur_node: usize,
+        parent: usize,
+    ) {
+        let n = graph.len() as i32;
+        for &next_node in graph[cur_node].iter() {
+            if next_node != parent {
+                result[next_node] = result[cur_node] + n - 2 * counts[next_node];
+                re_root(graph, result, counts, next_node, cur_node);
+            }
+        }
+    }
+
+    fn dfs(
+        graph: &Vec<Vec<usize>>,
+        result: &mut Vec<i32>,
+        counts: &mut Vec<i32>,
+        cur_node: usize,
+        parent: usize,
+        depth: i32,
+    ) {
+        result[0] += depth; // depth是当前节点cur_node到0节点的距离，所以在这个过程中，可以计算出来result[0]
+
+        for &next_node in graph[cur_node].iter() {
+            if next_node != parent {
+                dfs(graph, result, counts, next_node, cur_node, depth + 1);
+                counts[cur_node] += counts[next_node];
+            }
+        }
+    }
+
+    let mut counts: Vec<i32> = vec![1; n];
+    let mut result: Vec<i32> = vec![0; n];
+    dfs(&graph, &mut result, &mut counts, 0, n, 0);
+
+    re_root(&graph, &mut result, &counts, 0, n);
+
+    result
+}
+
+/// p835
+pub fn largest_overlap(img1: Vec<Vec<i32>>, img2: Vec<Vec<i32>>) -> i32 {
+    let n = img1.len() as i32;
+    let mut ans = 0;
+
+    for di in -n + 1..=n - 1 {
+        for dj in -n + 1..=n - 1 {
+            let mut count = 0;
+
+            for i in 0.max(-di)..n.min(n - di) {
+                for j in 0.max(-dj)..n.min(n - dj) {
+                    count +=
+                        img1[i as usize][j as usize] * img2[(i + di) as usize][(j + dj) as usize];
+                }
+            }
+
+            ans = ans.max(count);
+        }
+    }
+
+    ans
 }
