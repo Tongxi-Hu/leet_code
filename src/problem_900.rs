@@ -1019,3 +1019,40 @@ pub fn num_similar_groups(strs: Vec<String>) -> i32 {
 
     count
 }
+
+/// p840
+pub fn num_magic_squares_inside(grid: Vec<Vec<i32>>) -> i32 {
+    let mut count = 0;
+    let (rows, cols) = (grid.len(), grid[0].len());
+    if rows < 3 || cols < 3 {
+        return count;
+    }
+    for r in 0..rows - 2 {
+        'inner: for c in 0..cols - 2 {
+            let mut record = HashSet::new();
+            for i in 0..3 {
+                for j in 0..3 {
+                    if grid[r + i][c + j] >= 10 {
+                        continue 'inner;
+                    }
+                    record.insert(grid[r + i][c + j]);
+                }
+            }
+            if record.len() != 9
+                || grid[r + 1][c + 1] != 5
+                || grid[r][c] + grid[r][c + 1] + grid[r][c + 2] != 15
+                || grid[r + 1][c] + grid[r + 1][c + 1] + grid[r + 1][c + 2] != 15
+                || grid[r + 1][c] + grid[r + 1][c + 1] + grid[r + 1][c + 2] != 15
+                || grid[r][c] + grid[r + 1][c] + grid[r + 2][c] != 15
+                || grid[r][c + 1] + grid[r + 1][c + 1] + grid[r + 2][c + 1] != 15
+                || grid[r][c + 2] + grid[r + 1][c + 2] + grid[r + 2][c + 2] != 15
+                || grid[r][c] + grid[r + 1][c + 1] + grid[r + 2][c + 2] != 15
+                || grid[r + 2][c] + grid[r + 1][c + 1] + grid[r][c + 2] != 15
+            {
+                continue 'inner;
+            }
+            count = count + 1;
+        }
+    }
+    return count;
+}
