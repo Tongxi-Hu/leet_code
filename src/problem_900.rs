@@ -1056,3 +1056,141 @@ pub fn num_magic_squares_inside(grid: Vec<Vec<i32>>) -> i32 {
     }
     return count;
 }
+
+/// p841
+pub fn can_visit_all_rooms(rooms: Vec<Vec<i32>>) -> bool {
+    let mut keys: HashSet<i32> = HashSet::new();
+    keys.insert(0);
+    let count = rooms.len();
+    let mut visited = vec![false; count];
+    rooms[0].iter().for_each(|key| {
+        keys.insert(*key);
+    });
+    visited[0] = true;
+    let mut can_visit = visited
+        .iter()
+        .enumerate()
+        .filter(|(i, v)| (**v == false) && keys.contains(&(*i as i32)))
+        .map(|(i, _)| i)
+        .collect::<Vec<usize>>();
+
+    while can_visit.len() > 0 {
+        can_visit.iter().for_each(|i| {
+            visited[*i] = true;
+            rooms[*i].iter().for_each(|k| {
+                keys.insert(*k);
+            });
+        });
+        can_visit = visited
+            .iter()
+            .enumerate()
+            .filter(|(i, v)| (**v == false) && keys.contains(&(*i as i32)))
+            .map(|(i, _)| i)
+            .collect::<Vec<usize>>();
+    }
+
+    visited.iter().all(|v| *v == true)
+}
+
+/// p842
+pub fn split_into_fibonacci(num: String) -> Vec<i32> {
+    let n = num.len();
+    if n < 3 {
+        return vec![];
+    }
+    let mut result = Vec::new();
+
+    fn check(num: &str, idx1: usize, mut idx2: usize, result: &mut Vec<i32>) -> bool {
+        let n = num.len();
+
+        let mut val1 = match num[0..idx1].parse::<i32>() {
+            Ok(val) if val.to_string().len() == idx1 => val,
+            _ => return false,
+        };
+        let mut val2 = match num[idx1..idx2].parse::<i32>() {
+            Ok(val) if val.to_string().len() == idx2 - idx1 => val,
+            _ => return false,
+        };
+        result.push(val1);
+        result.push(val2);
+
+        while idx2 < n {
+            let val3 = match val1.checked_add(val2) {
+                Some(val) => val,
+                None => return false,
+            };
+
+            let str = val3.to_string();
+            let len = str.len();
+            if idx2 + len <= n && &num[idx2..idx2 + len] == &str {
+                idx2 += len;
+                val1 = val2;
+                val2 = val3;
+                result.push(val3);
+            } else {
+                return false;
+            }
+        }
+
+        true
+    }
+
+    for i in 1..n - 2 {
+        for j in i + 1..n - 1 {
+            if check(&num, i, j, &mut result) {
+                return result;
+            }
+            result.clear();
+        }
+    }
+
+    vec![]
+}
+
+/// p844
+pub fn backspace_compare(s: String, t: String) -> bool {
+    let s_stack = s.chars().fold(vec![], |mut acc, cur| {
+        if cur == '#' {
+            if acc.len() > 0 {
+                acc.pop();
+            }
+        } else {
+            acc.push(cur);
+        };
+        acc
+    });
+    let t_stack = t.chars().fold(vec![], |mut acc, cur| {
+        if cur == '#' {
+            if acc.len() > 0 {
+                acc.pop();
+            }
+        } else {
+            acc.push(cur);
+        };
+        acc
+    });
+    s_stack == t_stack
+}
+
+/// p845
+pub fn longest_mountain(arr: Vec<i32>) -> i32 {
+    let length = arr.len();
+    let mut left = vec![0; length];
+    let mut right = vec![0; length];
+    for i in 1..length {
+        if arr[i] > arr[i - 1] {
+            left[i] = left[i - 1] + 1;
+        }
+    }
+    for i in (0..length - 1).rev() {
+        if arr[i] > arr[i + 1] {
+            right[i] = right[i + 1] + 1;
+        }
+    }
+    arr.iter().enumerate().fold(0, |mut acc, (i, _)| {
+        if left[i] > 0 && right[i] > 0 {
+            acc = acc.max(left[i] + right[i] + 1)
+        }
+        acc
+    })
+}
