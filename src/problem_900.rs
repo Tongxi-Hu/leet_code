@@ -1194,3 +1194,151 @@ pub fn longest_mountain(arr: Vec<i32>) -> i32 {
         acc
     })
 }
+
+/// p846
+pub fn is_n_straight_hand(mut hand: Vec<i32>, group_size: i32) -> bool {
+    let n = hand.len();
+    if n as i32 % group_size != 0 {
+        return false;
+    }
+
+    let mut cache = HashMap::new();
+    hand.sort_unstable();
+
+    hand.iter().for_each(|&h| *cache.entry(h).or_insert(0) += 1);
+    for &h in hand.iter() {
+        if cache.get(&h) == None {
+            continue;
+        }
+        for i in h..h + group_size {
+            if cache.get(&i) == None {
+                return false;
+            }
+            let val = *cache.get(&i).unwrap();
+            cache.insert(i, val - 1);
+            if *cache.get(&i).unwrap() == 0 {
+                cache.remove(&i);
+            }
+        }
+    }
+    true
+}
+
+/// p847
+pub fn shortest_path_length(graph: Vec<Vec<i32>>) -> i32 {
+    let n = graph.len();
+    let mut visited = vec![vec![false; 1 << n]; n];
+    let mut q = std::collections::VecDeque::new();
+    for i in 0..n {
+        q.push_back((i, 1u16 << i, 0));
+        visited[i][1usize << i] = true;
+    }
+    while let Some((u, mask, dist)) = q.pop_front() {
+        if mask == (1 << n) - 1 {
+            return dist;
+        }
+        for &v in &graph[u] {
+            let new_mask = mask | (1 << v);
+            let v = v as usize;
+            if visited[v][new_mask as usize] {
+                continue;
+            }
+            visited[v][new_mask as usize] = true;
+            q.push_back((v, new_mask, dist + 1));
+        }
+    }
+    0
+}
+
+/// p848
+pub fn shifting_letters(s: String, mut shifts: Vec<i32>) -> String {
+    let n = s.len();
+    for i in (0..n).rev() {
+        if i + 1 < n {
+            shifts[i] = (shifts[i] + shifts[i + 1]) % 26;
+        } else {
+            shifts[i] %= 26;
+        }
+    }
+    let mut shift_s: Vec<u8> = vec![0; n];
+    for (i, b) in s.bytes().enumerate() {
+        shift_s[i] = b'a' + (b - b'a' + shifts[i] as u8) % 26;
+    }
+    String::from_utf8(shift_s).unwrap()
+}
+
+/// p849
+pub fn max_dist_to_closest(seats: Vec<i32>) -> i32 {
+    let mut ans = 0;
+    let (mut l, mut r) = (0, seats.len() - 1);
+
+    while seats[l] == 0 {
+        l += 1;
+    }
+    ans = ans.max(l);
+
+    while seats[r] == 0 {
+        r -= 1;
+    }
+    ans = ans.max(seats.len() - r - 1);
+
+    let mut tmp = l;
+    while l < r {
+        l += 1;
+        while seats[l] == 0 {
+            l += 1;
+        }
+        ans = ans.max((l - tmp) / 2);
+        tmp = l;
+    }
+    ans as i32
+}
+
+/// p850
+pub fn rectangle_area(rectangles: Vec<Vec<i32>>) -> i32 {
+    const MOD: i64 = 1E9 as i64 + 7;
+    let mut all_recs = vec![];
+    for (i, rec) in rectangles.iter().enumerate() {
+        let mut res = vec![rec.clone()];
+        for j in i + 1..rectangles.len() {
+            let mut step = vec![];
+            for item in res {
+                if rectangles[j][0] >= item[2]
+                    || rectangles[j][2] <= item[0]
+                    || rectangles[j][1] >= item[3]
+                    || rectangles[j][3] <= item[1]
+                {
+                    step.push(vec![item[0], item[1], item[2], item[3]]);
+                } else {
+                    if item[0] < rectangles[j][0] {
+                        step.push(vec![item[0], item[1], rectangles[j][0], item[3]]);
+                    }
+                    if item[2] > rectangles[j][2] {
+                        step.push(vec![rectangles[j][2], item[1], item[2], item[3]]);
+                    }
+                    if item[1] < rectangles[j][1] {
+                        step.push(vec![
+                            item[0].max(rectangles[j][0]),
+                            item[1],
+                            item[2].min(rectangles[j][2]),
+                            rectangles[j][1],
+                        ]);
+                    }
+                    if item[3] > rectangles[j][3] {
+                        step.push(vec![
+                            item[0].max(rectangles[j][0]),
+                            rectangles[j][3],
+                            item[2].min(rectangles[j][2]),
+                            item[3],
+                        ]);
+                    }
+                }
+            }
+            res = step;
+        }
+        all_recs.append(&mut res);
+    }
+    all_recs.iter().fold(0, |total, item| {
+        (total + (item[3] - item[1]) as i64 * (item[2] - item[0]) as i64) % MOD
+    }) as i32
+}
