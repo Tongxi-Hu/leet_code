@@ -1342,3 +1342,180 @@ pub fn rectangle_area(rectangles: Vec<Vec<i32>>) -> i32 {
         (total + (item[3] - item[1]) as i64 * (item[2] - item[0]) as i64) % MOD
     }) as i32
 }
+
+/// p851
+pub fn loud_and_rich(richer: Vec<Vec<i32>>, quiet: Vec<i32>) -> Vec<i32> {
+    let n = quiet.len();
+
+    let mut indegree: Vec<i32> = vec![0; n];
+    let mut graph: Vec<Vec<usize>> = vec![vec![]; n];
+    for v in richer.iter() {
+        let (a, b) = (v[0] as usize, v[1] as usize);
+        indegree[b] += 1;
+        graph[a].push(b);
+    }
+
+    let mut result = (0..n as i32).collect::<Vec<_>>();
+    let mut q = VecDeque::new();
+    for (i, &count) in indegree.iter().enumerate() {
+        if count == 0 {
+            q.push_back(i);
+            result[i] = i as i32;
+        }
+    }
+
+    while let Some(cur) = q.pop_front() {
+        for &next in graph[cur].iter() {
+            if quiet[result[cur] as usize] < quiet[result[next] as usize] {
+                result[next] = result[cur];
+            }
+            indegree[next] -= 1;
+            if indegree[next] == 0 {
+                q.push_back(next);
+            }
+        }
+    }
+
+    result
+}
+
+/// p852
+pub fn peak_index_in_mountain_array(arr: Vec<i32>) -> i32 {
+    let (mut left, mut right) = (1, arr.len() - 2);
+    while left <= right {
+        let mid = (left + right) / 2;
+        if arr[mid] > arr[mid - 1] && arr[mid] > arr[mid + 1] {
+            return mid as i32;
+        } else if arr[mid] > arr[mid + 1] {
+            right = mid - 1;
+        } else {
+            left = mid + 1;
+        }
+    }
+    0
+}
+
+/// p853
+pub fn car_fleet(target: i32, position: Vec<i32>, speed: Vec<i32>) -> i32 {
+    let mut sort_by_position = position
+        .iter()
+        .zip(speed.iter())
+        .collect::<Vec<(&i32, &i32)>>();
+    sort_by_position.sort_by(|a, b| b.0.cmp(a.0));
+    let mut fleet: Vec<f32> =
+        vec![(target as f32 - *sort_by_position[0].0 as f32) / *sort_by_position[0].1 as f32];
+    sort_by_position.iter().for_each(|car| {
+        let time = (target as f32 - *car.0 as f32) / *car.1 as f32;
+        if time > *fleet.last().unwrap() {
+            fleet.push(time)
+        }
+    });
+    fleet.len() as i32
+}
+
+/// p854
+pub fn k_similarity(s1: String, s2: String) -> i32 {
+    fn swap(chs: &mut Vec<char>, i: usize, j: usize) {
+        let tmp = chs[i];
+        chs[i] = chs[j];
+        chs[j] = tmp;
+    }
+    fn get_next_list(curr: String, chs_target: &Vec<char>) -> Vec<String> {
+        let mut chs_curr = curr.chars().collect::<Vec<char>>();
+        let mut next_list: Vec<String> = vec![];
+        let mut i = 0;
+        let n = chs_curr.len();
+        while i < n {
+            if chs_curr[i] != chs_target[i] {
+                break;
+            }
+            i += 1;
+        }
+        for j in i + 1..n {
+            if chs_curr[j] == chs_target[i] && chs_curr[j] != chs_target[j] {
+                swap(&mut chs_curr, i, j);
+                let s_new: String = chs_curr.iter().collect();
+                next_list.push(s_new);
+                swap(&mut chs_curr, i, j);
+            }
+        }
+        next_list
+    }
+
+    if s1.eq(&s2) {
+        return 0;
+    }
+    let mut queue: VecDeque<String> = VecDeque::new();
+    let mut visited: HashSet<String> = HashSet::new();
+    queue.push_back(s1.clone());
+    visited.insert(s1.clone());
+    let mut step = 0;
+    let chs_target = s2.chars().collect::<Vec<char>>();
+    while !queue.is_empty() {
+        let size = queue.len();
+        for _ in 0..size {
+            let curr = queue.pop_front().unwrap();
+            let next_list = get_next_list(curr, &chs_target);
+            for i in 0..next_list.len() {
+                let next_word = next_list[i].clone();
+                if next_word.eq(&s2) {
+                    return step + 1;
+                }
+                if !visited.contains(&next_word) {
+                    visited.insert(next_word.clone());
+                    queue.push_back(next_word.clone());
+                }
+            }
+        }
+        step += 1;
+    }
+    step
+}
+
+/// p855
+struct ExamRoom {
+    n: i32,
+    list: Vec<i32>,
+}
+impl ExamRoom {
+    fn new(n: i32) -> Self {
+        ExamRoom {
+            n,
+            list: Vec::new(),
+        }
+    }
+
+    fn seat(&mut self) -> i32 {
+        if self.list.is_empty() {
+            self.list.push(0);
+            return 0;
+        }
+        let mut distance = self.list[0].max(self.n - 1 - self.list[self.list.len() - 1]);
+        for i in 0..self.list.len() - 1 {
+            distance = distance.max((self.list[i + 1] - self.list[i]) / 2);
+        }
+        if self.list[0] == distance {
+            self.list.insert(0, 0);
+            return 0;
+        }
+        for i in 0..self.list.len() - 1 {
+            if (self.list[i + 1] - self.list[i]) / 2 == distance {
+                self.list
+                    .insert(i + 1, (self.list[i + 1] + self.list[i]) / 2);
+                return self.list[i + 1];
+            }
+        }
+        self.list.push(self.n - 1);
+        self.n - 1
+    }
+
+    fn leave(&mut self, p: i32) {
+        for i in 0..self.list.len() {
+            if let Some(&curr) = self.list.get(i) {
+                if curr == p {
+                    self.list.remove(i);
+                }
+            }
+        }
+    }
+}
