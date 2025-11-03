@@ -1639,7 +1639,8 @@ pub fn max_sum_of_three_subarrays(nums: Vec<i32>, k: i32) -> Vec<i32> {
     let (n, k) = (nums.len(), k as usize);
     let (mut sum1, mut sum2, mut sum3) = (0, 0, 0);
     let (mut max_sum1, mut max_sum12, mut max_sum123) = (0, 0, 0);
-    let (mut idx1, mut idx2, mut idx3) = (-1, -1, -1);
+    let (mut idx1, mut idx2) = (-1, -1);
+    let mut idx3;
     let mut max_idx1 = -1;
     let mut res = Vec::new();
 
