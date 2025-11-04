@@ -1,6 +1,6 @@
 use std::{
     cell::RefCell,
-    collections::{BTreeMap, HashMap, HashSet, VecDeque},
+    collections::{BTreeMap, BinaryHeap, HashMap, HashSet, VecDeque},
     rc::Rc,
 };
 
@@ -1517,5 +1517,71 @@ impl ExamRoom {
                 }
             }
         }
+    }
+}
+
+/// p856
+pub fn score_of_parentheses(s: String) -> i32 {
+    let (mut depth, mut score) = (0, 0);
+    let chars = s.chars().collect::<Vec<char>>();
+    chars.iter().enumerate().for_each(|(i, c)| match c {
+        '(' => {
+            depth = depth + 1;
+        }
+        ')' => {
+            depth = depth - 1;
+            if chars[i - 1] == '(' {
+                score = score + (2 as f32).powi(depth) as i32;
+            };
+        }
+        _ => (),
+    });
+    score
+}
+
+/// p857
+pub fn mincost_to_hire_workers(quality: Vec<i32>, wage: Vec<i32>, k: i32) -> f64 {
+    let (_, mut curr, mut ans) = (quality.len(), 0f64, f64::INFINITY);
+    let (mut ratio, mut heap) = (
+        wage.into_iter()
+            .zip(quality.into_iter())
+            .into_iter()
+            .map(|(w, q)| (w as f64 / q as f64, q as f64))
+            .collect::<Vec<(_, _)>>(),
+        BinaryHeap::new(),
+    );
+    ratio.sort_unstable_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+    for (r, q) in ratio.into_iter() {
+        curr += q;
+        heap.push(q as i64);
+        if heap.len() > k as usize {
+            curr -= heap.pop().unwrap() as f64;
+        }
+        if heap.len() == k as usize {
+            ans = ans.min(curr * r);
+        }
+    }
+    ans
+}
+
+/// p858
+pub fn mirror_reflection(p: i32, q: i32) -> i32 {
+    fn gcd<T: Copy + std::cmp::PartialOrd + std::ops::Sub<Output = T>>(m: T, n: T) -> T {
+        if m > n {
+            return gcd(m - n, n);
+        };
+        if m < n {
+            return gcd(n - m, m);
+        };
+        m
+    }
+    let d = gcd(p, q);
+    let (m, n) = (p / d, q / d);
+    if n % 2 == 0 {
+        0
+    } else if m % 2 == 0 {
+        2
+    } else {
+        1
     }
 }
