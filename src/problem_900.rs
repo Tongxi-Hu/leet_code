@@ -1585,3 +1585,60 @@ pub fn mirror_reflection(p: i32, q: i32) -> i32 {
         1
     }
 }
+
+/// p859
+pub fn buddy_strings(s: String, goal: String) -> bool {
+    if s.len() != goal.len() {
+        return false;
+    }
+    if s == goal {
+        let mut count: [usize; 26] = [0; 26];
+        s.chars().for_each(|c| {
+            let distance = u32::from(c) - u32::from('a');
+            count[distance as usize] = count[distance as usize] + 1
+        });
+        return count.iter().any(|c| *c >= 2);
+    } else {
+        let mut diff = Vec::new();
+        s.chars().zip(goal.chars()).for_each(|(c1, c2)| {
+            if c1 != c2 {
+                diff.push((c1, c2))
+            }
+        });
+        return diff.len() == 2 && diff[0].0 == diff[1].1 && diff[0].1 == diff[1].0;
+    }
+}
+
+/// p860
+pub fn lemonade_change(bills: Vec<i32>) -> bool {
+    const PRICE: i32 = 5;
+    let mut changes: HashMap<i32, usize> = HashMap::new();
+    for m in bills {
+        match m {
+            5 => {
+                *changes.entry(5).or_insert(0) += 1;
+            }
+            10 => {
+                *changes.entry(10).or_insert(0) += 1;
+                if *changes.entry(5).or_insert(0) >= 1 {
+                    *changes.entry(5).or_insert(0) -= 1;
+                } else {
+                    return false;
+                }
+            }
+            20 => {
+                *changes.entry(20).or_insert(0) += 1;
+                if *changes.entry(5).or_insert(0) >= 1 && *changes.entry(10).or_insert(0) >= 1 {
+                    *changes.entry(5).or_insert(0) -= 1;
+                    *changes.entry(10).or_insert(0) -= 1;
+                } else if *changes.entry(5).or_insert(0) >= 3 {
+                    *changes.entry(5).or_insert(0) -= 3;
+                } else {
+                    return false;
+                }
+            }
+            _ => (),
+        }
+    }
+    return true;
+}
