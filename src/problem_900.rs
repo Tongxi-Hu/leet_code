@@ -1611,7 +1611,6 @@ pub fn buddy_strings(s: String, goal: String) -> bool {
 
 /// p860
 pub fn lemonade_change(bills: Vec<i32>) -> bool {
-    const PRICE: i32 = 5;
     let mut changes: HashMap<i32, usize> = HashMap::new();
     for m in bills {
         match m {
