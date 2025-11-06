@@ -1641,3 +1641,168 @@ pub fn lemonade_change(bills: Vec<i32>) -> bool {
     }
     return true;
 }
+
+/// p861
+pub fn matrix_score(grid: Vec<Vec<i32>>) -> i32 {
+    let mut grid = grid;
+    for i in 0..grid.len() {
+        if grid[i][0] == 1 {
+            continue;
+        }
+        for j in 0..grid[i].len() {
+            grid[i][j] = if grid[i][j] == 1 { 0 } else { 1 };
+        }
+    }
+    for j in 1..grid[0].len() {
+        let mut ones = 0;
+        for i in 0..grid.len() {
+            ones += grid[i][j];
+        }
+        if ones >= grid.len() as i32 - ones {
+            continue;
+        }
+        for i in 0..grid.len() {
+            grid[i][j] = if grid[i][j] == 1 { 0 } else { 1 };
+        }
+    }
+    let mut ans = 0;
+    for v in grid {
+        ans += v.iter().fold(0, |acc, &n| acc << 1 | n);
+    }
+    ans
+}
+
+/// p862
+pub fn shortest_subarray(nums: Vec<i32>, k: i32) -> i32 {
+    use std::collections::VecDeque;
+    let (mut ret, mut pre_sum, mut queue) = (i64::MAX, 0, VecDeque::new());
+    queue.push_back((0, -1));
+    for i in 0..nums.len() {
+        pre_sum += nums[i] as i64;
+        while !queue.is_empty() && pre_sum <= queue[queue.len() - 1].0 {
+            queue.pop_back();
+        }
+        while !queue.is_empty() && pre_sum - queue[0].0 >= k as i64 {
+            ret = ret.min(i as i64 - queue.pop_front().unwrap().1 as i64);
+        }
+        queue.push_back((pre_sum, i as i32));
+    }
+    if ret == i64::MAX { -1 } else { ret as i32 }
+}
+
+/// p863
+pub fn distance_k(
+    root: Option<Rc<RefCell<TreeNode>>>,
+    target: Option<Rc<RefCell<TreeNode>>>,
+    k: i32,
+) -> Vec<i32> {
+    fn dfs(
+        root: Option<Rc<RefCell<TreeNode>>>,
+        target: i32,
+        k: i32,
+        result: &mut Vec<i32>,
+    ) -> Option<i32> {
+        match root {
+            Some(root) => {
+                let val = root.borrow().val;
+                if val == target {
+                    dfs2(Some(root), 0, k, result);
+                    return Some(0);
+                }
+
+                let left = root.borrow().left.clone();
+                let right = root.borrow().right.clone();
+
+                let left_distance = dfs(left.clone(), target, k, result);
+                if let Some(left_distance) = left_distance {
+                    let cur_distance = left_distance + 1;
+                    if cur_distance == k {
+                        result.push(val);
+                    } else if cur_distance < k {
+                        dfs2(right, cur_distance + 1, k, result);
+                    }
+                    return Some(cur_distance);
+                }
+
+                let right_distance = dfs(right, target, k, result);
+                if let Some(right_distance) = right_distance {
+                    let cur_distance = right_distance + 1;
+                    if cur_distance == k {
+                        result.push(val);
+                    } else if cur_distance < k {
+                        dfs2(left, cur_distance + 1, k, result);
+                    }
+                    return Some(cur_distance);
+                }
+
+                None
+            }
+            None => None,
+        }
+    }
+
+    fn dfs2(root: Option<Rc<RefCell<TreeNode>>>, distance: i32, k: i32, result: &mut Vec<i32>) {
+        if let Some(root) = root {
+            if distance == k {
+                result.push(root.borrow().val);
+                return;
+            }
+
+            dfs2(root.borrow_mut().left.take(), distance + 1, k, result);
+            dfs2(root.borrow_mut().right.take(), distance + 1, k, result);
+        }
+    }
+    let target = target.unwrap().borrow().val;
+    let mut result = Vec::new();
+    dfs(root, target, k, &mut result);
+    result
+}
+
+/// p864
+pub fn shortest_path_all_keys(grid: Vec<String>) -> i32 {
+    use std::collections::VecDeque;
+    let grid = grid
+        .iter()
+        .map(|s| s.chars().collect::<Vec<_>>())
+        .collect::<Vec<_>>();
+    let (mut queue, mut keys_total, mut m, mut n) = (VecDeque::new(), 0, grid.len(), grid[0].len());
+    for i in 0..m {
+        for j in 0..n {
+            if grid[i][j] == '@' {
+                queue.push_back((i, j, 0 as i32, 0 as i32));
+            }
+            if grid[i][j] >= 'a' && grid[i][j] <= 'f' {
+                keys_total |= 1 << (grid[i][j] as i32 - 'a' as i32);
+            }
+        }
+    }
+    let mut visited = vec![vec![vec![false; keys_total as usize + 1]; n]; m];
+    while let Some(curr) = queue.pop_front() {
+        let (step, keys_cnt) = (curr.2, curr.3);
+        if keys_total == keys_cnt {
+            return step;
+        }
+        for dict in [[1, 0], [-1, 0], [0, 1], [0, -1]] {
+            let (x, y) = (curr.0 + dict[0] as usize, curr.1 + dict[1] as usize);
+            if x >= m || y >= n || grid[x][y] == '#' {
+                continue;
+            }
+            let new_keys_cnt = keys_cnt | (1 << (grid[x][y] as i32 - 'a' as i32));
+            if grid[x][y] >= 'a' && grid[x][y] <= 'f' && !visited[x][y][new_keys_cnt as usize] {
+                visited[x][y][new_keys_cnt as usize] = true;
+                queue.push_back((x, y, step + 1, new_keys_cnt));
+            }
+            if (grid[x][y] >= 'A'
+                && grid[x][y] <= 'F'
+                && keys_cnt >> (grid[x][y] as i32 - 'A' as i32) & 1 == 1
+                || grid[x][y] == '@'
+                || grid[x][y] == '.')
+                && !visited[x][y][keys_cnt as usize]
+            {
+                visited[x][y][keys_cnt as usize] = true;
+                queue.push_back((x, y, step + 1, keys_cnt));
+            }
+        }
+    }
+    -1
+}
