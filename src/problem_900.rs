@@ -1765,7 +1765,7 @@ pub fn shortest_path_all_keys(grid: Vec<String>) -> i32 {
         .iter()
         .map(|s| s.chars().collect::<Vec<_>>())
         .collect::<Vec<_>>();
-    let (mut queue, mut keys_total, mut m, mut n) = (VecDeque::new(), 0, grid.len(), grid[0].len());
+    let (mut queue, mut keys_total, m, n) = (VecDeque::new(), 0, grid.len(), grid[0].len());
     for i in 0..m {
         for j in 0..n {
             if grid[i][j] == '@' {
