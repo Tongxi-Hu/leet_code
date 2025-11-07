@@ -1806,3 +1806,90 @@ pub fn shortest_path_all_keys(grid: Vec<String>) -> i32 {
     }
     -1
 }
+
+/// p865
+pub fn subtree_with_all_deepest(
+    root: Option<Rc<RefCell<TreeNode>>>,
+) -> Option<Rc<RefCell<TreeNode>>> {
+    fn depth_and_ancester(
+        root: Option<Rc<RefCell<TreeNode>>>,
+    ) -> (usize, Option<Rc<RefCell<TreeNode>>>) {
+        if let Some(node) = root.as_ref() {
+            let (left_depth, left_ancestor) = depth_and_ancester(node.borrow().left.clone());
+            let (right_depth, right_ancestor) = depth_and_ancester(node.borrow().right.clone());
+            if left_depth > right_depth {
+                return (left_depth + 1, left_ancestor);
+            } else if right_depth > left_depth {
+                return (right_depth + 1, right_ancestor);
+            } else {
+                return (left_depth + 1, root);
+            }
+        } else {
+            (0, root)
+        }
+    }
+    depth_and_ancester(root).1
+}
+
+/// p866
+pub fn prime_palindrome(mut n: i32) -> i32 {
+    fn is_palindrome(mut n: i32) -> bool {
+        if n % 10 == 0 {
+            return false;
+        }
+
+        let mut rev = 0;
+
+        while n > rev {
+            rev *= 10;
+            rev += n % 10;
+            n /= 10;
+        }
+
+        n == rev || n == rev / 10
+    }
+
+    fn is_prime(n: i32) -> bool {
+        let mut i = 2;
+
+        while i * i <= n && n % i != 0 {
+            i += 1;
+        }
+
+        n > 1 && i * i > n
+    }
+
+    loop {
+        match n {
+            999 | 99_999 | 9_999_999 => n = n * 10 + 11,
+            n if is_palindrome(n) && is_prime(n) => return n,
+            _ => n += 1,
+        }
+    }
+}
+
+/// p867
+pub fn transpose(matrix: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+    let (cols, rows) = (matrix.len(), matrix[0].len());
+    let mut new_matrix = vec![vec![0; cols]; rows];
+    for i in 0..cols {
+        for j in 0..rows {
+            new_matrix[j][i] = matrix[i][j];
+        }
+    }
+    new_matrix
+}
+
+/// p868
+pub fn binary_gap(n: i32) -> i32 {
+    format!("{:b}", n)
+        .char_indices()
+        .fold((-31, 0), |(distance, maximum), i| {
+            if i.1 == '1' {
+                (1, maximum.max(distance))
+            } else {
+                (distance + 1, maximum)
+            }
+        })
+        .1
+}
