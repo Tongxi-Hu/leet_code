@@ -1893,3 +1893,54 @@ pub fn binary_gap(n: i32) -> i32 {
         })
         .1
 }
+
+/// p869
+pub fn reordered_power_of2(n: i32) -> bool {
+    let mut target = n.to_string().chars().collect::<Vec<char>>();
+    target.sort();
+    for i in 0..32 {
+        let mut tmp = 2_i32.pow(i).to_string().chars().collect::<Vec<char>>();
+        tmp.sort();
+        if tmp == target {
+            return true;
+        }
+    }
+    false
+}
+
+/// p870
+pub fn advantage_count(mut nums1: Vec<i32>, nums2: Vec<i32>) -> Vec<i32> {
+    let length = nums2.len();
+    let mut res = vec![0; length];
+    let mut with_index = nums2.into_iter().enumerate().collect::<Vec<(usize, i32)>>();
+    with_index.sort_by(|a, b| b.1.cmp(&a.1));
+    nums1.sort();
+    with_index.iter().for_each(|(i, v)| {
+        if nums1.last().unwrap() > v {
+            res[*i] = nums1.pop().unwrap();
+        } else {
+            res[*i] = nums1.remove(0);
+        }
+    });
+    res
+}
+
+/// p871
+pub fn min_refuel_stops(target: i32, start_fuel: i32, mut stations: Vec<Vec<i32>>) -> i32 {
+    stations.push(vec![target, 0]);
+    let mut ans = 0;
+    let mut miles = start_fuel;
+    let mut fuel_heap = BinaryHeap::new();
+    for station in stations {
+        let position = station[0];
+        while !fuel_heap.is_empty() && miles < position {
+            miles += fuel_heap.pop().unwrap();
+            ans += 1;
+        }
+        if miles < position {
+            return -1;
+        }
+        fuel_heap.push(station[1]);
+    }
+    ans
+}
