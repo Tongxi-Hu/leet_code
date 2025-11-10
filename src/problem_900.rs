@@ -1944,3 +1944,46 @@ pub fn min_refuel_stops(target: i32, start_fuel: i32, mut stations: Vec<Vec<i32>
     }
     ans
 }
+
+/// p872
+pub fn leaf_similar(
+    root1: Option<Rc<RefCell<TreeNode>>>,
+    root2: Option<Rc<RefCell<TreeNode>>>,
+) -> bool {
+    let (mut leaf1, mut leaf2) = (vec![], vec![]);
+    fn get_leaf_seq(root: &Option<Rc<RefCell<TreeNode>>>, seq: &mut Vec<i32>) {
+        if let Some(node) = root.as_ref() {
+            if node.borrow().left.is_none() && node.borrow().right.is_none() {
+                seq.push(node.borrow().val);
+            } else {
+                get_leaf_seq(&node.borrow().left, seq);
+                get_leaf_seq(&node.borrow().right, seq);
+            }
+        }
+    }
+    get_leaf_seq(&root1, &mut leaf1);
+    get_leaf_seq(&root2, &mut leaf2);
+    leaf1 == leaf2
+}
+
+/// p873
+pub fn len_longest_fib_subseq(arr: Vec<i32>) -> i32 {
+    let length = arr.len();
+    let mut dp = vec![vec![0; length]; length];
+    let mut max = 0;
+    for i in 1..length {
+        for j in 0..i {
+            if arr[j] * 2 < arr[i] {
+                continue;
+            }
+            let target = arr[i] - arr[j];
+            for k in 0..j {
+                if arr[k] == target {
+                    dp[i][j] = (dp[j][k] + 1).max(3);
+                    max = max.max(dp[i][j]);
+                }
+            }
+        }
+    }
+    max
+}
