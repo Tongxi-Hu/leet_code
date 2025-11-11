@@ -1987,3 +1987,99 @@ pub fn len_longest_fib_subseq(arr: Vec<i32>) -> i32 {
     }
     max
 }
+
+/// p874
+pub fn robot_sim(mut commands: Vec<i32>, obstacles: Vec<Vec<i32>>) -> i32 {
+    use std::collections::HashSet;
+    let obstacles = obstacles
+        .into_iter()
+        .map(|v| (v[0], v[1]))
+        .collect::<HashSet<_>>();
+    let (mut x, mut y, mut ret, mut j, directions) =
+        (0, 0, 0, 0, [[0, 1], [1, 0], [0, -1], [-1, 0]]);
+    for i in 0..commands.len() {
+        if commands[i] == -1 {
+            j = (j + 1) % 4
+        } else if commands[i] == -2 {
+            j = (j + 3) % 4;
+        } else {
+            while commands[i] > 0
+                && !obstacles.contains(&(x + directions[j][0], y + directions[j][1]))
+            {
+                x += directions[j][0];
+                y += directions[j][1];
+                commands[i] -= 1;
+            }
+        }
+        ret = ret.max(x * x + y * y);
+    }
+    ret
+}
+
+/// p875
+pub fn min_eating_speed(piles: Vec<i32>, h: i32) -> i32 {
+    let check = |k: i32| -> bool {
+        let mut sum = piles.len() as i32;
+        for &p in &piles {
+            sum += (p - 1) / k;
+            if sum > h {
+                return false;
+            }
+        }
+        true
+    };
+    let mut left = 0;
+    let mut right = *piles.iter().max().unwrap();
+    while left + 1 < right {
+        let mid = left + (right - left) / 2;
+        if check(mid) {
+            right = mid;
+        } else {
+            left = mid;
+        }
+    }
+    right
+}
+
+/// p876
+pub fn middle_node(head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
+    let fake_head = Some(Box::new(ListNode {
+        val: -1,
+        next: head,
+    }));
+    let (mut fast, mut slow) = (&fake_head, &fake_head);
+    let mut length = 0;
+    let (mut fast_next, mut fast_next_next);
+    while let Some(node) = fast {
+        fast_next = &node.next;
+        if fast_next.is_none() {
+            return slow.as_ref().unwrap().next.clone();
+        } else if let Some(node_next) = fast_next {
+            fast_next_next = &node_next.next;
+            if fast_next_next.is_none() {
+                return slow.as_ref().unwrap().next.clone();
+            } else {
+                fast = fast_next_next;
+                length = length + 2;
+                slow = &slow.as_ref().unwrap().next;
+            }
+        }
+    }
+    None
+}
+
+/// p877
+pub fn stone_game(piles: Vec<i32>) -> bool {
+    let size = piles.len();
+    let mut dp = vec![vec![0; size]; size];
+    for i in 0..size {
+        for j in i..size {
+            if i == j {
+                dp[i][j] = piles[i];
+            } else {
+                dp[i][j] = (piles[i] + dp[i + 1][j]).max(piles[j] + dp[i][j - 1]);
+            }
+        }
+    }
+    dp[0][size - 1] > 0
+}
