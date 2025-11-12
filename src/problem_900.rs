@@ -2114,7 +2114,7 @@ pub fn nth_magical_number(n: i32, a: i32, b: i32) -> i32 {
 pub fn profitable_schemes(n: i32, min_profit: i32, group: Vec<i32>, profit: Vec<i32>) -> i32 {
     let len = group.len();
     let n = n as usize;
-    let md: i32 = 10_i32.pow(9) + 7; //方法2
+    let md: i32 = 10_i32.pow(9) + 7;
     let min_profit = min_profit as usize;
 
     let mut dp: Vec<Vec<Vec<i32>>> = vec![vec![vec![0; min_profit + 1]; n + 1]; len + 1];
@@ -2130,7 +2130,7 @@ pub fn profitable_schemes(n: i32, min_profit: i32, group: Vec<i32>, profit: Vec<
                     dp[i][j][k] = dp[i - 1][j][k];
                 } else {
                     dp[i][j][k] = (dp[i - 1][j][k]
-                        + dp[i - 1][j - workers as usize][(0.max(k as i32 - earn) as usize)])
+                        + dp[i - 1][j - workers as usize][0.max(k as i32 - earn) as usize])
                         % md;
                 }
             }
@@ -2160,7 +2160,7 @@ pub fn decode_at_index(s: String, k: i32) -> String {
                 } else {
                     k % cur_count
                 };
-                return Self::decode_at_index(s, next_k);
+                return decode_at_index(s, next_k);
             }
         }
 
