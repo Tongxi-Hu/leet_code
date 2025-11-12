@@ -2083,3 +2083,96 @@ pub fn stone_game(piles: Vec<i32>) -> bool {
     }
     dp[0][size - 1] > 0
 }
+
+/// p878
+pub fn nth_magical_number(n: i32, a: i32, b: i32) -> i32 {
+    let (mut x, mut y, m, mut l, mut r) = (
+        a as i64,
+        b as i64,
+        1E9 as i64 + 7,
+        a.min(b) as i64,
+        (n as i64) * (a.min(b) as i64),
+    );
+    while y > 0 {
+        let tmp = x;
+        x = y;
+        y = tmp % y;
+    }
+    let lcm = (a * b) as i64 / x;
+    while l < r {
+        let mid = l + ((r - l) >> 1);
+        if mid / a as i64 + mid / b as i64 - mid / lcm < n as i64 {
+            l = mid + 1;
+        } else {
+            r = mid;
+        }
+    }
+    (l % m) as i32
+}
+
+/// p879
+pub fn profitable_schemes(n: i32, min_profit: i32, group: Vec<i32>, profit: Vec<i32>) -> i32 {
+    let len = group.len();
+    let n = n as usize;
+    let md: i32 = 10_i32.pow(9) + 7; //方法2
+    let min_profit = min_profit as usize;
+
+    let mut dp: Vec<Vec<Vec<i32>>> = vec![vec![vec![0; min_profit + 1]; n + 1]; len + 1];
+    dp[0][0][0] = 1;
+
+    for i in 1..=len {
+        let workers = group[i - 1] as usize;
+        let earn = profit[i - 1];
+
+        for j in 0..=n {
+            for k in 0..=min_profit {
+                if j < workers {
+                    dp[i][j][k] = dp[i - 1][j][k];
+                } else {
+                    dp[i][j][k] = (dp[i - 1][j][k]
+                        + dp[i - 1][j - workers as usize][(0.max(k as i32 - earn) as usize)])
+                        % md;
+                }
+            }
+        }
+    }
+    let mut sum = 0;
+    for j in 0..=n {
+        sum = (sum + dp[len][j][min_profit]) % md;
+    }
+    sum
+}
+
+/// p880
+pub fn decode_at_index(s: String, k: i32) -> String {
+    let mut cur_count = 0;
+    let mut repeat_count = 1;
+
+    for b in s.bytes() {
+        if b.is_ascii_digit() {
+            repeat_count *= (b - b'0') as i32;
+        }
+
+        if repeat_count != 1 {
+            if repeat_count * cur_count >= k {
+                let next_k = if k % cur_count == 0 {
+                    cur_count
+                } else {
+                    k % cur_count
+                };
+                return Self::decode_at_index(s, next_k);
+            }
+        }
+
+        if b.is_ascii_alphabetic() {
+            cur_count *= repeat_count;
+            repeat_count = 1;
+            cur_count += 1;
+            if cur_count == k {
+                return (b as char).to_string();
+            }
+        }
+    }
+
+    "".to_string()
+}
