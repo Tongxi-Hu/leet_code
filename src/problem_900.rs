@@ -1,5 +1,6 @@
 use std::{
     cell::RefCell,
+    cmp::Reverse,
     collections::{BTreeMap, BinaryHeap, HashMap, HashSet, VecDeque},
     rc::Rc,
 };
@@ -2175,4 +2176,120 @@ pub fn decode_at_index(s: String, k: i32) -> String {
     }
 
     "".to_string()
+}
+
+/// p881
+pub fn num_rescue_boats(mut people: Vec<i32>, limit: i32) -> i32 {
+    people.sort();
+    let (mut left, mut right) = (0, people.len() - 1);
+    let mut count = 0;
+    while left < right {
+        let total = people[left] + people[right];
+        if total <= limit {
+            count = count + 1;
+            left = left + 1;
+            right = right - 1;
+        } else if total > limit {
+            right = right - 1;
+            count = count + 1;
+        }
+    }
+    if left == right {
+        count = count + 1;
+    }
+    count
+}
+
+/// p882
+pub fn reachable_nodes(edges: Vec<Vec<i32>>, max_moves: i32, n: i32) -> i32 {
+    let mut graph = vec![Vec::new(); n as usize];
+    for edge in &edges {
+        graph[edge[0] as usize].push((edge[1] as usize, edge[2]));
+        graph[edge[1] as usize].push((edge[0] as usize, edge[2]));
+    }
+    let mut remains = vec![None; n as usize];
+    let mut bh = BinaryHeap::new();
+    bh.push((Reverse(0), 0));
+    let mut answer = 0;
+    while let Some((Reverse(min), u)) = bh.pop() {
+        if min > max_moves {
+            break;
+        }
+        if remains[u].is_some() {
+            continue;
+        }
+        answer += 1;
+        remains[u] = Some(max_moves - min);
+        for &(v, c) in graph[u].iter().filter(|(v, _)| remains[*v].is_none()) {
+            bh.push((Reverse(min + c + 1), v));
+        }
+    }
+    for edge in &edges {
+        answer += edge[2]
+            .min(remains[edge[0] as usize].unwrap_or(0) + remains[edge[1] as usize].unwrap_or(0));
+    }
+    answer
+}
+
+/// p883
+pub fn projection_area(grid: Vec<Vec<i32>>) -> i32 {
+    let length = grid.len();
+    let (mut z_proj, mut max_by_row, mut max_by_col) = (0, vec![0; length], vec![0; length]);
+    for r in 0..length {
+        for c in 0..length {
+            if grid[r][c] != 0 {
+                z_proj = z_proj + 1;
+                max_by_row[r] = max_by_row[r].max(grid[r][c]);
+                max_by_col[c] = max_by_col[c].max(grid[r][c]);
+            }
+        }
+    }
+
+    return z_proj + max_by_row.iter().sum::<i32>() + max_by_col.iter().sum::<i32>();
+}
+
+/// p884
+pub fn uncommon_from_sentences(s1: String, s2: String) -> Vec<String> {
+    let mut tab = HashMap::new();
+    s1.split_ascii_whitespace()
+        .chain(s2.split_ascii_whitespace())
+        .for_each(|s| *tab.entry(s).or_insert(0) += 1);
+    tab.into_iter()
+        .filter(|(_, v)| *v == 1)
+        .map(|(k, _)| k.to_string())
+        .collect()
+}
+
+/// p885
+pub fn spiral_matrix_iii(rows: i32, cols: i32, r_start: i32, c_start: i32) -> Vec<Vec<i32>> {
+    let size = (rows * cols) as usize;
+    let mut ans: Vec<Vec<i32>> = Vec::with_capacity(size);
+    let mut pointer = vec![r_start, c_start];
+
+    let directions = [(0, 1), (1, 0), (0, -1), (-1, 0)];
+    let mut dir_idx = 0;
+    let mut steps = 1;
+
+    ans.push(pointer.clone());
+    'outer: loop {
+        for _ in 0..2 {
+            let (dr, dc) = directions[dir_idx];
+            dir_idx = (dir_idx + 1) % 4;
+
+            for _ in 0..steps {
+                pointer[0] += dr;
+                pointer[1] += dc;
+
+                if ans.len() >= size {
+                    break 'outer;
+                }
+
+                if (0..rows).contains(&pointer[0]) && (0..cols).contains(&pointer[1]) {
+                    ans.push(pointer.clone());
+                }
+            }
+        }
+        steps += 1;
+    }
+    ans
 }
