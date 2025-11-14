@@ -2293,3 +2293,149 @@ pub fn spiral_matrix_iii(rows: i32, cols: i32, r_start: i32, c_start: i32) -> Ve
     }
     ans
 }
+
+/// p886
+pub fn possible_bipartition(n: i32, dislikes: Vec<Vec<i32>>) -> bool {
+    fn dfs(
+        records: &mut Vec<Option<bool>>,
+        graph: &Vec<Vec<usize>>,
+        cur_node: usize,
+        expect: bool,
+    ) -> bool {
+        match records[cur_node] {
+            Some(flag) => flag == expect,
+            None => {
+                records[cur_node] = Some(expect);
+                for &next_node in graph[cur_node].iter() {
+                    if !dfs(records, graph, next_node, !expect) {
+                        return false;
+                    }
+                }
+                true
+            }
+        }
+    }
+    let n = n as usize;
+
+    let mut graph = vec![vec![]; n + 1];
+    for v in dislikes.iter() {
+        let (node1, node2) = (v[0] as usize, v[1] as usize);
+        graph[node1].push(node2);
+        graph[node2].push(node1);
+    }
+
+    let mut records: Vec<Option<bool>> = vec![None; n + 1];
+    for i in 1..=n {
+        if records[i].is_none() {
+            if !dfs(&mut records, &graph, i, true) {
+                return false;
+            }
+        }
+    }
+
+    true
+}
+
+/// p887
+pub fn super_egg_drop(k: i32, n: i32) -> i32 {
+    let (mut f, mut ans) = (vec![0; k as usize + 1], 0);
+    while f[k as usize] < n {
+        ans += 1;
+        for j in (1..=k as usize).rev() {
+            f[j] += f[j - 1] + 1;
+        }
+    }
+    ans
+}
+
+/// p888
+pub fn fair_candy_swap(mut alice_sizes: Vec<i32>, mut bob_sizes: Vec<i32>) -> Vec<i32> {
+    let (alice_set, alice_total) =
+        alice_sizes
+            .iter_mut()
+            .fold((HashSet::<i32>::new(), 0), |(mut alice_set, total), cur| {
+                alice_set.insert(*cur);
+                (alice_set, total + *cur)
+            });
+    let (bob_set, bob_total) =
+        bob_sizes
+            .iter_mut()
+            .fold((HashSet::<i32>::new(), 0), |(mut bob_set, total), cur| {
+                bob_set.insert(*cur);
+                (bob_set, total + *cur)
+            });
+    let diff = (alice_total - bob_total) / 2;
+    let mut ans = vec![0, 0];
+    for bob in bob_set.iter() {
+        if alice_set.contains(&(bob + diff)) {
+            ans[0] = bob + diff;
+            ans[1] = *bob;
+            break;
+        }
+    }
+    ans
+}
+
+/// p889
+pub fn construct_from_pre_post(
+    preorder: Vec<i32>,
+    postorder: Vec<i32>,
+) -> Option<Rc<RefCell<TreeNode>>> {
+    fn dfs(
+        pre_left: usize,
+        pre_right: usize,
+        preorder: &Vec<i32>,
+        post_left: usize,
+        post_right: usize,
+        postorder: &Vec<i32>,
+    ) -> Option<Rc<RefCell<TreeNode>>> {
+        let root = Some(Rc::new(RefCell::new(TreeNode::new(preorder[pre_left]))));
+        if pre_left == pre_right {
+            return root;
+        }
+        let left_root_val = preorder[pre_left + 1];
+        let (location, _) = postorder
+            .iter()
+            .enumerate()
+            .find(|(_, v)| **v == left_root_val)
+            .unwrap();
+        let left_size = location - post_left + 1;
+        let node = root.as_ref().unwrap();
+        node.borrow_mut().left = dfs(
+            pre_left + 1,
+            left_size + pre_left,
+            preorder,
+            post_left,
+            location,
+            postorder,
+        );
+        node.borrow_mut().right = if left_size + pre_left + 1 > pre_right {
+            None
+        } else {
+            dfs(
+                left_size + pre_left + 1,
+                pre_right,
+                preorder,
+                location + 1,
+                post_right,
+                postorder,
+            )
+        };
+        root
+    }
+    dfs(
+        0,
+        preorder.len() - 1,
+        &preorder,
+        0,
+        postorder.len() - 1,
+        &postorder,
+    )
+}
+
+#[test]
+fn test_900() {
+    let pre = vec![3, 4, 1, 2];
+    let post = vec![1, 4, 2, 3];
+    construct_from_pre_post(pre, post);
+}
