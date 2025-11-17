@@ -2613,3 +2613,63 @@ pub fn increasing_bst(root: Option<Rc<RefCell<TreeNode>>>) -> Option<Rc<RefCell<
         root
     }
 }
+
+/// p898
+pub fn subarray_bitwise_o_rs(mut arr: Vec<i32>) -> i32 {
+    let mut st = HashSet::new();
+    for i in 0..arr.len() {
+        st.insert(arr[i]);
+        for j in (0..i).rev() {
+            if (arr[j] | arr[i]) == arr[j] {
+                break;
+            }
+            arr[j] |= arr[i];
+            st.insert(arr[j]);
+        }
+    }
+    st.len() as _
+}
+
+/// p899
+pub fn orderly_queue(s: String, k: i32) -> String {
+    return if k > 1 {
+        let mut arr = s.chars().collect::<Vec<_>>();
+        arr.sort();
+        arr.iter().collect::<_>()
+    } else {
+        let tmp = s.chars().chain(s.chars()).collect::<Vec<_>>();
+        let mut v = tmp.windows(s.len()).collect::<Vec<_>>();
+        v.sort();
+        v[0].iter().copied().collect::<_>()
+    };
+}
+
+/// p900
+struct RLEIterator {
+    iterator: std::vec::IntoIter<i32>,
+    remain: (i32, i32),
+}
+
+impl RLEIterator {
+    fn new(a: Vec<i32>) -> Self {
+        Self {
+            iterator: a.into_iter(),
+            remain: (0, -1),
+        }
+    }
+
+    fn next(&mut self, mut n: i32) -> i32 {
+        while n > self.remain.0 {
+            n -= self.remain.0;
+            self.remain.0 = 0;
+            match self.iterator.next() {
+                Some(x) => self.remain = (x, self.iterator.next().unwrap()),
+                None => return -1,
+            }
+        }
+
+        self.remain.0 -= n;
+
+        self.remain.1
+    }
+}
