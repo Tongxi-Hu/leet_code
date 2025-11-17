@@ -2433,6 +2433,157 @@ pub fn construct_from_pre_post(
     )
 }
 
+/// p890
+pub fn find_and_replace_pattern(words: Vec<String>, pattern: String) -> Vec<String> {
+    let mut ret = Vec::new();
+    for word in words {
+        let (mut p, mut q, mut is_match) = (vec![0; 26], vec![0; 26], true);
+        for i in 0..word.len() {
+            if p[(word.as_bytes()[i] - 'a' as u8) as usize]
+                != q[(pattern.as_bytes()[i] - 'a' as u8) as usize]
+            {
+                is_match = false;
+                break;
+            } else {
+                p[(word.as_bytes()[i] - 'a' as u8) as usize] = i + 1;
+                q[(pattern.as_bytes()[i] - 'a' as u8) as usize] = i + 1;
+            }
+        }
+        if is_match {
+            ret.push(word);
+        }
+    }
+    ret
+}
+
+/// p891
+pub fn sum_subseq_widths(mut nums: Vec<i32>) -> i32 {
+    nums.sort();
+    let (m, n) = (1E9 as i64 + 7, nums.len());
+    (((0..n)
+        .fold((0, 1), |(sum, cnt), i| {
+            (
+                (sum + ((nums[i] - nums[n - i - 1]) as i64) * cnt) % m,
+                (cnt << 1) % m,
+            )
+        })
+        .0
+        + m)
+        % m) as i32
+}
+
+/// p892
+pub fn surface_area(grid: Vec<Vec<i32>>) -> i32 {
+    let mut answer = 0;
+    let rows = grid.len();
+    let cols = grid[0].len();
+    for row in 0..rows {
+        for col in 0..rows {
+            let v = grid[row][col];
+            if v > 0 {
+                answer += 2;
+                answer += v - if row == 0 {
+                    0
+                } else {
+                    grid[row - 1][col].min(v)
+                };
+                answer += v - if col == 0 {
+                    0
+                } else {
+                    grid[row][col - 1].min(v)
+                };
+                answer += v - if row == rows - 1 {
+                    0
+                } else {
+                    grid[row + 1][col].min(v)
+                };
+                answer += v - if col == cols - 1 {
+                    0
+                } else {
+                    grid[row][col + 1].min(v)
+                };
+            }
+        }
+    }
+    answer
+}
+
+/// p894
+pub fn num_special_equiv_groups(a: Vec<String>) -> i32 {
+    let mut set = HashSet::new();
+    for word in a {
+        let mut dict = vec![0; 52];
+        let mut odd = false;
+        for ch in word.chars() {
+            match odd {
+                true => {
+                    dict[(ch as u8 - 'a' as u8) as usize] += 1;
+                }
+                false => {
+                    dict[(ch as u8 - 'a' as u8) as usize + 26] += 1;
+                }
+            }
+            odd = !odd;
+        }
+        set.insert(dict);
+    }
+    set.len() as i32
+}
+
+/// p894
+pub fn all_possible_fbt(n: i32) -> Vec<Option<Rc<RefCell<TreeNode>>>> {
+    if n % 2 == 0 {
+        return vec![];
+    } else if n == 1 {
+        return vec![Some(Rc::new(RefCell::new(TreeNode::new(0))))];
+    } else {
+        let mut all_tree = vec![];
+        for left in (1..n).step_by(2) {
+            let left_tree = all_possible_fbt(left);
+            let right_tree = all_possible_fbt(n - 1 - left);
+            left_tree.iter().for_each(|l_t| {
+                right_tree.iter().for_each(|r_t| {
+                    all_tree.push(Some(Rc::new(RefCell::new(TreeNode {
+                        val: 0,
+                        left: l_t.clone(),
+                        right: r_t.clone(),
+                    }))));
+                });
+            });
+        }
+        all_tree
+    }
+}
+
+/// p895
+#[derive(Default)]
+struct FreqStack {
+    max_freq: i32,
+    queue: HashMap<i32, Vec<i32>>,
+    freq: HashMap<i32, i32>,
+}
+
+impl FreqStack {
+    fn new() -> Self {
+        FreqStack::default()
+    }
+
+    fn push(&mut self, val: i32) {
+        *self.freq.entry(val).or_insert(0) += 1;
+        self.max_freq = self.max_freq.max(self.freq[&val]);
+        self.queue.entry(self.freq[&val]).or_default().push(val);
+    }
+
+    fn pop(&mut self) -> i32 {
+        let top = self.queue.entry(self.max_freq).or_default().pop().unwrap();
+        self.freq.insert(top, self.max_freq - 1);
+        if self.queue[&self.max_freq].is_empty() {
+            self.max_freq -= 1;
+        }
+        top
+    }
+}
+
 #[test]
 fn test_900() {
     let pre = vec![3, 4, 1, 2];
