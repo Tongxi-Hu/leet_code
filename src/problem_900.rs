@@ -2584,9 +2584,32 @@ impl FreqStack {
     }
 }
 
-#[test]
-fn test_900() {
-    let pre = vec![3, 4, 1, 2];
-    let post = vec![1, 4, 2, 3];
-    construct_from_pre_post(pre, post);
+/// p896
+pub fn is_monotonic(nums: Vec<i32>) -> bool {
+    nums.windows(2).all(|clip| clip[0] >= clip[1]) || nums.windows(2).all(|clip| clip[0] <= clip[1])
+}
+
+/// p897
+pub fn increasing_bst(root: Option<Rc<RefCell<TreeNode>>>) -> Option<Rc<RefCell<TreeNode>>> {
+    let mut vals = vec![];
+    fn pre_order(vals: &mut Vec<i32>, root: &Option<Rc<RefCell<TreeNode>>>) {
+        if let Some(node) = root.as_ref() {
+            pre_order(vals, &node.borrow().left);
+            vals.push(node.borrow().val);
+            pre_order(vals, &node.borrow().right);
+        }
+    }
+    pre_order(&mut vals, &root);
+    if vals.is_empty() {
+        return None;
+    } else {
+        let root = Some(Rc::new(RefCell::new(TreeNode::new(vals[0]))));
+        let mut last = root.as_ref().unwrap().clone();
+        vals.iter().skip(1).for_each(|v| {
+            let right = Some(Rc::new(RefCell::new(TreeNode::new(*v))));
+            last.borrow_mut().right = right.clone();
+            last = right.unwrap().clone();
+        });
+        root
+    }
 }
