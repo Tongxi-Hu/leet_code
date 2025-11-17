@@ -2606,9 +2606,9 @@ pub fn increasing_bst(root: Option<Rc<RefCell<TreeNode>>>) -> Option<Rc<RefCell<
         let root = Some(Rc::new(RefCell::new(TreeNode::new(vals[0]))));
         let mut last = root.as_ref().unwrap().clone();
         vals.iter().skip(1).for_each(|v| {
-            let right = Some(Rc::new(RefCell::new(TreeNode::new(*v))));
-            last.borrow_mut().right = right.clone();
-            last = right.unwrap().clone();
+            let right = Rc::new(RefCell::new(TreeNode::new(*v)));
+            last.borrow_mut().right = Some(right.clone());
+            last = right.clone();
         });
         root
     }
