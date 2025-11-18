@@ -233,7 +233,7 @@ pub fn snakes_and_ladders(board: Vec<Vec<i32>>) -> i32 {
 
 ///910
 pub fn smallest_range_ii(mut nums: Vec<i32>, k: i32) -> i32 {
-    nums.sort_unstable();
+    nums.sort();
     let n = nums.len();
     let mut ans = nums[n - 1] - nums[0];
     for i in 1..n {
