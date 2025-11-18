@@ -184,7 +184,9 @@ pub fn sum_subarray_mins(arr: Vec<i32>) -> i32 {
 
 ///908
 pub fn smallest_range_i(nums: Vec<i32>, k: i32) -> i32 {
-    let (max, min) = (nums.iter().max().unwrap(), nums.iter().min().unwrap());
+    let (max, min) = nums
+        .iter()
+        .fold((i32::MIN, i32::MAX), |acc, &n| (acc.0.max(n), acc.1.min(n)));
     return if max - min > 2 * k {
         max - min - 2 * k
     } else {
