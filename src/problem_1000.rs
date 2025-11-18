@@ -1,4 +1,7 @@
-use std::{cmp::Ordering, collections::HashMap};
+use std::{
+    cmp::Ordering,
+    collections::{HashMap, VecDeque},
+};
 
 ///901
 #[derive(Default)]
@@ -98,3 +101,86 @@ pub fn sort_array_by_parity(nums: Vec<i32>) -> Vec<i32> {
     });
     [even, odd].concat()
 }
+
+///906
+pub fn superpalindromes_in_range(left: String, right: String) -> i32 {
+    fn is_palindrome(inp: i64) -> bool {
+        let mut rx = 0;
+        let mut x = inp;
+        while x > 0 {
+            rx = 10 * rx + x % 10;
+            x /= 10;
+        }
+        rx == inp
+    }
+    let left = left.parse::<i64>().unwrap();
+    let right = right.parse::<i64>().unwrap();
+    const MAGIC: i32 = 1e5 as i32;
+    let mut res = 0;
+    for k in 1..MAGIC {
+        let s = format!("{}", k);
+        let s = s.clone() + &s.chars().rev().collect::<String>();
+        let v = s.parse::<i64>().unwrap();
+        let v = v * v;
+        if v > right {
+            break;
+        }
+        if v >= left && is_palindrome(v) {
+            res += 1;
+        }
+    }
+    for k in 1..MAGIC {
+        let s = format!("{}", k);
+        let s = s.clone() + &s.chars().rev().skip(1).collect::<String>();
+        let v = s.parse::<i64>().unwrap();
+        let v = v * v;
+        if v > right {
+            break;
+        }
+        if v >= left && is_palindrome(v) {
+            res += 1;
+        }
+    }
+    res
+}
+
+///907
+pub fn sum_subarray_mins(arr: Vec<i32>) -> i32 {
+    let n = arr.len();
+    let mut left = vec![-1; n];
+    let mut right = vec![n as i32; n];
+    let mut stk: VecDeque<usize> = VecDeque::new();
+
+    for i in 0..n {
+        while !stk.is_empty() && arr[*stk.back().unwrap()] >= arr[i] {
+            stk.pop_back();
+        }
+        if let Some(&top) = stk.back() {
+            left[i] = top as i32;
+        }
+        stk.push_back(i);
+    }
+
+    stk.clear();
+    for i in (0..n).rev() {
+        while !stk.is_empty() && arr[*stk.back().unwrap()] > arr[i] {
+            stk.pop_back();
+        }
+        if let Some(&top) = stk.back() {
+            right[i] = top as i32;
+        }
+        stk.push_back(i);
+    }
+
+    const MOD: i64 = 1_000_000_007;
+    let mut ans: i64 = 0;
+    for i in 0..n {
+        ans +=
+            ((((right[i] - (i as i32)) * ((i as i32) - left[i])) as i64) * (arr[i] as i64)) % MOD;
+        ans %= MOD;
+    }
+    ans as i32
+}
+
+///908
+pub fn smallest_range_i(nums: Vec<i32>, k: i32) -> i32 {}
