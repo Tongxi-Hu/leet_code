@@ -328,74 +328,108 @@ pub fn sort_array(nums: Vec<i32>) -> Vec<i32> {
 }
 
 ///913
-#[derive(Clone, PartialEq, Copy)]
-enum State {
-    NoFound,
-    Draw,
-    CatWin,
-    MouseWin,
-}
-
 pub fn cat_mouse_game(graph: Vec<Vec<i32>>) -> i32 {
-    fn dfs(
-        dp: &mut Vec<Vec<Vec<State>>>,
-        mouse: usize,
-        cat: usize,
-        turn: usize,
-        g: &Vec<Vec<i32>>,
-        n: usize,
-    ) -> State {
-        let is_mouse = turn % 2 == 0;
-        let cur_move = if is_mouse { mouse } else { cat };
-        let default_val = if is_mouse {
-            State::CatWin
+    let n = graph.len();
+    if n <= 2 {
+        return if n == 0 { 0 } else { 1 };
+    }
+
+    if graph[1].is_empty() {
+        return 2;
+    }
+    if graph[2].is_empty() {
+        return 1;
+    }
+
+    let mut dp = vec![0u8; n * n * 2];
+    let mut queue = VecDeque::with_capacity(n * n * 2);
+
+    for mouse in 0..n {
+        for cat in 0..n {
+            let idx = mouse * n * 2 + cat * 2;
+            if mouse == 0 {
+                dp[idx] = 1;
+                dp[idx + 1] = 1;
+                queue.push_back((mouse, cat, 0, 1));
+                queue.push_back((mouse, cat, 1, 1));
+            } else if mouse == cat {
+                dp[idx] = 2;
+                dp[idx + 1] = 2;
+                queue.push_back((mouse, cat, 0, 2));
+                queue.push_back((mouse, cat, 1, 2));
+            }
+        }
+    }
+
+    while let Some((mouse, cat, turn, result)) = queue.pop_front() {
+        if mouse == 1 && cat == 2 && turn == 0 {
+            return result as i32;
+        }
+
+        let prev_turn = turn ^ 1;
+        let prev_turn_idx = prev_turn as usize;
+
+        if prev_turn == 0 {
+            for &prev_mouse in &graph[mouse] {
+                let prev_mouse = prev_mouse as usize;
+                let idx = prev_mouse * n * 2 + cat * 2 + prev_turn_idx;
+
+                if dp[idx] == 0 {
+                    if result == 1 {
+                        dp[idx] = 1;
+                        queue.push_back((prev_mouse, cat, prev_turn, 1));
+                    } else {
+                        let mut all_cat_win = true;
+                        for &next in &graph[prev_mouse] {
+                            let next_idx =
+                                next as usize * n * 2 + cat * 2 + (prev_turn ^ 1) as usize;
+                            if dp[next_idx] != 2 {
+                                all_cat_win = false;
+                                break;
+                            }
+                        }
+                        if all_cat_win {
+                            dp[idx] = 2;
+                            queue.push_back((prev_mouse, cat, prev_turn, 2));
+                        }
+                    }
+                }
+            }
         } else {
-            State::MouseWin
-        };
-        let mut val = default_val;
-        for ele in g[cur_move].iter().filter(|&&x| x != 0 || is_mouse) {
-            let r = if is_mouse {
-                get_result(*ele as usize, cat, dp, turn + 1, n, g)
-            } else {
-                get_result(mouse, *ele as usize, dp, turn + 1, n, g)
-            };
-            if r != default_val {
-                val = r;
-                if r != State::Draw {
-                    break;
+            for &prev_cat in &graph[cat] {
+                let prev_cat = prev_cat as usize;
+                if prev_cat == 0 {
+                    continue;
+                }
+
+                let idx = mouse * n * 2 + prev_cat * 2 + prev_turn_idx;
+
+                if dp[idx] == 0 {
+                    if result == 2 {
+                        dp[idx] = 2;
+                        queue.push_back((mouse, prev_cat, prev_turn, 2));
+                    } else {
+                        let mut all_mouse_win = true;
+                        for &next in &graph[prev_cat] {
+                            if next == 0 {
+                                continue;
+                            }
+                            let next_idx =
+                                mouse * n * 2 + next as usize * 2 + (prev_turn ^ 1) as usize;
+                            if dp[next_idx] != 1 {
+                                all_mouse_win = false;
+                                break;
+                            }
+                        }
+                        if all_mouse_win {
+                            dp[idx] = 1;
+                            queue.push_back((mouse, prev_cat, prev_turn, 1));
+                        }
+                    }
                 }
             }
         }
-        val
     }
 
-    fn get_result(
-        mouse: usize,
-        cat: usize,
-        dp: &mut Vec<Vec<Vec<State>>>,
-        turn: usize,
-        n: usize,
-        g: &Vec<Vec<i32>>,
-    ) -> State {
-        if turn == 2 * n {
-            return State::Draw;
-        }
-        if dp[mouse][cat][turn] == State::NoFound {
-            match mouse {
-                0 => dp[mouse][cat][turn] = State::MouseWin,
-                i if i == cat => dp[mouse][cat][turn] = State::CatWin,
-                _ => dp[mouse][cat][turn] = dfs(dp, mouse, cat, turn, g, n),
-            }
-        }
-        dp[mouse][cat][turn]
-    }
-
-    let len = graph.len();
-    let mut dp = vec![vec![vec![State::NoFound; 2 * len]; len]; len];
-    match get_result(1, 2, &mut dp, 0, len, &graph) {
-        State::CatWin => 2,
-        State::Draw => 0,
-        State::MouseWin => 1,
-        State::NoFound => panic!("no found"),
-    }
+    dp[1 * n * 2 + 2 * 2] as i32
 }
