@@ -459,12 +459,12 @@ pub fn has_groups_size_x(deck: Vec<i32>) -> bool {
 ///915
 pub fn partition_disjoint(nums: Vec<i32>) -> i32 {
     let size = nums.len();
-    let mut postfix_min = vec![i32::MAX; size];
+    let mut suffix_min = vec![i32::MAX; size];
     nums.iter().enumerate().rev().for_each(|(i, &n)| {
         if i == size - 1 {
-            postfix_min[i] = n;
+            suffix_min[i] = n;
         } else {
-            postfix_min[i] = postfix_min[i + 1].min(n);
+            suffix_min[i] = suffix_min[i + 1].min(n);
         }
     });
     let mut prefix_max = vec![i32::MIN; size];
@@ -474,7 +474,7 @@ pub fn partition_disjoint(nums: Vec<i32>) -> i32 {
         } else {
             prefix_max[i] = prefix_max[i - 1].max(nums[i]);
         }
-        if i < size - 1 && prefix_max[i] <= postfix_min[i + 1] {
+        if i < size - 1 && prefix_max[i] <= suffix_min[i + 1] {
             return (i + 1) as i32;
         }
     }
