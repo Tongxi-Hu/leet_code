@@ -326,3 +326,76 @@ pub fn sort_array(nums: Vec<i32>) -> Vec<i32> {
     }
     ans[0].to_vec()
 }
+
+///913
+#[derive(Clone, PartialEq, Copy)]
+enum State {
+    NoFound,
+    Draw,
+    CatWin,
+    MouseWin,
+}
+
+pub fn cat_mouse_game(graph: Vec<Vec<i32>>) -> i32 {
+    fn dfs(
+        dp: &mut Vec<Vec<Vec<State>>>,
+        mouse: usize,
+        cat: usize,
+        turn: usize,
+        g: &Vec<Vec<i32>>,
+        n: usize,
+    ) -> State {
+        let is_mouse = turn % 2 == 0;
+        let cur_move = if is_mouse { mouse } else { cat };
+        let default_val = if is_mouse {
+            State::CatWin
+        } else {
+            State::MouseWin
+        };
+        let mut val = default_val;
+        for ele in g[cur_move].iter().filter(|&&x| x != 0 || is_mouse) {
+            let r = if is_mouse {
+                get_result(*ele as usize, cat, dp, turn + 1, n, g)
+            } else {
+                get_result(mouse, *ele as usize, dp, turn + 1, n, g)
+            };
+            if r != default_val {
+                val = r;
+                if r != State::Draw {
+                    break;
+                }
+            }
+        }
+        val
+    }
+
+    fn get_result(
+        mouse: usize,
+        cat: usize,
+        dp: &mut Vec<Vec<Vec<State>>>,
+        turn: usize,
+        n: usize,
+        g: &Vec<Vec<i32>>,
+    ) -> State {
+        if turn == 2 * n {
+            return State::Draw;
+        }
+        if dp[mouse][cat][turn] == State::NoFound {
+            match mouse {
+                0 => dp[mouse][cat][turn] = State::MouseWin,
+                i if i == cat => dp[mouse][cat][turn] = State::CatWin,
+                _ => dp[mouse][cat][turn] = dfs(dp, mouse, cat, turn, g, n),
+            }
+        }
+        dp[mouse][cat][turn]
+    }
+
+    let len = graph.len();
+    let mut dp = vec![vec![vec![State::NoFound; 2 * len]; len]; len];
+    match get_result(1, 2, &mut dp, 0, len, &graph) {
+        State::CatWin => 2,
+        State::Draw => 0,
+        State::MouseWin => 1,
+        State::NoFound => panic!("no found"),
+    }
+}
