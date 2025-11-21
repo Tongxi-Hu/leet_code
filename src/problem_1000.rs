@@ -1,6 +1,7 @@
 use std::{
     cmp::Ordering,
     collections::{HashMap, VecDeque},
+    i32,
 };
 
 ///901
@@ -432,4 +433,55 @@ pub fn cat_mouse_game(graph: Vec<Vec<i32>>) -> i32 {
     }
 
     dp[1 * n * 2 + 2 * 2] as i32
+}
+
+///914
+pub fn has_groups_size_x(deck: Vec<i32>) -> bool {
+    fn gcd(a: usize, b: usize) -> usize {
+        return if a == 0 { b } else { gcd(b % a, a) };
+    }
+    let mut count = HashMap::<i32, usize>::new();
+    deck.iter().for_each(|&n| {
+        let count = count.entry(n).or_insert(0);
+        *count = *count + 1;
+    });
+    let mut all_gcd = 0;
+    count.values().for_each(|&v| {
+        if all_gcd == 0 {
+            all_gcd = v;
+        } else {
+            all_gcd = gcd(all_gcd, v);
+        }
+    });
+    return all_gcd >= 2;
+}
+
+///915
+pub fn partition_disjoint(nums: Vec<i32>) -> i32 {
+    let size = nums.len();
+    let mut postfix_min = vec![i32::MAX; size];
+    nums.iter().enumerate().rev().for_each(|(i, &n)| {
+        if i == size - 1 {
+            postfix_min[i] = n;
+        } else {
+            postfix_min[i] = postfix_min[i + 1].min(n);
+        }
+    });
+    let mut prefix_max = vec![i32::MIN; size];
+    for i in 0..size {
+        if i == 0 {
+            prefix_max[i] = nums[i];
+        } else {
+            prefix_max[i] = prefix_max[i - 1].max(nums[i]);
+        }
+        if i < size - 1 && prefix_max[i] <= postfix_min[i + 1] {
+            return (i + 1) as i32;
+        }
+    }
+    return -1;
+}
+
+#[test]
+fn test_1000() {
+    partition_disjoint(vec![5, 0, 3, 8, 6]);
 }
