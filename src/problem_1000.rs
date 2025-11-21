@@ -243,3 +243,86 @@ pub fn smallest_range_ii(mut nums: Vec<i32>, k: i32) -> i32 {
     }
     ans
 }
+
+///911
+struct TopVotedCandidate {
+    times: Vec<i32>,
+    dp: Vec<i32>,
+}
+
+impl TopVotedCandidate {
+    fn new(persons: Vec<i32>, times: Vec<i32>) -> Self {
+        let n = persons.len();
+        let mut map: HashMap<i32, i32> = HashMap::new();
+        let mut dp: Vec<i32> = vec![0; n];
+
+        for i in 0..n {
+            let count = map.entry(persons[i]).or_insert(0);
+            *count += 1;
+
+            dp[i] = if i == 0 {
+                persons[i]
+            } else {
+                let cur_count = *count;
+                let prev_person = dp[i - 1];
+                let prev_count = map.get(&prev_person).map(|count| *count).unwrap();
+                if cur_count >= prev_count {
+                    persons[i]
+                } else {
+                    prev_person
+                }
+            };
+        }
+
+        Self { times, dp }
+    }
+
+    fn q(&self, t: i32) -> i32 {
+        match self.times.binary_search(&t) {
+            Ok(idx) => self.dp[idx],
+            Err(idx) => self.dp[idx - 1],
+        }
+    }
+}
+
+///912
+pub fn sort_array(nums: Vec<i32>) -> Vec<i32> {
+    fn merge(arr_1: &Vec<i32>, arr_2: &Vec<i32>) -> Vec<i32> {
+        let (size_1, size_2) = (arr_1.len(), arr_2.len());
+        let mut res = vec![];
+        let (mut i, mut j) = (0, 0);
+        while i < size_1 || j < size_2 {
+            if i == size_1 {
+                res.push(arr_2[j]);
+                j = j + 1;
+            } else if j == size_2 {
+                res.push(arr_1[i]);
+                i = i + 1;
+            } else if arr_1[i] <= arr_2[j] {
+                res.push(arr_1[i]);
+                i = i + 1;
+            } else {
+                res.push(arr_2[j]);
+                j = j + 1;
+            }
+        }
+        res
+    }
+    let mut ans = nums.iter().map(|&n| vec![n]).collect::<Vec<Vec<i32>>>();
+    let mut size = ans.len();
+    while size > 1 {
+        println!("{:?}", ans);
+        let mut merged_arr = vec![];
+        for i in (0..size).step_by(2) {
+            if i < size - 1 {
+                merged_arr.push(merge(&ans[i], &ans[i + 1]));
+            }
+        }
+        if size % 2 != 0 {
+            merged_arr.push(ans.last().unwrap().clone())
+        }
+        ans = merged_arr;
+        size = ans.len();
+    }
+    ans[0].to_vec()
+}
