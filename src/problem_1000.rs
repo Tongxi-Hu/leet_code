@@ -1,8 +1,12 @@
 use std::{
+    cell::RefCell,
     cmp::Ordering,
     collections::{HashMap, VecDeque},
     i32,
+    rc::Rc,
 };
+
+use crate::common::TreeNode;
 
 ///901
 #[derive(Default)]
@@ -484,4 +488,140 @@ pub fn partition_disjoint(nums: Vec<i32>) -> i32 {
 #[test]
 fn test_1000() {
     partition_disjoint(vec![5, 0, 3, 8, 6]);
+}
+
+/// 916
+pub fn word_subsets(words1: Vec<String>, words2: Vec<String>) -> Vec<String> {
+    fn get_count(word: &str) -> [i32; 26] {
+        let mut records = [0; 26];
+        for idx in word.bytes().map(|b| (b - b'a') as usize) {
+            records[idx] += 1;
+        }
+        records
+    }
+
+    let mut totals = [0; 26];
+    for word in words2.iter() {
+        let records = get_count(word);
+        for i in 0..26 {
+            totals[i] = i32::max(totals[i], records[i]);
+        }
+    }
+
+    for word in words1.iter() {
+        let records = get_count(word);
+        if (0..26).all(|idx| records[idx] >= totals[idx]) {}
+    }
+
+    words1
+        .into_iter()
+        .filter(|word| -> bool {
+            let records = get_count(word);
+            (0..26).all(|idx| records[idx] >= totals[idx])
+        })
+        .collect()
+}
+
+/// 917
+pub fn reverse_only_letters(s: String) -> String {
+    let mut chars = s.chars().collect::<Vec<char>>();
+    let (mut left, mut right) = (0, chars.len() - 1);
+    while left < right {
+        if !chars[left].is_alphabetic() {
+            left = left + 1;
+        } else if !chars[right].is_alphabetic() {
+            right = right - 1;
+        } else {
+            let temp = chars[left];
+            chars[left] = chars[right];
+            chars[right] = temp;
+            left = left + 1;
+            right = right - 1;
+        }
+    }
+    chars.iter().collect::<String>()
+}
+
+/// 918
+pub fn max_subarray_sum_circular(nums: Vec<i32>) -> i32 {
+    let (mut sum, mut curr_max, mut curr_min, mut max_sum, mut min_sum) = (0, 0, 0, nums[0], 0);
+    for num in nums {
+        curr_max = num.max(curr_max + num);
+        max_sum = max_sum.max(curr_max);
+        curr_min = num.min(curr_min + num);
+        min_sum = min_sum.min(curr_min);
+        sum += num;
+    }
+    if max_sum > 0 {
+        max_sum.max(sum - min_sum)
+    } else {
+        max_sum
+    }
+}
+
+/// 919
+struct CBTInserter {
+    nodes: Vec<Option<Rc<RefCell<TreeNode>>>>,
+}
+
+impl CBTInserter {
+    fn new(root: Option<Rc<RefCell<TreeNode>>>) -> Self {
+        let mut nodes = Vec::new();
+        nodes.push(root);
+        let mut i = 0;
+        while i < nodes.len() {
+            let (left, right) = (
+                nodes[i].as_ref().unwrap().borrow().left.clone(),
+                nodes[i].as_ref().unwrap().borrow().right.clone(),
+            );
+            if left.is_some() {
+                nodes.push(left);
+            }
+            if right.is_some() {
+                nodes.push(right);
+            }
+            i += 1;
+        }
+        CBTInserter { nodes }
+    }
+
+    fn insert(&mut self, val: i32) -> i32 {
+        let pos = self.nodes.len();
+        let node = Rc::new(RefCell::new(TreeNode::new(val)));
+        self.nodes.push(Some(node.clone()));
+        if (pos & 1) == 1 {
+            self.nodes[(pos - 1) / 2]
+                .as_ref()
+                .unwrap()
+                .borrow_mut()
+                .left = Some(node.clone())
+        } else {
+            self.nodes[(pos - 1) / 2]
+                .as_ref()
+                .unwrap()
+                .borrow_mut()
+                .right = Some(node.clone())
+        }
+        self.nodes[(pos - 1) / 2].as_ref().unwrap().borrow().val
+    }
+
+    fn get_root(&self) -> Option<Rc<RefCell<TreeNode>>> {
+        self.nodes[0].clone()
+    }
+}
+
+/// 920
+pub fn num_music_playlists(n: i32, goal: i32, k: i32) -> i32 {
+    let mut dp = vec![vec![0_i64; n as usize + 1]; goal as usize + 1];
+    dp[0][0] = 1;
+
+    for i in 1..=goal as usize {
+        for j in 1..=n as usize {
+            dp[i][j] += dp[i - 1][j - 1] * (n as i64 - j as i64 + 1);
+            dp[i][j] += dp[i - 1][j] * 0.max(j as i64 - k as i64);
+            dp[i][j] %= 1_000_000_007;
+        }
+    }
+
+    dp[goal as usize][n as usize] as i32
 }
