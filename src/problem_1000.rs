@@ -625,3 +625,138 @@ pub fn num_music_playlists(n: i32, goal: i32, k: i32) -> i32 {
 
     dp[goal as usize][n as usize] as i32
 }
+
+/// 921
+pub fn min_add_to_make_valid(s: String) -> i32 {
+    let (chars, mut stack, mut extra_left) = (s.chars().collect::<Vec<char>>(), vec![], 0);
+    for c in chars {
+        match c {
+            '(' => stack.push('('),
+            ')' => {
+                if stack.len() > 0 {
+                    stack.pop();
+                } else {
+                    extra_left = extra_left + 1;
+                }
+            }
+            _ => {}
+        }
+    }
+    return extra_left + (stack.len() as i32);
+}
+
+/// 922
+pub fn sort_array_by_parity_ii(mut nums: Vec<i32>) -> Vec<i32> {
+    let mut odd = 1;
+    for even in (0..nums.len()).step_by(2) {
+        if nums[even] % 2 == 1 {
+            while nums[odd] % 2 == 1 {
+                odd = odd + 2;
+            }
+            let temp = nums[even];
+            nums[even] = nums[odd];
+            nums[odd] = temp;
+        }
+    }
+    nums
+}
+
+/// 923
+pub fn three_sum_multi(arr: Vec<i32>, target: i32) -> i32 {
+    let target = target as usize;
+    const MOD: i64 = 1e9 as i64 + 7;
+    let mut mp = vec![0; 101];
+    for num in arr {
+        mp[num as usize] += 1;
+    }
+    let mut res = 0i64;
+    for i in 0..101usize {
+        if i + i > target {
+            break;
+        }
+        let t = target - i - i;
+        if t == i {
+            res += mp[i] * (mp[i] - 1) * (mp[i] - 2) / 6;
+        } else if t > i && t <= 100 {
+            res += mp[i] * (mp[i] - 1) * mp[t] / 2;
+        }
+        res = res % MOD;
+        for j in i + 1..101 {
+            if i + j > target {
+                break;
+            }
+            let t = target - i - j;
+            if t == j {
+                res += mp[i] * mp[j] * (mp[j] - 1) / 2;
+            } else if t > j && t <= 100 {
+                res += mp[i] * mp[j] * mp[t];
+            }
+            res = res % MOD;
+        }
+    }
+    res as i32
+}
+
+/// 924
+pub fn min_malware_spread(graph: Vec<Vec<i32>>, initial: Vec<i32>) -> i32 {
+    let n = graph.len();
+    let mut ids: Vec<i32> = vec![0; n];
+    let mut id_to_size: HashMap<i32, i32> = HashMap::new();
+    let mut id = 0;
+    for i in 0..n {
+        if ids[i] == 0 {
+            id += 1;
+            let mut q = VecDeque::from([i]);
+            ids[i] = id;
+            let mut size = 1;
+            while let Some(u) = q.pop_front() {
+                for v in 0..n {
+                    if graph[u][v] == 1 && ids[v] == 0 {
+                        size += 1;
+                        q.push_back(v);
+                        ids[v] = id;
+                    }
+                }
+            }
+            id_to_size.insert(id, size);
+        }
+    }
+    let mut id_to_initials: HashMap<i32, i32> = HashMap::new();
+    for &u in initial.iter() {
+        *id_to_initials.entry(ids[u as usize]).or_insert(0) += 1;
+    }
+    let mut ans = n as i32 + 1;
+    let mut ans_removed = 0;
+    for &u in initial.iter() {
+        let removed = if id_to_initials[&ids[u as usize]] == 1 {
+            id_to_size[&ids[u as usize]]
+        } else {
+            0
+        };
+        if removed > ans_removed || (removed == ans_removed && u < ans) {
+            ans = u;
+            ans_removed = removed;
+        }
+    }
+    ans
+}
+
+/// 925
+pub fn is_long_pressed_name(name: String, typed: String) -> bool {
+    let (true_name, typed_name) = (
+        name.chars().collect::<Vec<char>>(),
+        typed.chars().collect::<Vec<char>>(),
+    );
+    let (mut i, mut j) = (0, 0);
+    while j < typed_name.len() {
+        if i < true_name.len() && true_name[i] == typed_name[j] {
+            i = i + 1;
+            j = j + 1;
+        } else if j > 0 && typed_name[j] == typed_name[j - 1] {
+            j = j + 1;
+        } else {
+            return false;
+        }
+    }
+    i == true_name.len()
+}
