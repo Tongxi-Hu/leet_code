@@ -1,7 +1,7 @@
 use std::{
     cell::RefCell,
     cmp::Ordering,
-    collections::{HashMap, VecDeque},
+    collections::{HashMap, HashSet, VecDeque},
     i32,
     rc::Rc,
 };
@@ -485,11 +485,6 @@ pub fn partition_disjoint(nums: Vec<i32>) -> i32 {
     return -1;
 }
 
-#[test]
-fn test_1000() {
-    partition_disjoint(vec![5, 0, 3, 8, 6]);
-}
-
 /// 916
 pub fn word_subsets(words1: Vec<String>, words2: Vec<String>) -> Vec<String> {
     fn get_count(word: &str) -> [i32; 26] {
@@ -759,4 +754,162 @@ pub fn is_long_pressed_name(name: String, typed: String) -> bool {
         }
     }
     i == true_name.len()
+}
+
+/// 926
+pub fn min_flips_mono_incr(s: String) -> i32 {
+    let chars = s.chars().collect::<Vec<char>>();
+    let mut dp = vec![[i32::MAX; 2]; chars.len()];
+    for (i, c) in chars.iter().enumerate() {
+        match c {
+            '1' => {
+                if i == 0 {
+                    dp[i][0] = 1;
+                    dp[i][1] = 0;
+                } else {
+                    dp[i][0] = dp[i - 1][0] + 1;
+                    dp[i][1] = dp[i - 1][0].min(dp[i - 1][1]);
+                }
+            }
+            '0' => {
+                if i == 0 {
+                    dp[i][0] = 0;
+                    dp[i][1] = 1;
+                } else {
+                    dp[i][0] = dp[i - 1][0];
+                    dp[i][1] = dp[i - 1][0].min(dp[i - 1][1]) + 1;
+                }
+            }
+            _ => (),
+        }
+    }
+    let last = dp.last().unwrap();
+    last[0].min(last[1])
+}
+
+/// 927
+pub fn three_equal_parts(arr: Vec<i32>) -> Vec<i32> {
+    let (one_total, mut one_cnt) = (arr.iter().filter(|&&x| x == 1).count() as i32, 0);
+    if one_total == 0 {
+        return vec![0, 2];
+    }
+    if one_total % 3 != 0 {
+        return vec![-1, -1];
+    }
+
+    let (mut x, mut y, mut z) = arr
+        .iter()
+        .enumerate()
+        .fold((0, 0, 0), |(x, y, z), (i, &v)| {
+            if v == 1 {
+                if one_cnt == 0 {
+                    one_cnt += 1;
+                    (i, y, z)
+                } else if one_cnt == one_total / 3 {
+                    one_cnt += 1;
+                    (x, i, z)
+                } else if one_cnt == one_total / 3 * 2 {
+                    one_cnt += 1;
+                    (x, y, i)
+                } else {
+                    one_cnt += 1;
+                    (x, y, z)
+                }
+            } else {
+                (x, y, z)
+            }
+        });
+    while z < arr.len() {
+        if arr[x] != arr[y] || arr[y] != arr[z] {
+            return vec![-1, -1];
+        }
+        x += 1;
+        y += 1;
+        z += 1;
+    }
+    vec![x as i32 - 1, y as i32]
+}
+
+/// 928
+pub fn min_malware_spread_1(graph: Vec<Vec<i32>>, initial: Vec<i32>) -> i32 {
+    fn dfs(graph: &Vec<Vec<i32>>, visited: &mut Vec<bool>, start: usize, remove: usize) -> i32 {
+        if start == remove {
+            return 0;
+        }
+        let mut count = 1;
+        visited[start] = true;
+        for i in 0..graph.len() {
+            if graph[start][i] == 1 && !visited[i] && i != remove {
+                count += dfs(graph, visited, i, remove);
+            }
+        }
+        count
+    }
+    let n = graph.len();
+    let mut initial = initial;
+    initial.sort();
+    let mut min_malware_size = std::i32::MAX;
+    let mut node_to_remove = initial[0];
+
+    for &infected in &initial {
+        let mut visited = vec![false; n];
+        let mut size_of_malware_spread = 0;
+
+        for &start in &initial {
+            if start != infected && !visited[start as usize] {
+                let count = dfs(&graph, &mut visited, start as usize, infected as usize);
+                size_of_malware_spread += count;
+            }
+        }
+
+        if size_of_malware_spread < min_malware_size {
+            min_malware_size = size_of_malware_spread;
+            node_to_remove = infected;
+        }
+    }
+
+    node_to_remove
+}
+
+/// 929
+pub fn num_unique_emails(emails: Vec<String>) -> i32 {
+    let mut uniq = HashSet::new();
+    for email in emails {
+        let (mut is_plus, mut is_end, mut final_email) = (false, false, String::new());
+        email.chars().for_each(|ch| {
+            if ch == '+' {
+                is_plus = true
+            }
+            if ch == '@' {
+                is_end = true
+            }
+            if is_end || (!is_plus && ch != '.') {
+                final_email.push(ch)
+            }
+        });
+        uniq.insert(final_email);
+    }
+    uniq.len() as i32
+}
+
+/// 930
+pub fn num_subarrays_with_sum(nums: Vec<i32>, goal: i32) -> i32 {
+    let size = nums.len();
+    let (mut surffix_sum, mut count) = (vec![0; size], 0);
+    nums.iter().enumerate().for_each(|(i, &n)| {
+        if i == 0 {
+            surffix_sum[i] = n;
+        } else {
+            surffix_sum[i] = surffix_sum[i - 1] + n;
+        }
+        if surffix_sum[i] == goal {
+            count = count + 1;
+        }
+        for j in 0..i {
+            if surffix_sum[i] - surffix_sum[j] == goal {
+                count = count + 1;
+            }
+        }
+    });
+    count
 }
