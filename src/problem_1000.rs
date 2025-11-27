@@ -913,3 +913,92 @@ pub fn num_subarrays_with_sum(nums: Vec<i32>, goal: i32) -> i32 {
     });
     count
 }
+
+/// 931
+pub fn min_falling_path_sum(matrix: Vec<Vec<i32>>) -> i32 {
+    let size = matrix.len();
+    let mut dp = vec![vec![i32::MAX; size]; size];
+    dp[0] = matrix[0].to_vec();
+    for i in 1..size {
+        for j in 0..size {
+            if j == 0 {
+                dp[i][j] = matrix[i][j] + dp[i - 1][j].min(dp[i - 1][j + 1]);
+            } else if j == size - 1 {
+                dp[i][j] = matrix[i][j] + dp[i - 1][j].min(dp[i - 1][j - 1]);
+            } else {
+                dp[i][j] = matrix[i][j] + dp[i - 1][j].min(dp[i - 1][j - 1]).min(dp[i - 1][j + 1]);
+            }
+        }
+    }
+    *dp.last().unwrap().iter().min().unwrap()
+}
+
+/// 932
+pub fn beautiful_array(n: i32) -> Vec<i32> {
+    let mut result = vec![];
+    if n == 1 {
+        result.push(1);
+        return result;
+    }
+    let odd_num = (n + 1) / 2;
+    let even_num = n / 2;
+    let (left_vec, right_vec) = (beautiful_array(odd_num), beautiful_array(even_num));
+    for v in left_vec.iter() {
+        result.push(v * 2 - 1);
+    }
+    for v in right_vec.iter() {
+        result.push(v * 2);
+    }
+    result
+}
+
+/// 933
+struct RecentCounter {
+    ping_time: VecDeque<i32>,
+}
+
+impl RecentCounter {
+    fn new() -> Self {
+        Self {
+            ping_time: VecDeque::new(),
+        }
+    }
+
+    fn ping(&mut self, t: i32) -> i32 {
+        self.ping_time.push_back(t);
+        while self.ping_time.len() > 0 && t - self.ping_time.front().unwrap() > 3000 {
+            self.ping_time.pop_front();
+        }
+        self.ping_time.len() as i32
+    }
+}
+/// 935
+pub fn knight_dialer(n: i32) -> i32 {
+    const MOD: i32 = 1_000_000_007;
+
+    let moves = vec![
+        vec![4, 6],
+        vec![6, 8],
+        vec![7, 9],
+        vec![4, 8],
+        vec![3, 9, 0],
+        vec![],
+        vec![1, 7, 0],
+        vec![2, 6],
+        vec![1, 3],
+        vec![2, 4],
+    ];
+    let mut d = vec![vec![0; 10], vec![1; 10]];
+    for i in 2..=n {
+        let x = (i % 2) as usize;
+        for j in 0..10 {
+            d[x][j] = 0;
+            for &k in &moves[j] {
+                d[x][j] = (d[x][j] + d[1 - x][k]) % MOD;
+            }
+        }
+    }
+    d[(n % 2) as usize]
+        .iter()
+        .fold(0, |res, &x| (res + x) % MOD)
+}
