@@ -972,6 +972,69 @@ impl RecentCounter {
         self.ping_time.len() as i32
     }
 }
+
+/// 934
+pub fn shortest_bridge(mut grid: Vec<Vec<i32>>) -> i32 {
+    use std::collections::VecDeque;
+    let (n, dirs, mut queue) = (
+        grid.len(),
+        [[-1, 0], [1, 0], [0, -1], [0, 1]],
+        VecDeque::new(),
+    );
+
+    fn dfs(
+        grid: &mut Vec<Vec<i32>>,
+        queue: &mut VecDeque<(i32, i32, i32)>,
+        r: usize,
+        c: usize,
+        n: usize,
+    ) {
+        if r >= n || c >= n || grid[r][c] != 1 {
+            return;
+        }
+        grid[r][c] = -1;
+        queue.push_back((r as i32, c as i32, 0));
+        dfs(grid, queue, r + 1, c, n);
+        dfs(grid, queue, r - 1, c, n);
+        dfs(grid, queue, r, c + 1, n);
+        dfs(grid, queue, r, c - 1, n);
+    }
+
+    for i in 0..n {
+        if !queue.is_empty() {
+            break;
+        }
+        for j in 0..n {
+            if !queue.is_empty() {
+                break;
+            }
+            if grid[i][j] == 1 {
+                dfs(&mut grid, &mut queue, i, j, n)
+            }
+        }
+    }
+
+    while let Some((x, y, cnt)) = queue.pop_front() {
+        for dir in dirs {
+            let (r, c) = (x + dir[0], y + dir[1]);
+            if r < 0
+                || r as usize >= n
+                || c < 0
+                || c as usize >= n
+                || grid[r as usize][c as usize] == -1
+            {
+                continue;
+            }
+            if grid[r as usize][c as usize] == 1 {
+                return cnt;
+            }
+            grid[r as usize][c as usize] = -1;
+            queue.push_back((r, c, cnt + 1));
+        }
+    }
+    -1
+}
+
 /// 935
 pub fn knight_dialer(n: i32) -> i32 {
     const MOD: i32 = 1_000_000_007;
@@ -1130,7 +1193,31 @@ pub fn distinct_subseq_ii(s: String) -> i32 {
     })
 }
 
-#[test]
-fn test_1000() {
-    distinct_subseq_ii(String::from("abc"));
+/// 941
+pub fn valid_mountain_array(arr: Vec<i32>) -> bool {
+    let length = arr.len();
+    if length < 3 {
+        return false;
+    } else {
+        let mut peak = 0;
+        for i in 1..length {
+            if arr[i] > arr[peak] {
+                if peak != i - 1 {
+                    return false;
+                } else {
+                    peak = i;
+                }
+            } else if arr[i] < arr[peak] {
+                if arr[i] >= arr[i - 1] {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+        if peak == length - 1 || peak == 0 {
+            return false;
+        }
+        true
+    }
 }
