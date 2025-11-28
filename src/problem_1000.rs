@@ -1002,3 +1002,135 @@ pub fn knight_dialer(n: i32) -> i32 {
         .iter()
         .fold(0, |res, &x| (res + x) % MOD)
 }
+
+/// 936
+pub fn moves_to_stamp(stamp: String, target: String) -> Vec<i32> {
+    let mut res = vec![];
+    let mut st = std::collections::HashSet::new();
+    let stamp = stamp.into_bytes();
+    let mut target = target.into_bytes();
+    let (m, n) = (stamp.len(), target.len());
+    loop {
+        let mut can_replace = false;
+        for p in 0..=n - m {
+            if st.contains(&p) {
+                continue;
+            }
+            if !(p..p + m).all(|j| target[j] == b'?' || target[j] == stamp[j - p]) {
+                continue;
+            }
+            for j in p..p + m {
+                target[j] = b'?';
+            }
+            res.push(p as i32);
+            st.insert(p);
+            can_replace = true;
+        }
+        if !can_replace {
+            return if target.into_iter().all(|c| c == b'?') {
+                res.reverse();
+                res
+            } else {
+                vec![]
+            };
+        }
+    }
+}
+
+/// 937
+pub fn reorder_log_files(mut logs: Vec<String>) -> Vec<String> {
+    use std::cmp::Ordering;
+    logs.sort_by(|a, b| {
+        let (s1, s2) = (
+            a.splitn(2, ' ').collect::<Vec<_>>(),
+            b.splitn(2, ' ').collect::<Vec<_>>(),
+        );
+        match (
+            s1[1].as_bytes()[0].is_ascii_digit(),
+            s2[1].as_bytes()[0].is_ascii_digit(),
+        ) {
+            (true, true) => Ordering::Equal,
+            (false, false) => (s1[1], s1[0]).cmp(&(s2[1], s2[0])),
+            (true, false) => Ordering::Greater,
+            (false, true) => Ordering::Less,
+        }
+    });
+    logs
+}
+
+/// 938
+pub fn range_sum_bst(root: Option<Rc<RefCell<TreeNode>>>, low: i32, high: i32) -> i32 {
+    let mut in_range = Vec::<i32>::new();
+    fn in_order_search(
+        root: &Option<Rc<RefCell<TreeNode>>>,
+        low: i32,
+        high: i32,
+        in_range: &mut Vec<i32>,
+    ) {
+        if let Some(node) = root.as_ref() {
+            let val = node.borrow().val;
+            let right = node.borrow().right.clone();
+            let left = node.borrow().left.clone();
+            if val < low {
+                in_order_search(&right, low, high, in_range);
+            } else if val > high {
+                in_order_search(&left, low, high, in_range);
+            } else {
+                in_order_search(&left, low, high, in_range);
+                in_range.push(val);
+                in_order_search(&right, low, high, in_range);
+            }
+        }
+    }
+    in_order_search(&root, low, high, &mut in_range);
+    in_range.iter().sum()
+}
+
+/// 939
+pub fn min_area_rect(points: Vec<Vec<i32>>) -> i32 {
+    let hs: HashSet<i32> = points.iter().map(|a| a[0] * 40001 + a[1]).collect();
+    let mut output = i32::MAX;
+    for i in 0..points.len() {
+        let (x1, y1) = (points[i][0], points[i][1]);
+        for j in i + 1..points.len() {
+            let (x2, y2) = (points[j][0], points[j][1]);
+            if x1 == x2 || y1 == y2 {
+                continue;
+            }
+            if hs.contains(&(x1 * 40001 + y2)) && hs.contains(&(x2 * 40001 + y1)) {
+                output = output.min(((x1 - x2) * (y1 - y2)).abs());
+            }
+        }
+    }
+    return if output == i32::MAX { 0 } else { output };
+}
+
+/// 940
+pub fn distinct_subseq_ii(s: String) -> i32 {
+    const MOD: i32 = 1e9 as i32 + 7;
+    let mut last: [i32; 26] = [-1; 26];
+    let chars = s.chars().collect::<Vec<char>>();
+    let mut dp = vec![1; chars.len()];
+    for i in 0..chars.len() {
+        let index = (chars[i] as u8 - b'a') as usize;
+        for l in last {
+            if l != -1 {
+                dp[i] = (dp[i] + dp[l as usize]) % MOD;
+            }
+        }
+        last[index] = i as i32;
+    }
+    println!("{:?}", dp);
+    last.iter().fold(0, |acc, &cur| {
+        if cur == -1 {
+            return acc;
+        } else {
+            (acc + dp[cur as usize]) % MOD
+        }
+    })
+}
+
+#[test]
+fn test_1000() {
+    distinct_subseq_ii(String::from("abc"));
+}
