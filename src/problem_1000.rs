@@ -1221,3 +1221,55 @@ pub fn valid_mountain_array(arr: Vec<i32>) -> bool {
         true
     }
 }
+
+/// 942
+pub fn di_string_match(s: String) -> Vec<i32> {
+    let mut res = vec![];
+    let size = s.len() as i32;
+    let mut nums: HashSet<i32> = HashSet::from_iter((0..=size).into_iter());
+    let chars = s.chars().collect::<Vec<char>>();
+    chars.iter().for_each(|c| match c {
+        'I' => {
+            let min = nums.iter().min().unwrap().clone();
+            res.push(min);
+            nums.remove(&min);
+        }
+        'D' => {
+            let max = nums.iter().max().unwrap().clone();
+            res.push(max);
+            nums.remove(&max);
+        }
+        _ => (),
+    });
+    res.push(nums.iter().min().unwrap().clone());
+    res
+}
+
+/// 944
+pub fn min_deletion_size(strs: Vec<String>) -> i32 {
+    let mut ans = 0;
+    let size = strs[0].chars().count();
+    for i in 0..size {
+        let c = strs.iter().fold(vec![], |mut acc, s| {
+            acc.push(s.chars().collect::<Vec<char>>()[i]);
+            acc
+        });
+        if !c.is_sorted() {
+            ans = ans + 1;
+        }
+    }
+    ans
+}
+
+/// 945
+pub fn min_increment_for_unique(mut nums: Vec<i32>) -> i32 {
+    nums.sort();
+    let mut count = 0;
+    for i in 1..nums.len() {
+        if nums[i] <= nums[i - 1] {
+            count = nums[i - 1] + 1 - nums[i] + count;
+            nums[i] = nums[i - 1] + 1;
+        }
+    }
+    count
+}
