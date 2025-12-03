@@ -1273,3 +1273,109 @@ pub fn min_increment_for_unique(mut nums: Vec<i32>) -> i32 {
     }
     count
 }
+
+/// 946
+pub fn validate_stack_sequences(pushed: Vec<i32>, popped: Vec<i32>) -> bool {
+    let (pushed_size, popped_size) = (pushed.len(), popped.len());
+    if pushed_size != popped_size {
+        return false;
+    } else {
+        let (mut push_index, mut pop_index) = (0, 0);
+        let mut current_stack = vec![];
+        loop {
+            if pop_index < popped_size
+                && current_stack.len() != 0
+                && *current_stack.last().unwrap() == popped[pop_index]
+            {
+                current_stack.pop();
+                pop_index = pop_index + 1;
+                continue;
+            } else if push_index < pushed_size {
+                current_stack.push(pushed[push_index]);
+                push_index = push_index + 1;
+            } else {
+                break;
+            }
+        }
+        current_stack.len() == 0 && push_index == pushed_size && pop_index == popped_size
+    }
+}
+
+/// 947
+pub fn remove_stones(stones: Vec<Vec<i32>>) -> i32 {
+    let mut n = stones.len();
+    let mut rows = HashMap::new();
+    let mut cols = HashMap::new();
+
+    for i in 0..n {
+        rows.entry(stones[i][0]).or_insert(vec![]).push(i);
+        cols.entry(stones[i][1]).or_insert(vec![]).push(i);
+    }
+
+    fn dfs(
+        stones: &Vec<Vec<i32>>,
+        rows: &HashMap<i32, Vec<usize>>,
+        cols: &HashMap<i32, Vec<usize>>,
+        vis: &mut Vec<bool>,
+        cur: usize,
+    ) {
+        for &x in &rows[&(stones[cur][0])] {
+            if !vis[x] {
+                vis[x] = true;
+                dfs(stones, rows, cols, vis, x);
+            }
+        }
+
+        for &y in &cols[&(stones[cur][1])] {
+            if !vis[y] {
+                vis[y] = true;
+                dfs(stones, rows, cols, vis, y);
+            }
+        }
+    }
+
+    let mut vis = vec![false; n];
+    let mut ans = 0;
+
+    for i in 0..n {
+        if !vis[i] {
+            vis[i] = true;
+            dfs(&stones, &rows, &cols, &mut vis, i);
+            ans += 1;
+        }
+    }
+
+    n as i32 - ans
+}
+
+/// 948
+pub fn bag_of_tokens_score(tokens: Vec<i32>, p: i32) -> i32 {
+    if tokens.len() == 0 {
+        return 0;
+    }
+
+    let mut tokens = tokens;
+    let mut p = p;
+    let mut i = 0;
+    let mut j = tokens.len() - 1;
+    let mut score = 0;
+    let mut ret = 0;
+    tokens.sort_unstable();
+
+    while i <= j {
+        if p >= tokens[i] {
+            p -= tokens[i];
+            score += 1;
+            ret = ret.max(score);
+            i += 1;
+        } else if score > 0 {
+            p += tokens[j];
+            score -= 1;
+            j -= 1;
+        } else {
+            break;
+        }
+    }
+
+    ret
+}
