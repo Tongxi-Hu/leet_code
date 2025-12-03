@@ -1303,7 +1303,7 @@ pub fn validate_stack_sequences(pushed: Vec<i32>, popped: Vec<i32>) -> bool {
 
 /// 947
 pub fn remove_stones(stones: Vec<Vec<i32>>) -> i32 {
-    let mut n = stones.len();
+    let n = stones.len();
     let mut rows = HashMap::new();
     let mut cols = HashMap::new();
 
