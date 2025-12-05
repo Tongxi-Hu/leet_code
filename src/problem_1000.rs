@@ -1379,3 +1379,50 @@ pub fn bag_of_tokens_score(tokens: Vec<i32>, p: i32) -> i32 {
 
     ret
 }
+
+/// 949
+pub fn largest_time_from_digits(mut arr: Vec<i32>) -> String {
+    let mut ans = vec![];
+    fn permutations(arr: &mut [i32], ans: &mut Vec<(i32, i32)>, cur: usize) {
+        if cur == 4 {
+            let hour = arr[0] * 10 + arr[1];
+            let minute = arr[2] * 10 + arr[3];
+
+            if hour < 24 && minute < 60 {
+                ans.push((hour, minute));
+            }
+
+            return;
+        }
+
+        for i in cur..arr.len() {
+            arr.swap(i, cur);
+            permutations(arr, ans, cur + 1);
+            arr.swap(i, cur);
+        }
+    }
+    permutations(&mut arr, &mut ans, 0);
+
+    if let Some((hour, minute)) = ans.into_iter().max() {
+        format!("{:02}:{:02}", hour, minute)
+    } else {
+        format!("")
+    }
+}
+
+/// 950
+pub fn deck_revealed_increasing(mut deck: Vec<i32>) -> Vec<i32> {
+    deck.sort();
+    let mut queue = std::collections::VecDeque::new();
+    let n = deck.len();
+
+    for i in (0..n).rev() {
+        let prev = deck[i];
+        if let Some(bottom) = queue.pop_back() {
+            queue.push_front(bottom);
+        }
+        queue.push_front(prev);
+    }
+
+    queue.into_iter().collect()
+}
