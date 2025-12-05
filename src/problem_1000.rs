@@ -1426,3 +1426,35 @@ pub fn deck_revealed_increasing(mut deck: Vec<i32>) -> Vec<i32> {
 
     queue.into_iter().collect()
 }
+
+/// 951
+pub fn flip_equiv(
+    root1: Option<Rc<RefCell<TreeNode>>>,
+    root2: Option<Rc<RefCell<TreeNode>>>,
+) -> bool {
+    match (root1.as_ref(), root2.as_ref()) {
+        (None, None) => true,
+        (Some(_), None) => false,
+        (None, Some(_)) => false,
+        (Some(node_1), Some(node_2)) => {
+            let (val_1, left_1, right_1) = (
+                node_1.borrow().val,
+                node_1.borrow().left.clone(),
+                node_1.borrow().right.clone(),
+            );
+            let (val_2, left_2, right_2) = (
+                node_2.borrow().val,
+                node_2.borrow().left.clone(),
+                node_2.borrow().right.clone(),
+            );
+            if val_1 != val_2 {
+                return false;
+            } else {
+                (flip_equiv(left_1.clone(), left_2.clone())
+                    && flip_equiv(right_1.clone(), right_2.clone()))
+                    || (flip_equiv(left_1.clone(), right_2.clone())
+                        && flip_equiv(right_1.clone(), left_2.clone()))
+            }
+        }
+    }
+}
