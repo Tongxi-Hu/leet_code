@@ -1458,3 +1458,160 @@ pub fn flip_equiv(
         }
     }
 }
+
+/// 952
+struct UnionFind {
+    parent: Vec<i32>,
+    rank: Vec<i32>,
+}
+
+impl UnionFind {
+    fn new(n: i32) -> Self {
+        let mut parent = vec![0; n as usize];
+        for i in 0..n {
+            parent[i as usize] = i;
+        }
+        UnionFind {
+            parent,
+            rank: vec![0; n as usize],
+        }
+    }
+
+    fn find(&mut self, mut p: i32) -> i32 {
+        while p != self.parent[p as usize] {
+            self.parent[p as usize] = self.parent[self.parent[p as usize] as usize];
+            p = self.parent[p as usize];
+        }
+        p
+    }
+
+    fn union(&mut self, mut p: i32, mut q: i32) {
+        p = self.find(p);
+        q = self.find(q);
+        if p == q {
+            return;
+        }
+        if self.rank[q as usize] > self.rank[p as usize] {
+            self.parent[p as usize] = q;
+        } else {
+            self.parent[q as usize] = p;
+            if self.rank[p as usize] == self.rank[q as usize] {
+                self.rank[p as usize] += 1;
+            }
+        }
+    }
+}
+
+pub fn largest_component_size(nums: Vec<i32>) -> i32 {
+    use std::collections::HashMap;
+    let maximum = nums.iter().max().unwrap_or(&i32::MIN);
+    let mut uf = UnionFind::new(maximum + 1);
+    let (mut track, mut ret) = (HashMap::new(), 0);
+
+    for num in &nums {
+        let sqrt = (num.clone() as f64).sqrt() as i32;
+        for i in 2..=sqrt {
+            if num % i == 0 {
+                uf.union(num.clone(), i);
+                uf.union(num.clone(), num.clone() / i);
+            }
+        }
+    }
+
+    for num in &nums {
+        let val = uf.find(num.clone());
+        *track.entry(val).or_insert(0) += 1;
+        ret = ret.max(*track.get(&val).unwrap_or(&0));
+    }
+    ret
+}
+
+/// 953
+pub fn is_alien_sorted(words: Vec<String>, order: String) -> bool {
+    fn is_sorted(a: &String, b: &String, order: &HashMap<char, usize>) -> bool {
+        let mut sorted = 0;
+        for pair in a.chars().zip(b.chars()).collect::<Vec<(char, char)>>() {
+            match order.get(&pair.0).unwrap().cmp(order.get(&pair.1).unwrap()) {
+                Ordering::Less => {
+                    sorted = 1;
+                    break;
+                }
+                Ordering::Equal => {
+                    continue;
+                }
+                Ordering::Greater => {
+                    sorted = -1;
+                    break;
+                }
+            }
+        }
+        if sorted == 0 {
+            if b.len() < a.len() {
+                sorted = -1;
+            } else {
+                sorted = 1;
+            }
+        }
+        sorted == 1
+    }
+    let dictionary: HashMap<char, usize> = order.chars().enumerate().map(|(i, c)| (c, i)).collect();
+    words
+        .windows(2)
+        .all(|pair| is_sorted(&pair[0], &pair[1], &dictionary))
+}
+
+/// 954
+pub fn can_reorder_doubled(arr: Vec<i32>) -> bool {
+    let mut map = HashMap::new();
+    arr.iter().for_each(|&n| {
+        *map.entry(n).or_insert(0) += 1;
+    });
+
+    let mut keys = map.keys().cloned().collect::<Vec<_>>();
+    keys.sort_by_key(|&k| k.abs());
+
+    for &n in keys.iter() {
+        let count = *map.get(&n).unwrap();
+        if count > 0 {
+            if let Some(cnt) = map.get_mut(&(n * 2)) {
+                if *cnt < count {
+                    return false;
+                }
+                *cnt -= count;
+            } else {
+                return false;
+            }
+        }
+    }
+    true
+}
+
+/// 955
+pub fn min_deletion_size_1(a: Vec<String>) -> i32 {
+    let n = a.len();
+    let w = a[0].len();
+    let mut ans = 0;
+
+    fn is_sorted(a: &[String]) -> bool {
+        for i in 0..a.len() - 1 {
+            if a[i] > a[i + 1] {
+                return false;
+            }
+        }
+        true
+    }
+
+    let mut cur: Vec<String> = vec![String::new(); n];
+    for j in 0..w {
+        let mut cur2 = cur.clone();
+        for i in 0..n {
+            cur2[i].push(a[i].chars().nth(j).unwrap());
+        }
+        if is_sorted(&cur2) {
+            cur = cur2;
+        } else {
+            ans += 1;
+        }
+    }
+    ans
+}
