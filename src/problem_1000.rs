@@ -1615,3 +1615,149 @@ pub fn min_deletion_size_1(a: Vec<String>) -> i32 {
     }
     ans
 }
+
+/// 957
+pub fn prison_after_n_days(nums: Vec<i32>, n: i32) -> Vec<i32> {
+    let mut now: i32 = 0;
+    for index in 0..8 {
+        if nums[index] == 1 {
+            now |= 1 << index;
+        }
+    }
+    let mut used: Vec<i32> = vec![now];
+    let mut map: HashMap<i32, i32> = HashMap::new();
+    map.insert(now, 0);
+    for _ in 0..n {
+        let mut next: i32 = 0;
+        for index in 1..7 {
+            if (now & (1 << (index - 1))) << 2 == now & (1 << (index + 1)) {
+                next |= 1 << index;
+            }
+        }
+        if let Some(&index) = map.get(&next) {
+            now = used[((n - index) % (used.len() as i32 - index) + index) as usize];
+            break;
+        } else {
+            map.insert(next, used.len() as i32);
+            used.push(next);
+            now = next;
+        }
+    }
+    let mut res: Vec<i32> = vec![0; 8];
+    for index in 0..8 {
+        if now & (1 << index) != 0 {
+            res[index] = 1;
+        }
+    }
+    res
+}
+
+/// 958
+pub fn is_complete_tree(root: Option<Rc<RefCell<TreeNode>>>) -> bool {
+    let mut current = vec![root.clone()];
+    let mut has_none = false;
+    while current.len() != 0 {
+        let length = current.len();
+        for _ in 0..length {
+            if let Some(node) = current.remove(0) {
+                if has_none {
+                    return false;
+                }
+                current.push(node.borrow().left.clone());
+                current.push(node.borrow().right.clone());
+            } else {
+                has_none = true;
+            }
+        }
+    }
+    true
+}
+
+/// 959
+struct UnionFind2 {
+    parent: Vec<usize>,
+    sets: i32,
+}
+
+impl UnionFind2 {
+    fn new(n: usize) -> Self {
+        UnionFind2 {
+            parent: (0..n).collect(),
+            sets: n as i32,
+        }
+    }
+
+    fn find(&mut self, idx: usize) -> usize {
+        if idx != self.parent[idx] {
+            self.parent[idx] = self.find(self.parent[idx]);
+        }
+        self.parent[idx]
+    }
+
+    fn union(&mut self, idx1: usize, idx2: usize) {
+        let (x, y) = (self.find(idx1), self.find(idx2));
+        if x != y {
+            self.parent[x] = y;
+            self.sets -= 1;
+        }
+    }
+
+    fn get_sets(&self) -> i32 {
+        self.sets
+    }
+}
+
+pub fn regions_by_slashes(grid: Vec<String>) -> i32 {
+    let grid: Vec<_> = grid.iter().map(|s| s.chars().collect::<Vec<_>>()).collect();
+    let (rows, cols) = (grid.len(), grid[0].len());
+    let mut uf = UnionFind2::new(rows * cols * 4);
+    for i in 0..grid.len() {
+        for j in 0..grid[0].len() {
+            let n = (i * cols + j) * 4;
+            if grid[i][j] == ' ' {
+                uf.union(n, n + 1);
+                uf.union(n, n + 2);
+                uf.union(n, n + 3);
+            } else if grid[i][j] == '/' {
+                uf.union(n, n + 1);
+                uf.union(n + 2, n + 3);
+            } else if grid[i][j] == '\\' {
+                uf.union(n, n + 3);
+                uf.union(n + 1, n + 2);
+            }
+            if j < cols - 1 {
+                uf.union(n + 3, n + 5);
+            }
+            if i < rows - 1 {
+                uf.union(n + 2, n + 4 * cols);
+            }
+        }
+    }
+    uf.get_sets()
+}
+
+/// 960
+pub fn min_deletion_size_2(strs: Vec<String>) -> i32 {
+    let n = strs[0].len();
+    let mut dp = vec![1; n];
+
+    for i in (0..n - 1).rev() {
+        for j in i + 1..n {
+            let mut valid = true;
+            for row in &strs {
+                let char_i = row.chars().nth(i).unwrap();
+                let char_j = row.chars().nth(j).unwrap();
+                if char_i > char_j {
+                    valid = false;
+                    break;
+                }
+            }
+            if valid {
+                dp[i] = dp[i].max(1 + dp[j]);
+            }
+        }
+    }
+
+    let max_dp = dp.iter().max().unwrap();
+    (n - max_dp) as i32
+}
