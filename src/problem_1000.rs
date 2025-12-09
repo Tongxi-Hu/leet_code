@@ -1761,3 +1761,112 @@ pub fn min_deletion_size_2(strs: Vec<String>) -> i32 {
     let max_dp = dp.iter().max().unwrap();
     (n - max_dp) as i32
 }
+
+/// 961
+pub fn repeated_n_times(nums: Vec<i32>) -> i32 {
+    let mut num_set = HashSet::new();
+    for i in 0..nums.len() {
+        if let Some(_) = num_set.get(&nums[i]) {
+            return nums[i];
+        } else {
+            num_set.insert(nums[i]);
+        }
+    }
+    -1
+}
+
+/// 962
+pub fn max_width_ramp(a: Vec<i32>) -> i32 {
+    let mut v = a
+        .iter()
+        .enumerate()
+        .map(|(i, n)| (n, i))
+        .collect::<Vec<_>>();
+    let mut min_i = a.len();
+    let mut ret = 0;
+    v.sort_unstable();
+    for (_, i) in v {
+        ret = ret.max((i as i32 - min_i as i32).max(0));
+        min_i = min_i.min(i);
+    }
+    ret as i32
+}
+
+/// 963
+pub fn min_area_free_rect(points: Vec<Vec<i32>>) -> f64 {
+    use std::collections::HashMap;
+    let mut min_area = i32::MAX;
+    let mut hashmap: HashMap<(i32, i32, i32), Vec<usize>> = HashMap::with_capacity(1250);
+
+    for (i, point_a) in points.iter().enumerate().skip(1) {
+        for point_b in points[..i].iter() {
+            let center_x = point_a[0] + point_b[0];
+            let center_y = point_a[1] + point_b[1];
+            let dist_x = point_a[0] - point_b[0];
+            let dist_y = point_a[1] - point_b[1];
+            let length_ab = dist_x * dist_x + dist_y * dist_y;
+            let key = (center_x, center_y, length_ab);
+
+            if let Some(v) = hashmap.get_mut(&key) {
+                for &k in v.iter() {
+                    let point_c = [points[k][0], points[k][1]];
+                    let ac = (point_a[0] - point_c[0], point_a[1] - point_c[1]);
+                    let bc = (point_b[0] - point_c[0], point_b[1] - point_c[1]);
+                    min_area = min_area.min((ac.0 * bc.1 - ac.1 * bc.0).abs());
+                }
+                v.push(i);
+            } else {
+                let mut v = Vec::new();
+                v.push(i);
+                hashmap.insert(key, v);
+            }
+        }
+    }
+
+    match min_area {
+        i32::MAX => 0.0,
+        _ => min_area as f64,
+    }
+}
+
+/// 965
+pub fn is_unival_tree(root: Option<Rc<RefCell<TreeNode>>>) -> bool {
+    fn is_unival(root: Option<Rc<RefCell<TreeNode>>>) -> (bool, Option<i32>) {
+        if let Some(node) = root.as_ref() {
+            let v = node.borrow().val;
+            let left = is_unival(node.borrow().left.clone());
+            let right = is_unival(node.borrow().right.clone());
+            if left.0 && right.0 {
+                match (left.1, right.1) {
+                    (Some(v1), Some(v2)) => {
+                        if v == v1 && v == v2 {
+                            (true, Some(v))
+                        } else {
+                            (false, None)
+                        }
+                    }
+                    (Some(v1), None) => {
+                        if v == v1 {
+                            (true, Some(v))
+                        } else {
+                            (false, None)
+                        }
+                    }
+                    (None, Some(v2)) => {
+                        if v == v2 {
+                            (true, Some(v))
+                        } else {
+                            (false, None)
+                        }
+                    }
+                    (None, None) => (true, Some(v)),
+                }
+            } else {
+                (false, None)
+            }
+        } else {
+            (true, None)
+        }
+    }
+    is_unival(root).0
+}
