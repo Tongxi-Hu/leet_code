@@ -1919,7 +1919,30 @@ pub fn spellchecker(wordlist: Vec<String>, queries: Vec<String>) -> Vec<String> 
     res
 }
 
-///968
+/// 967
+pub fn nums_same_consec_diff(n: i32, k: i32) -> Vec<i32> {
+    let mut nums = (1..10).collect();
+
+    for _ in 1..n {
+        let mut nums_ = vec![];
+
+        for x in nums {
+            let y = x % 10;
+            if y + k < 10 {
+                nums_.push(x * 10 + y + k);
+            }
+            if y - k >= 0 && k != 0 {
+                nums_.push(x * 10 + y - k);
+            }
+        }
+
+        nums = nums_;
+    }
+
+    nums
+}
+
+/// 968
 pub fn min_camera_cover(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
     fn dfs(node: Option<&Rc<RefCell<TreeNode>>>) -> (i32, i32, i32) {
         if let Some(x) = node {
@@ -1938,4 +1961,53 @@ pub fn min_camera_cover(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
     }
     let (choose, _, by_children) = dfs(root.as_ref());
     i32::min(choose, by_children)
+}
+
+/// 969
+pub fn pancake_sort(mut arr: Vec<i32>) -> Vec<i32> {
+    fn reverse(arr: &mut Vec<i32>, end: usize) {
+        let (mut l, mut r) = (0, end);
+        while l < r {
+            arr.swap(l, r);
+            l += 1;
+            r -= 1;
+        }
+    }
+
+    let mut ret = Vec::new();
+    for i in (0..arr.len()).rev() {
+        let (max_idx, _) =
+            arr.iter()
+                .enumerate()
+                .fold((i, arr[i]), |(max_idx, max_val), (j, v)| {
+                    if j < i && *v > max_val {
+                        (j, *v)
+                    } else {
+                        (max_idx, max_val)
+                    }
+                });
+        if max_idx != i {
+            reverse(&mut arr, max_idx);
+            reverse(&mut arr, i);
+            ret.push(max_idx as i32 + 1);
+            ret.push(i as i32 + 1);
+        }
+    }
+    ret
+}
+
+/// 970
+pub fn powerful_integers(x: i32, y: i32, bound: i32) -> Vec<i32> {
+    use std::collections::HashSet;
+    use std::iter::successors;
+    successors(Some(1), |i| Some(i * x).filter(|&xi| x > 1 && xi < bound))
+        .flat_map(|xi| {
+            successors(Some(1), move |i| {
+                Some(i * y).filter(|&yj| y > 1 && yj <= bound - xi)
+            })
+            .flat_map(move |yj| Some(xi + yj).filter(|&sum| sum <= bound))
+        })
+        .collect::<HashSet<_>>()
+        .into_iter()
+        .collect()
 }
