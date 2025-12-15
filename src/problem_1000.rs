@@ -1870,3 +1870,72 @@ pub fn is_unival_tree(root: Option<Rc<RefCell<TreeNode>>>) -> bool {
     }
     is_unival(root).0
 }
+
+/// 966
+pub fn spellchecker(wordlist: Vec<String>, queries: Vec<String>) -> Vec<String> {
+    let mut words_perfect = HashSet::new();
+    let mut words_cap = HashMap::new();
+    let mut words_vow = HashMap::new();
+
+    fn devowel(word: &str) -> String {
+        word.chars()
+            .map(|c| if is_vowel(c) { '*' } else { c })
+            .collect()
+    }
+
+    fn is_vowel(c: char) -> bool {
+        match c.to_ascii_lowercase() {
+            'a' | 'e' | 'i' | 'o' | 'u' => true,
+            _ => false,
+        }
+    }
+
+    for word in &wordlist {
+        words_perfect.insert(word.clone());
+        let wordlow = word.to_ascii_lowercase();
+        words_cap.entry(wordlow.clone()).or_insert(word.clone());
+        let wordlow_dv = devowel(&wordlow);
+        words_vow.entry(wordlow_dv).or_insert(word.clone());
+    }
+
+    let mut res = Vec::with_capacity(queries.len());
+    for query in queries {
+        if words_perfect.contains(&query) {
+            res.push(query);
+            continue;
+        }
+        let query_l = query.to_ascii_lowercase();
+        if let Some(word) = words_cap.get(&query_l) {
+            res.push(word.clone());
+            continue;
+        }
+        let query_lv = devowel(&query_l);
+        if let Some(word) = words_vow.get(&query_lv) {
+            res.push(word.clone());
+            continue;
+        }
+        res.push(String::new());
+    }
+    res
+}
+
+///968
+pub fn min_camera_cover(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    fn dfs(node: Option<&Rc<RefCell<TreeNode>>>) -> (i32, i32, i32) {
+        if let Some(x) = node {
+            let (l_choose, l_by_fa, l_by_children) = dfs(x.borrow().left.as_ref());
+            let (r_choose, r_by_fa, r_by_children) = dfs(x.borrow().right.as_ref());
+            let choose = i32::min(l_choose, l_by_fa) + i32::min(r_choose, r_by_fa) + 1;
+            let by_fa = i32::min(l_choose, l_by_children) + i32::min(r_choose, r_by_children);
+            let by_children = i32::min(
+                i32::min(l_choose + r_by_children, l_by_children + r_choose),
+                l_choose + r_choose,
+            );
+            (choose, by_fa, by_children)
+        } else {
+            (i32::MAX / 2, 0, 0)
+        }
+    }
+    let (choose, _, by_children) = dfs(root.as_ref());
+    i32::min(choose, by_children)
+}
