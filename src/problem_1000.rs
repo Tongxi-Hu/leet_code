@@ -2165,3 +2165,55 @@ pub fn subarrays_div_by_k(nums: Vec<i32>, k: i32) -> i32 {
         }
     }) as i32
 }
+
+/// 975
+pub fn odd_even_jumps(arr: Vec<i32>) -> i32 {
+    let mut dp: Vec<[i32; 2]> = Vec::new();
+    let mut index = HashMap::new();
+    let len = arr.len();
+    index.insert(arr[len - 1], 0);
+    let mut find = Vec::new();
+    find.push(arr[len - 1]);
+    dp.push([1, 1]);
+    let mut c = 1;
+    for i in (0..len - 1).rev() {
+        let mut up = 0;
+        let mut down = 0;
+        let mut left = 0;
+        let mut right = find.len() - 1;
+        let mut mid = 0;
+        let mut left_num = -1;
+        let mut right_num = -1;
+        while right >= left {
+            mid = left + (right - left) / 2;
+            if find[mid] > arr[i] {
+                right_num = find[mid];
+                if mid == 0 {
+                    break;
+                }
+                right = mid - 1;
+            } else if find[mid] < arr[i] {
+                left = mid + 1;
+                left_num = find[mid];
+            } else {
+                left_num = find[mid];
+                right_num = find[mid];
+                break;
+            }
+        }
+        if left_num != -1 {
+            down = dp[*index.get(&left_num).unwrap()][0];
+        }
+        if right_num != -1 {
+            up = dp[*index.get(&right_num).unwrap()][1];
+        }
+        if find[mid] < arr[i] {
+            mid = mid + 1;
+        }
+        find.insert(mid, arr[i]);
+        index.insert(arr[i], len - i - 1);
+        c += up;
+        dp.push([up, down]);
+    }
+    c
+}
