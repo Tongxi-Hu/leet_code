@@ -3,6 +3,7 @@ use std::{
     cmp::Ordering,
     collections::{HashMap, HashSet, VecDeque},
     i32,
+    ops::Add,
     rc::Rc,
 };
 
@@ -2010,4 +2011,132 @@ pub fn powerful_integers(x: i32, y: i32, bound: i32) -> Vec<i32> {
         .collect::<HashSet<_>>()
         .into_iter()
         .collect()
+}
+
+/// 971
+pub fn flip_match_voyage(root: Option<Rc<RefCell<TreeNode>>>, voyage: Vec<i32>) -> Vec<i32> {
+    fn dfs(
+        node: &Option<Rc<RefCell<TreeNode>>>,
+        voyage: &Vec<i32>,
+        res: &mut Vec<i32>,
+        i: &mut usize,
+    ) {
+        if let Some(n) = node {
+            if n.borrow().val != voyage[*i] {
+                *res = vec![-1];
+                return;
+            }
+            *i += 1;
+            if n.borrow().left.is_some()
+                && n.borrow().left.clone().unwrap().borrow().val != voyage[*i]
+            {
+                res.push(n.borrow_mut().val);
+                dfs(&n.borrow().right, voyage, res, i);
+                dfs(&n.borrow().left, voyage, res, i);
+            } else {
+                dfs(&n.borrow().left, voyage, res, i);
+                dfs(&n.borrow().right, voyage, res, i);
+            }
+        }
+    }
+    let mut ret = Vec::new();
+    let mut index = 0;
+    dfs(&root, &voyage, &mut ret, &mut index);
+    if ret.first() == Some(&-1) {
+        return vec![-1];
+    }
+    ret
+}
+
+/// 972
+#[derive(Debug, Copy, Clone)]
+struct Rational {
+    up: i32,
+    down: i32,
+}
+impl PartialEq for Rational {
+    fn eq(&self, other: &Self) -> bool {
+        self.up * other.down == self.down * other.up
+    }
+}
+impl Add for Rational {
+    type Output = Self;
+    fn add(self, other: Self) -> Self {
+        if self.up == 0 {
+            return other;
+        } else if other.up == 0 {
+            return self;
+        }
+        if self.down == other.down {
+            Self {
+                up: self.up + other.up,
+                down: self.down,
+            }
+        } else {
+            Self {
+                up: self.up * other.down + other.up * self.down,
+                down: self.down * other.down,
+            }
+        }
+    }
+}
+
+pub fn is_rational_equal(s: String, t: String) -> bool {
+    fn to_rational(s: String) -> Rational {
+        let mut dot = -1;
+        let mut bracket_left = -1;
+        let mut bracket_right = -1;
+        let mut i = 0i32;
+        let s = s.as_str();
+        for c in s.chars() {
+            if c == '.' {
+                dot = i;
+            } else if c == '(' {
+                bracket_left = i;
+            } else if c == ')' {
+                bracket_right = i;
+            }
+            i += 1
+        }
+
+        let integer_part = if dot == -1 {
+            Rational {
+                up: s.parse().unwrap(),
+                down: 1,
+            }
+        } else {
+            Rational {
+                up: s[0..(dot as usize)].parse().unwrap(),
+                down: 1,
+            }
+        };
+        let non_repeating_part = if dot == -1 || (dot == i - 1) || (bracket_left == dot + 1) {
+            Rational { up: 0, down: 1 }
+        } else if bracket_left == -1 {
+            Rational {
+                up: s[(dot as usize + 1)..].parse().unwrap(),
+                down: 10_i32.pow((i - dot - 1) as u32),
+            }
+        } else {
+            Rational {
+                up: s[(dot as usize + 1)..(bracket_left as usize)]
+                    .parse()
+                    .unwrap(),
+                down: 10_i32.pow((bracket_left - dot - 1) as u32),
+            }
+        };
+        let repeating_part = if bracket_left == -1 {
+            Rational { up: 0, down: 1 }
+        } else {
+            Rational {
+                up: s[(bracket_left as usize + 1)..(bracket_right as usize)]
+                    .parse()
+                    .unwrap(),
+                down: non_repeating_part.down
+                    * (10_i32.pow((bracket_right - bracket_left - 1) as u32) - 1),
+            }
+        };
+        integer_part + non_repeating_part + repeating_part
+    }
+    to_rational(s) == to_rational(t)
 }
