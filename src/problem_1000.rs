@@ -2140,3 +2140,28 @@ pub fn is_rational_equal(s: String, t: String) -> bool {
     }
     to_rational(s) == to_rational(t)
 }
+
+/// 973
+pub fn k_closest(mut points: Vec<Vec<i32>>, k: i32) -> Vec<Vec<i32>> {
+    points.sort_by(|a, b| (a[0].pow(2) + a[1].pow(2)).cmp(&(b[0].pow(2) + b[1].pow(2))));
+    points.drain(0..k as usize).collect()
+}
+
+/// 974
+pub fn subarrays_div_by_k(nums: Vec<i32>, k: i32) -> i32 {
+    let mut remainders: HashMap<i32, usize> = HashMap::new();
+    nums.iter().enumerate().fold(vec![], |mut acc, (i, &n)| {
+        let sum = if i == 0 { n } else { acc[i - 1] + n };
+        let remainder = if sum % k < 0 { k + sum % k } else { sum % k };
+        *remainders.entry(remainder).or_insert(0) += 1;
+        acc.push(sum);
+        acc
+    });
+    remainders.iter().fold(0_usize, |acc, (&i, &c)| {
+        if i == 0 {
+            acc + c + c * (c - 1) / 2
+        } else {
+            acc + c * (c - 1) / 2
+        }
+    }) as i32
+}
