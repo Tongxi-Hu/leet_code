@@ -2217,3 +2217,21 @@ pub fn odd_even_jumps(arr: Vec<i32>) -> i32 {
     }
     c
 }
+
+/// 976
+pub fn largest_perimeter(mut nums: Vec<i32>) -> i32 {
+    nums.sort();
+    for i in (2..nums.len()).rev() {
+        if nums[i - 2] + nums[i - 1] > nums[i] {
+            return nums[i - 2] + nums[i - 1] + nums[i];
+        }
+    }
+    0
+}
+
+/// 977
+pub fn sorted_squares(nums: Vec<i32>) -> Vec<i32> {
+    let mut square = nums.iter().map(|n| n * n).collect::<Vec<i32>>();
+    square.sort();
+    square
+}
