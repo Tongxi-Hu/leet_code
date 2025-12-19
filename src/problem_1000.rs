@@ -2235,3 +2235,34 @@ pub fn sorted_squares(nums: Vec<i32>) -> Vec<i32> {
     square.sort();
     square
 }
+
+/// 978
+pub fn max_turbulence_size(arr: Vec<i32>) -> i32 {
+    let n = arr.len();
+    let mut op = vec![0; n];
+    for i in 1..n {
+        let cmp = arr[i] - arr[i - 1];
+        op[i] = if cmp > 0 {
+            1
+        } else if cmp < 0 {
+            -1
+        } else {
+            0
+        };
+    }
+    let mut answer = 0;
+    let mut max = 0;
+    for i in 1..n {
+        if op[i] != 0 {
+            if op[i] != op[i - 1] {
+                max += 1;
+            } else {
+                max = 1;
+            }
+        } else {
+            max = 0;
+        }
+        answer = answer.max(max);
+    }
+    answer + 1
+}
