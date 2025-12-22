@@ -2416,3 +2416,73 @@ pub fn count_triplets(nums: Vec<i32>) -> i32 {
     }
     res
 }
+
+/// 983
+pub fn mincost_tickets(days: Vec<i32>, costs: Vec<i32>) -> i32 {
+    fn dfs(memo: &mut Vec<i32>, travel: &Vec<bool>, costs: &Vec<i32>, day: i32) -> i32 {
+        if day <= 0 {
+            return 0;
+        }
+        if memo[day as usize] > 0 {
+            return memo[day as usize];
+        }
+        if !travel[day as usize] {
+            return dfs(memo, travel, costs, day - 1);
+        }
+        memo[day as usize] = (dfs(memo, travel, costs, day - 1) + costs[0]).min(
+            (dfs(memo, travel, costs, day - 7) + costs[1])
+                .min(dfs(memo, travel, costs, day - 30) + costs[2]),
+        );
+        memo[day as usize]
+    }
+
+    let last = days[days.len() - 1];
+    let (mut travel, mut memo) = (vec![false; last as usize + 1], vec![0; last as usize + 1]);
+    days.iter().for_each(|&day| {
+        travel[day as usize] = true;
+    });
+    dfs(&mut memo, &travel, &costs, last);
+    memo[last as usize]
+}
+
+/// 984
+pub fn str_without3a3b(a: i32, b: i32) -> String {
+    let mut first_str = "a".to_string();
+    let mut second_str = "b".to_string();
+    let min_num = std::cmp::min(a, b);
+    let max_num = std::cmp::max(a, b);
+    let mut count = 0;
+
+    if a < b {
+        first_str = "b".to_string();
+        second_str = "a".to_string();
+    }
+
+    let mut distance = if a < b { b - a } else { a - b };
+    if distance > 0 {
+        distance -= 1;
+    }
+    distance = std::cmp::min(distance, min_num);
+
+    let mut ret = String::new();
+    for _ in 0..distance as usize {
+        ret += &first_str;
+        ret += &first_str;
+        ret += &second_str;
+        count += 2;
+    }
+
+    if min_num - distance > 0 {
+        for _ in 0..(min_num - distance) as usize {
+            ret += &first_str;
+            ret += &second_str;
+            count += 1;
+        }
+    }
+    if max_num - count > 0 {
+        for _ in 0..(max_num - count) as usize {
+            ret += &first_str;
+        }
+    }
+    ret
+}
