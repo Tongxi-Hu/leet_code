@@ -1,7 +1,7 @@
 use std::{
     cell::RefCell,
     cmp::Ordering,
-    collections::{HashMap, HashSet, VecDeque},
+    collections::{BTreeMap, HashMap, HashSet, VecDeque},
     i32,
     ops::Add,
     rc::Rc,
@@ -2265,4 +2265,154 @@ pub fn max_turbulence_size(arr: Vec<i32>) -> i32 {
         answer = answer.max(max);
     }
     answer + 1
+}
+
+/// 979
+pub fn distribute_coins(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    fn post_order(root: Option<&Rc<RefCell<TreeNode>>>, ret: &mut i32) -> i32 {
+        if let Some(node) = root {
+            let l = post_order(node.borrow().left.as_ref(), ret);
+            let r = post_order(node.borrow().right.as_ref(), ret);
+            *ret += l.abs() + r.abs();
+            node.borrow().val - 1 + l + r
+        } else {
+            0
+        }
+    }
+    let mut ret = 0;
+    post_order(root.as_ref(), &mut ret);
+    ret
+}
+
+/// 980
+pub fn unique_paths_iii(grid: Vec<Vec<i32>>) -> i32 {
+    let mut grid = grid;
+    let row_len = grid.len();
+    let col_len = grid[0].len();
+    let mut visited = vec![vec![false; col_len]; row_len];
+    let mut left = (row_len * col_len) as i32;
+    let mut start = -1;
+    let mut end = -1;
+
+    for (i, row) in grid.iter().enumerate() {
+        for (j, item) in row.iter().enumerate() {
+            if *item == 1 {
+                start = (i * col_len + j) as i32;
+            }
+            if *item == 2 {
+                end = (i * col_len + j) as i32;
+            }
+            if *item == -1 {
+                left -= 1;
+            }
+        }
+    }
+    grid[start as usize / col_len][start as usize % col_len] = 0;
+    grid[end as usize / col_len][end as usize % col_len] = 0;
+    fn dfs(
+        grid: &Vec<Vec<i32>>,
+        point: i32,
+        end: i32,
+        mut left: i32,
+        visited: &mut Vec<Vec<bool>>,
+    ) -> i32 {
+        let dirs: Vec<(i32, i32)> = vec![(0, 1), (0, -1), (1, 0), (-1, 0)];
+        let row_len = grid.len();
+        let col_len = grid[0].len();
+        let point_x = (point % col_len as i32) as usize;
+        let point_y = (point / col_len as i32) as usize;
+        visited[point_y][point_x] = true;
+        left -= 1;
+        if point == end && left == 0 {
+            visited[point_y][point_x] = false;
+            return 1;
+        }
+        let mut res = 0;
+        for dir in dirs {
+            let next_x = dir.0 + point_x as i32;
+            let next_y = dir.1 + point_y as i32;
+            let index = next_y * col_len as i32 + next_x;
+            if in_area(next_x, next_y, col_len, row_len)
+                && !visited[next_y as usize][next_x as usize]
+                && grid[next_y as usize][next_x as usize] == 0
+            {
+                res += dfs(grid, index, end, left, visited)
+            }
+        }
+        visited[point_y][point_x] = false;
+        res
+    }
+
+    fn in_area(next_x: i32, next_y: i32, col_len: usize, row_len: usize) -> bool {
+        if next_x < 0 || next_y < 0 {
+            return false;
+        }
+        if next_x >= col_len as i32 || next_y >= row_len as i32 {
+            return false;
+        }
+        true
+    }
+
+    dfs(&grid, start, end, left, &mut visited)
+}
+
+/// 981
+struct TimeMap {
+    storage: HashMap<String, BTreeMap<i32, String>>,
+}
+
+impl TimeMap {
+    fn new() -> Self {
+        Self {
+            storage: HashMap::new(),
+        }
+    }
+
+    fn set(&mut self, key: String, value: String, timestamp: i32) {
+        self.storage
+            .entry(key)
+            .or_insert(BTreeMap::new())
+            .insert(timestamp, value);
+    }
+
+    fn get(&self, key: String, timestamp: i32) -> String {
+        self.storage
+            .get(&key)
+            .map(|values| values.range(..=timestamp))
+            .and_then(|mut range| range.next_back())
+            .map(|(_, s)| s.to_string())
+            .unwrap_or("".to_string())
+    }
+}
+
+/// 982
+pub fn count_triplets(nums: Vec<i32>) -> i32 {
+    let m = *nums.iter().max().unwrap();
+    let l = if m > 0 {
+        1 << 32 - m.leading_zeros()
+    } else {
+        1
+    } as usize;
+    let mut cnt = vec![0; l];
+    let mut res = 0;
+    for n in &nums {
+        cnt[*n as usize] += 1;
+    }
+    let mut i = 1;
+    while i < l {
+        let mut j = 0;
+        while j < l {
+            let k = j + i;
+            while j < k {
+                cnt[j] += cnt[j + i];
+                j += 1;
+            }
+            j += i;
+        }
+        i *= 2;
+    }
+    for j in 0..=m as usize {
+        res += (1 - 2 * (j.count_ones() & 1)) as i32 * cnt[j] * cnt[j] * cnt[j];
+    }
+    res
 }
