@@ -2486,3 +2486,66 @@ pub fn str_without3a3b(a: i32, b: i32) -> String {
     }
     ret
 }
+
+/// 986
+pub fn interval_intersection(
+    first_list: Vec<Vec<i32>>,
+    second_list: Vec<Vec<i32>>,
+) -> Vec<Vec<i32>> {
+    let mut ans = vec![];
+    let (mut i, mut j) = (0, 0);
+    while i < first_list.len() && j < second_list.len() {
+        let l = first_list[i][0].max(second_list[j][0]);
+        let r = first_list[i][1].min(second_list[j][1]);
+        if l <= r {
+            ans.push(vec![l, r]);
+        }
+        if first_list[i][1] < second_list[j][1] {
+            i += 1;
+        } else {
+            j += 1;
+        }
+    }
+    ans
+}
+
+/// 987
+pub fn vertical_traversal(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<Vec<i32>> {
+    let mut stack = vec![];
+
+    if let Some(r) = root {
+        let mut mp = BTreeMap::new();
+        let mut tmp = vec![];
+        stack.push((r, 0, 0));
+
+        while stack.len() > 0 {
+            for i in 0..stack.len() {
+                mp.entry(stack[i].1).or_insert(vec![]).push((
+                    stack[i].1,
+                    stack[i].2,
+                    stack[i].0.borrow().val,
+                ));
+
+                if let Some(left) = stack[i].0.borrow_mut().left.take() {
+                    tmp.push((left, stack[i].1 - 1, stack[i].2 + 1));
+                }
+
+                if let Some(right) = stack[i].0.borrow_mut().right.take() {
+                    tmp.push((right, stack[i].1 + 1, stack[i].2 + 1));
+                }
+            }
+
+            stack = tmp;
+            tmp = vec![];
+        }
+
+        mp.into_values()
+            .map(|mut v| {
+                v.sort_unstable();
+                v.into_iter().map(|item| item.2).collect::<Vec<i32>>()
+            })
+            .collect::<Vec<_>>()
+    } else {
+        vec![]
+    }
+}
