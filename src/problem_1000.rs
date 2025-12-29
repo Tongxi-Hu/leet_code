@@ -2549,3 +2549,163 @@ pub fn vertical_traversal(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<Vec<i32>> 
         vec![]
     }
 }
+
+/// 988
+pub fn smallest_from_leaf(root: Option<Rc<RefCell<TreeNode>>>) -> String {
+    fn dfs(root: Option<Rc<RefCell<TreeNode>>>, ans: &mut Option<String>, tmp: &mut Vec<u8>) {
+        if let Some(t) = root {
+            tmp.push(t.borrow().val as u8 + b'a');
+            let left = t.borrow_mut().left.take();
+            let right = t.borrow_mut().right.take();
+            if left.is_none() && right.is_none() {
+                let s: String = tmp.iter().rev().map(|c| *c as char).collect();
+                if let Some(t) = (*ans).as_mut() {
+                    if s < *t {
+                        *t = s;
+                    }
+                } else {
+                    *ans = Some(s);
+                }
+            } else {
+                dfs(left, ans, tmp);
+                dfs(right, ans, tmp);
+            }
+            tmp.pop();
+        }
+    }
+    let mut ans = None;
+    let mut tmp = vec![];
+    dfs(root, &mut ans, &mut tmp);
+    ans.unwrap()
+}
+
+/// 989
+pub fn add_to_array_form(num: Vec<i32>, mut k: i32) -> Vec<i32> {
+    let n = num.len();
+    let mut ans = vec![];
+    let mut carry = 0;
+
+    for i in (0..n).rev() {
+        let tmp = num[i] + (k % 10) + carry;
+        k /= 10;
+        ans.push(tmp % 10);
+        carry = tmp / 10;
+    }
+
+    while k > 0 {
+        let tmp = (k % 10) + carry;
+        k /= 10;
+        ans.push(tmp % 10);
+        carry = tmp / 10;
+    }
+
+    if carry != 0 {
+        ans.push(carry);
+    }
+
+    ans.reverse();
+
+    ans
+}
+
+/// 990
+pub fn equations_possible(equations: Vec<String>) -> bool {
+    let mut parent = vec![0; 128];
+    for i in 1..128 {
+        parent[i] = i;
+    }
+    fn union(parent: &mut Vec<usize>, idx1: usize, idx2: usize) {
+        let (idx1, idx2) = (find(parent, idx1), find(parent, idx2));
+        parent[idx1] = idx2;
+    }
+
+    fn find(parent: &mut Vec<usize>, mut idx: usize) -> usize {
+        while parent[idx] != idx {
+            parent[idx] = parent[parent[idx]];
+            idx = parent[idx];
+        }
+        idx
+    }
+
+    let (equal, not_equal): (Vec<_>, Vec<_>) = equations
+        .iter()
+        .map(|x| x.bytes().collect::<Vec<_>>())
+        .collect::<Vec<_>>()
+        .into_iter()
+        .partition(|x| x[1] == b'=');
+
+    equal
+        .iter()
+        .for_each(|x| union(&mut parent, x[0] as usize, x[3] as usize));
+    not_equal
+        .iter()
+        .all(|x| find(&mut parent, x[0] as usize) != find(&mut parent, x[3] as usize))
+}
+
+/// 991
+pub fn broken_calc(start_value: i32, mut target: i32) -> i32 {
+    let mut ans = 0;
+
+    while target > start_value {
+        if target % 2 == 0 {
+            target /= 2;
+        } else {
+            target += 1;
+        }
+
+        ans += 1;
+    }
+
+    ans + start_value - target
+}
+
+/// 992
+pub fn subarrays_with_k_distinct(a: Vec<i32>, k: i32) -> i32 {
+    let n = a.len();
+    let most = |k: i32| -> i32 {
+        let mut freq = vec![0; n + 1];
+        let mut count = 0;
+        let mut sum = 0;
+        let mut lo = 0;
+        for hi in 0..n {
+            if freq[a[hi] as usize] == 0 {
+                count += 1;
+            }
+            freq[a[hi] as usize] += 1;
+            while count > k {
+                freq[a[lo] as usize] -= 1;
+                if freq[a[lo] as usize] == 0 {
+                    count -= 1;
+                }
+                lo += 1;
+            }
+            sum += hi - lo + 1;
+        }
+        sum as i32
+    };
+
+    most(k) - most(k - 1)
+}
+
+/// 998
+pub fn insert_into_max_tree(
+    root: Option<Rc<RefCell<TreeNode>>>,
+    val: i32,
+) -> Option<Rc<RefCell<TreeNode>>> {
+    if let Some(node) = root.as_ref() {
+        let root_val = node.borrow().val;
+        if root_val < val {
+            Some(Rc::new(RefCell::new(TreeNode {
+                val,
+                left: root,
+                right: None,
+            })))
+        } else {
+            let right = node.borrow().right.clone();
+            node.borrow_mut().right = insert_into_max_tree(right, val);
+            root
+        }
+    } else {
+        Some(Rc::new(RefCell::new(TreeNode::new(val))))
+    }
+}
