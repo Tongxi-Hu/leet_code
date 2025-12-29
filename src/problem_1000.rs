@@ -2687,6 +2687,34 @@ pub fn subarrays_with_k_distinct(a: Vec<i32>, k: i32) -> i32 {
     most(k) - most(k - 1)
 }
 
+/// 993
+pub fn is_cousins(root: Option<Rc<RefCell<TreeNode>>>, x: i32, y: i32) -> bool {
+    let mut q = VecDeque::new();
+    q.push_back((
+        if let Some(nd) = root {
+            nd
+        } else {
+            return false;
+        },
+        0,
+        0,
+    ));
+    let (mut parents, mut depths) = ([-1; 102], [-1; 102]);
+    while let Some((p, parent, depth)) = q.pop_front() {
+        let bor = p.borrow();
+        let val = bor.val;
+        parents[val as usize] = parent;
+        depths[val as usize] = depth;
+        if let Some(nd) = bor.left.as_ref() {
+            q.push_back((nd.clone(), val, depth + 1));
+        }
+        if let Some(nd) = bor.right.as_ref() {
+            q.push_back((nd.clone(), val, depth + 1));
+        }
+    }
+    depths[x as usize] == depths[y as usize] && parents[x as usize] != parents[y as usize]
+}
+
 /// 998
 pub fn insert_into_max_tree(
     root: Option<Rc<RefCell<TreeNode>>>,
