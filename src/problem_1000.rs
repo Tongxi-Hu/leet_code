@@ -2715,6 +2715,87 @@ pub fn is_cousins(root: Option<Rc<RefCell<TreeNode>>>, x: i32, y: i32) -> bool {
     depths[x as usize] == depths[y as usize] && parents[x as usize] != parents[y as usize]
 }
 
+/// 996
+pub fn num_squareful_perms(nums: Vec<i32>) -> i32 {
+    let mut square_set: HashMap<i32, bool> = HashMap::new();
+    let n = nums.len();
+    fn is_perfect_square(n: i32, square_set: &mut HashMap<i32, bool>) -> bool {
+        if square_set.contains_key(&n) {
+            return *square_set.get(&n).unwrap();
+        }
+        match n % 10 {
+            2 | 3 | 7 | 8 => return false,
+            _ => {}
+        }
+        match n % 4 {
+            2 | 3 => return false,
+            _ => {}
+        }
+        let res = ((n as f64).sqrt() as i32).pow(2) == n;
+        square_set.entry(n).or_insert(res);
+        res
+    }
+    fn bt(
+        nums: &Vec<i32>,
+        square_set: &mut HashMap<i32, bool>,
+        visited: &mut Vec<bool>,
+        i: usize,
+        last_id: usize,
+    ) -> i32 {
+        let n = nums.len();
+        let mut ans = 0;
+        let mut found = HashSet::new();
+        for j in 0..n {
+            if found.contains(&nums[j]) {
+                continue;
+            }
+            if (!visited[j]) && is_perfect_square(nums[last_id] + nums[j], square_set) {
+                found.insert(nums[j]);
+                if i == n - 1 {
+                    ans += 1;
+                    continue;
+                }
+                visited[j] = true;
+                ans += bt(nums, square_set, visited, i + 1, j);
+                visited[j] = false;
+            }
+        }
+        ans
+    }
+    let mut visited = vec![false; n];
+    let mut ans = 0;
+    let mut found = HashSet::new();
+    for i in 0..n {
+        if found.contains(&nums[i]) {
+            continue;
+        }
+        visited[i] = true;
+        ans += bt(&nums, &mut square_set, &mut visited, 1, i);
+        visited[i] = false;
+        found.insert(nums[i]);
+    }
+    ans
+}
+
+/// 997
+pub fn find_judge(n: i32, trust: Vec<Vec<i32>>) -> i32 {
+    let mut trust_pho: HashSet<i32> = (1..=n).collect();
+    let mut trust_count = vec![0; n as usize];
+    trust.iter().for_each(|pair| {
+        trust_pho.remove(&pair[0]);
+        trust_count[(pair[1] - 1) as usize] = trust_count[(pair[1] - 1) as usize] + 1;
+    });
+    if trust_pho.len() != 1 {
+        return -1;
+    }
+    let only = *trust_pho.iter().next().unwrap();
+    if trust_count[(only - 1) as usize] == n - 1 {
+        return only;
+    } else {
+        -1
+    }
+}
+
 /// 998
 pub fn insert_into_max_tree(
     root: Option<Rc<RefCell<TreeNode>>>,
