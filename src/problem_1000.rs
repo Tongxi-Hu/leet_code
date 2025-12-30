@@ -2715,6 +2715,74 @@ pub fn is_cousins(root: Option<Rc<RefCell<TreeNode>>>, x: i32, y: i32) -> bool {
     depths[x as usize] == depths[y as usize] && parents[x as usize] != parents[y as usize]
 }
 
+/// 994
+pub fn oranges_rotting(mut grid: Vec<Vec<i32>>) -> i32 {
+    let (height, width) = (grid.len(), grid[0].len());
+
+    let mut new_rotted: Vec<(i32, i32)> = Vec::new();
+    for r in 0..height {
+        for c in 0..width {
+            if grid[r][c] == 2 {
+                new_rotted.push((r as i32, c as i32));
+            }
+        }
+    }
+
+    let direction = vec![(-1, 0), (1, 0), (0, -1), (0, 1)];
+    let mut time = 0;
+    while new_rotted.len() != 0 {
+        let size = new_rotted.len();
+        let mut has_new = false;
+        for _ in 0..size {
+            let origin = new_rotted.remove(0);
+            for d in direction.iter() {
+                let (row, col) = (origin.0 + d.0, origin.1 + d.1);
+                if row >= 0 && (row as usize) < height && col >= 0 && (col as usize) < width {
+                    if grid[row as usize][col as usize] == 1 {
+                        has_new = true;
+                        grid[row as usize][col as usize] = 2;
+                        new_rotted.push((row, col));
+                    }
+                }
+            }
+        }
+        if has_new {
+            time = time + 1;
+        }
+    }
+    let mut has_fresh = false;
+    for r in 0..height {
+        for c in 0..width {
+            if grid[r][c] == 1 {
+                has_fresh = true;
+            }
+        }
+    }
+    if has_fresh { return -1 } else { time }
+}
+
+/// 995
+pub fn min_k_bit_flips(nums: Vec<i32>, k: i32) -> i32 {
+    let mut ret = 0;
+    let k = k as usize;
+    let mut queue = vec![];
+    let length = nums.len();
+
+    for i in 0..nums.len() {
+        if queue.len() > 0 && i >= (queue[0] + k) {
+            queue.remove(0);
+        }
+        if nums[i] as usize == queue.len() % 2 {
+            if i + k > length {
+                return -1;
+            }
+            queue.push(i);
+            ret += 1;
+        }
+    }
+    return ret;
+}
+
 /// 996
 pub fn num_squareful_perms(nums: Vec<i32>) -> i32 {
     let mut square_set: HashMap<i32, bool> = HashMap::new();
@@ -2817,4 +2885,38 @@ pub fn insert_into_max_tree(
     } else {
         Some(Rc::new(RefCell::new(TreeNode::new(val))))
     }
+}
+
+/// 999
+pub fn num_rook_captures(board: Vec<Vec<char>>) -> i32 {
+    let mut cnt = 0;
+    let mut st = 0;
+    let mut ed = 0;
+    let dx = [0, 1, 0, -1];
+    let dy = [1, 0, -1, 0];
+    for i in 0..8 {
+        for j in 0..8 {
+            if board[i][j] == 'R' {
+                st = i;
+                ed = j;
+                break;
+            }
+        }
+    }
+    for i in 0..4 {
+        let mut step = 0;
+        loop {
+            let tx = st as i32 + step * dx[i] as i32;
+            let ty = ed as i32 + step * dy[i] as i32;
+            if tx < 0 || tx >= 8 || ty < 0 || ty >= 8 || board[tx as usize][ty as usize] == 'B' {
+                break;
+            }
+            if board[tx as usize][ty as usize] == 'p' {
+                cnt += 1;
+                break;
+            }
+            step += 1;
+        }
+    }
+    cnt
 }
