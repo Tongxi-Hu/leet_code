@@ -65,3 +65,29 @@ pub fn grid_illumination(n: i32, lamps: Vec<Vec<i32>>, queries: Vec<Vec<i32>>) -
     }
     ret
 }
+
+/// 1002
+pub fn common_chars(words: Vec<String>) -> Vec<String> {
+    let mut min_count = vec![usize::MAX; 26];
+    words.into_iter().for_each(|word| {
+        let mut count = vec![0; 26];
+        word.chars().for_each(|c| {
+            let index = c as usize - 'a' as usize;
+            count[index] = count[index] + 1;
+        });
+        min_count = min_count
+            .iter()
+            .zip(count)
+            .map(|(min, c)| *min.min(&c))
+            .collect::<Vec<usize>>();
+    });
+    let mut common = vec![];
+    min_count.iter().enumerate().for_each(|(i, c)| {
+        if *c != 0 {
+            for _ in 0..*c {
+                common.push((('a' as u8 + i as u8) as char).to_string());
+            }
+        }
+    });
+    common
+}
