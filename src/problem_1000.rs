@@ -2920,3 +2920,27 @@ pub fn num_rook_captures(board: Vec<Vec<char>>) -> i32 {
     }
     cnt
 }
+
+/// 1000
+pub fn merge_stones(stones: Vec<i32>, k: i32) -> i32 {
+    let n = stones.len();
+    if (n as i32 - k) % (k - 1) != 0 {
+        return -1;
+    }
+    let (mut prefix, mut dp) = (vec![0; n + 1], vec![vec![0; n]; n]);
+
+    (0..n).for_each(|i| prefix[i + 1] = prefix[i] + stones[i]);
+    for m in k as usize..=n {
+        for i in 0..=n - m {
+            let j = i + m - 1;
+            dp[i][j] = i32::MAX;
+            for mid in (i..j).step_by(k as usize - 1) {
+                dp[i][j] = dp[i][j].min(dp[i][mid] + dp[mid + 1][j]);
+            }
+            if (j - i) % (k as usize - 1) == 0 {
+                dp[i][j] += prefix[j + 1] - prefix[i];
+            }
+        }
+    }
+    dp[0][n - 1]
+}
