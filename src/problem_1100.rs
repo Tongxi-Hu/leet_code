@@ -91,3 +91,63 @@ pub fn common_chars(words: Vec<String>) -> Vec<String> {
     });
     common
 }
+
+/// 1003
+pub fn is_valid(s: String) -> bool {
+    let mut stack: Vec<char> = vec![];
+    s.chars().for_each(|c| {
+        if c == 'c'
+            && stack.len() >= 2
+            && stack[stack.len() - 1] == 'b'
+            && stack[stack.len() - 2] == 'a'
+        {
+            stack.pop();
+            stack.pop();
+        } else {
+            stack.push(c)
+        }
+    });
+    stack.len() == 0
+}
+
+/// 1004
+pub fn longest_ones(nums: Vec<i32>, k: i32) -> i32 {
+    let mut zero_count = 0;
+    let mut max_len = 0;
+
+    let mut l = 0;
+    for (i, &num) in nums.iter().enumerate() {
+        if num == 0 {
+            zero_count += 1;
+        }
+
+        while zero_count > k {
+            if nums[l] == 0 {
+                zero_count -= 1;
+            }
+            l += 1;
+        }
+
+        max_len = i32::max(max_len, (i - l + 1) as i32);
+    }
+
+    max_len
+}
+
+/// 1005
+pub fn largest_sum_after_k_negations(nums: Vec<i32>, k: i32) -> i32 {
+    let mut a = nums;
+    a.sort_unstable();
+    let mut k = k;
+    for i in a.iter_mut() {
+        if k > 0 && *i < 0 {
+            *i *= -1;
+            k -= 1;
+        } else {
+            break;
+        }
+    }
+    a.sort_unstable();
+    a[0] *= if k & 1 == 1 { -1 } else { 1 };
+    a.into_iter().sum()
+}
