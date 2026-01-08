@@ -1,3 +1,7 @@
+use std::{cell::RefCell, rc::Rc};
+
+use crate::common::TreeNode;
+
 /// 1001
 pub fn grid_illumination(n: i32, lamps: Vec<Vec<i32>>, queries: Vec<Vec<i32>>) -> Vec<i32> {
     const DIRS: [[i32; 2]; 9] = [
@@ -208,3 +212,69 @@ pub fn min_domino_rotations(tops: Vec<i32>, bottoms: Vec<i32>) -> i32 {
     check(bottoms[0], &tops, &bottoms, n)
 }
 
+/// 1008
+pub fn bst_from_preorder(preorder: Vec<i32>) -> Option<Rc<RefCell<TreeNode>>> {
+    fn construct_bst_in_range(
+        data: &Vec<i32>,
+        left: usize,
+        right: usize,
+    ) -> Option<Rc<RefCell<TreeNode>>> {
+        println!("{},{}", left, right);
+        if left > right {
+            None
+        } else {
+            let mut root = Some(Rc::new(RefCell::new(TreeNode::new(data[left]))));
+            let mut left_new = left;
+            while left_new <= right {
+                if data[left_new] > data[left] {
+                    break;
+                } else {
+                    left_new = left_new + 1;
+                }
+            }
+            root.as_mut().unwrap().borrow_mut().left =
+                construct_bst_in_range(data, left + 1, left_new - 1);
+            root.as_mut().unwrap().borrow_mut().right =
+                construct_bst_in_range(data, left_new, right);
+            root
+        }
+    }
+    construct_bst_in_range(&preorder, 0, preorder.len() - 1)
+}
+
+/// 1009
+pub fn bitwise_complement(n: i32) -> i32 {
+    if n == 0 {
+        return 1;
+    }
+
+    let mut t = n;
+    let mut m = 1;
+
+    while t != 0 {
+        t >>= 1;
+        m <<= 1;
+    }
+
+    n ^ m - 1
+}
+
+/// 1010
+pub fn num_pairs_divisible_by60(time: Vec<i32>) -> i64 {
+    let mut remainder = vec![0; 60];
+    time.iter().for_each(|&t| {
+        let r = (t as usize) % 60;
+        remainder[r] = remainder[r] + 1;
+    });
+    let mut total = 0;
+    for i in 1..30 {
+        total = total + remainder[i] * remainder[60 - i]
+    }
+    total = total + remainder[0] * (remainder[0] - 1) / 2 + remainder[30] * (remainder[30] - 1) / 2;
+    total
+}
+
+#[test]
+fn test_1100() {
+    num_pairs_divisible_by60(vec![30, 20, 150, 100, 40]);
+}
