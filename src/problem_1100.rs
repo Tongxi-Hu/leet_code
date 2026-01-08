@@ -151,3 +151,60 @@ pub fn largest_sum_after_k_negations(nums: Vec<i32>, k: i32) -> i32 {
     a[0] *= if k & 1 == 1 { -1 } else { 1 };
     a.into_iter().sum()
 }
+
+/// 1006
+pub fn clumsy(n: i32) -> i32 {
+    let mut flag = 0;
+    let mut res = 0;
+    let mut tmp = n;
+    let mut cur = n;
+    cur -= 1;
+
+    while cur > 0 {
+        match flag {
+            0 => tmp *= cur,
+            1 => tmp /= cur,
+            2 => {
+                res = res + tmp + cur;
+                tmp = 0;
+            }
+            3 => {
+                tmp = -cur;
+            }
+            _ => {}
+        }
+        flag += 1;
+        if flag > 3 {
+            flag = 0;
+        }
+        cur -= 1;
+    }
+    if tmp != 0 {
+        res += tmp;
+    }
+    res
+}
+
+/// 1007
+pub fn min_domino_rotations(tops: Vec<i32>, bottoms: Vec<i32>) -> i32 {
+    fn check(x: i32, tops: &[i32], bottoms: &[i32], n: usize) -> i32 {
+        let (mut rotations_a, mut rotations_b) = (0, 0);
+        for i in 0..n {
+            if tops[i] != x && bottoms[i] != x {
+                return -1;
+            } else if tops[i] != x {
+                rotations_a += 1;
+            } else if bottoms[i] != x {
+                rotations_b += 1;
+            }
+        }
+        rotations_a.min(rotations_b)
+    }
+    let n = tops.len();
+    let rotations = check(tops[0], &tops, &bottoms, n);
+    if rotations != -1 || tops[0] == bottoms[0] {
+        return rotations;
+    }
+    check(bottoms[0], &tops, &bottoms, n)
+}
+
