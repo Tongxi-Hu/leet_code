@@ -1,4 +1,8 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{
+    cell::RefCell,
+    collections::{HashMap, HashSet},
+    rc::Rc,
+};
 
 use crate::common::TreeNode;
 
@@ -272,6 +276,99 @@ pub fn num_pairs_divisible_by60(time: Vec<i32>) -> i64 {
     }
     total = total + remainder[0] * (remainder[0] - 1) / 2 + remainder[30] * (remainder[30] - 1) / 2;
     total
+}
+
+/// 1011
+pub fn ship_within_days(weights: Vec<i32>, days: i32) -> i32 {
+    let min_capacity = *weights.iter().max().unwrap();
+    let max_capacity = weights.iter().sum();
+
+    let mut left = min_capacity;
+    let mut right = max_capacity;
+    fn get_days(weights: &Vec<i32>, max_capacity: i32) -> i32 {
+        let mut days = 0;
+        let mut curr_capacity = 0;
+        for weight in weights.iter() {
+            if curr_capacity <= max_capacity && curr_capacity + weight > max_capacity {
+                days += 1;
+                curr_capacity = *weight;
+            } else {
+                curr_capacity += weight;
+            }
+        }
+        days + if curr_capacity != 0 { 1 } else { 0 }
+    }
+    while left <= right {
+        let mid = left + (right - left) / 2;
+        match get_days(&weights, mid).cmp(&days) {
+            std::cmp::Ordering::Greater => left = mid + 1,
+            _ => right = mid - 1,
+        }
+    }
+    left
+}
+
+/// 1012
+pub fn num_dup_digits_at_most_n(n: i32) -> i32 {
+    let nums: Vec<i32> = n.to_string().chars().map(|c| c as i32 - 48).collect();
+    let pre_sum = [0, 9, 90, 738, 5274, 32490, 168570, 712890, 2345850, 5611770];
+    let nums_len: usize = nums.len();
+    let mut res: i32 = pre_sum[nums_len - 1];
+    let mut index: usize = 0;
+    let mut used: Vec<bool> = vec![false; 10];
+    let get_fact = |mut f: i32, cnt: i32| -> i32 {
+        let mut fact: i32 = 1;
+        for _ in 0..cnt {
+            fact *= f;
+            f -= 1;
+        }
+        fact
+    };
+    loop {
+        if index == nums_len {
+            res += 1;
+            break;
+        }
+        for this_num in if index == 0 { 1 } else { 0 }..nums[index] {
+            if used[this_num as usize] {
+                continue;
+            }
+            res += get_fact(10 - index as i32 - 1, nums_len as i32 - index as i32 - 1);
+        }
+        if used[nums[index] as usize] {
+            break;
+        }
+        used[nums[index] as usize] = true;
+        index += 1;
+    }
+    n - res
+}
+
+/// 1013
+pub fn can_three_parts_equal_sum(arr: Vec<i32>) -> bool {
+    let total = arr.iter().sum::<i32>();
+    let mut parts = 0;
+    let mut cnt = 0;
+
+    if total % 3 != 0 {
+        return false;
+    }
+
+    for i in 0..arr.len() {
+        cnt += arr[i];
+
+        if cnt == total / 3 {
+            parts += 1;
+
+            if parts == 2 {
+                return i < arr.len() - 1;
+            }
+
+            cnt = 0;
+        }
+    }
+
+    false
 }
 
 #[test]
