@@ -367,6 +367,32 @@ pub fn can_three_parts_equal_sum(arr: Vec<i32>) -> bool {
     false
 }
 
+/// 1014
+pub fn max_score_sightseeing_pair(values: Vec<i32>) -> i32 {
+    let mut ans = 0;
+    let mut mx = values[0];
+    for j in 1..values.len() {
+        ans = ans.max(mx + values[j] - j as i32);
+        mx = mx.max(values[j] + j as i32);
+    }
+    ans
+}
+
+/// 1015
+pub fn smallest_repunit_div_by_k(k: i32) -> i32 {
+    if k % 2 == 0 || k % 5 == 0 {
+        return -1;
+    }
+    let mut offset = 1 % k;
+    for i in 1..=k {
+        if offset == 0 {
+            return i;
+        }
+        offset = (offset * 10 + 1) % k;
+    }
+    -1
+}
+
 #[test]
 fn test_1100() {
     num_pairs_divisible_by60(vec![30, 20, 150, 100, 40]);
