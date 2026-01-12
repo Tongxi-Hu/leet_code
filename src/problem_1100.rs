@@ -488,22 +488,21 @@ pub fn num_enclaves(mut grid: Vec<Vec<i32>>) -> i32 {
 }
 
 /// 1021
-pub fn camel_match(queries: Vec<String>, pattern: String) -> Vec<bool> {
-    fn is_match(query: &str, pattern: &str) -> bool {
-        let (mut i, query_arr, pattern_arr) = (0, query.as_bytes(), pattern.as_bytes());
-        for &ch in query_arr {
-            if i < pattern_arr.len() && ch == pattern_arr[i] {
-                i += 1;
-            } else if ch < b'a' {
-                return false;
+pub fn remove_outer_parentheses(s: String) -> String {
+    let mut cnt = 0;
+    s.chars()
+        .filter(|ch| match ch {
+            '(' => {
+                cnt += 1;
+                cnt > 1
             }
-        }
-        i == pattern.len()
-    }
-    queries
-        .into_iter()
-        .map(|query| is_match(query.as_str(), pattern.as_str()))
-        .collect()
+            ')' => {
+                cnt -= 1;
+                cnt > 0
+            }
+            _ => false,
+        })
+        .collect::<String>()
 }
 
 /// 1022
@@ -527,6 +526,43 @@ pub fn sum_root_to_leaf(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
     root_to_leaf_binary(root)
         .iter()
         .fold(0, |acc, cur| acc + i32::from_str_radix(cur, 2).unwrap())
+}
+
+/// 1023
+pub fn camel_match(queries: Vec<String>, pattern: String) -> Vec<bool> {
+    fn is_match(query: &str, pattern: &str) -> bool {
+        let (mut i, query_arr, pattern_arr) = (0, query.as_bytes(), pattern.as_bytes());
+        for &ch in query_arr {
+            if i < pattern_arr.len() && ch == pattern_arr[i] {
+                i += 1;
+            } else if ch < b'a' {
+                return false;
+            }
+        }
+        i == pattern.len()
+    }
+    queries
+        .into_iter()
+        .map(|query| is_match(query.as_str(), pattern.as_str()))
+        .collect()
+}
+
+/// 1024
+pub fn video_stitching(clips: Vec<Vec<i32>>, time: i32) -> i32 {
+    let mut dp = vec![i32::MAX - 1; time as usize + 1];
+    dp[0] = 0;
+    for t in 1..=time {
+        clips.iter().for_each(|c| {
+            if c[0] < t && c[1] >= t {
+                dp[t as usize] = dp[t as usize].min(dp[c[0] as usize] + 1);
+            }
+        });
+    }
+    if dp[time as usize] == i32::MAX - 1 {
+        -1
+    } else {
+        dp[time as usize]
+    }
 }
 
 /// 1025
