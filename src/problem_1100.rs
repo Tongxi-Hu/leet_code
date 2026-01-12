@@ -529,6 +529,11 @@ pub fn sum_root_to_leaf(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
         .fold(0, |acc, cur| acc + i32::from_str_radix(cur, 2).unwrap())
 }
 
+/// 1025
+pub fn divisor_game(n: i32) -> bool {
+    n % 2 == 0
+}
+
 #[test]
 fn test_1100() {
     println!(
