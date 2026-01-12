@@ -1,6 +1,6 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
-use crate::common::TreeNode;
+use crate::common::{ListNode, TreeNode};
 
 /// 1001
 pub fn grid_illumination(n: i32, lamps: Vec<Vec<i32>>, queries: Vec<Vec<i32>>) -> Vec<i32> {
@@ -401,7 +401,101 @@ pub fn query_string(s: String, n: i32) -> bool {
     })
 }
 
+/// 1017
+pub fn base_neg2(n: i32) -> String {
+    if n == 0 || n == 1 {
+        n.to_string()
+    } else {
+        format!("{}{}", base_neg2(-(n >> 1)), n & 1)
+    }
+}
+
+/// 1018
+pub fn prefixes_div_by5(a: Vec<i32>) -> Vec<bool> {
+    let mut ret = Vec::new();
+    let mut d: u128 = 0;
+    for i in a {
+        d = d * 2 + i as u128;
+        if d % 5 == 0 {
+            d = 0;
+            ret.push(true)
+        } else {
+            ret.push(false)
+        }
+    }
+    ret
+}
+
+/// 1019
+pub fn next_larger_nodes(head: Option<Box<ListNode>>) -> Vec<i32> {
+    let mut vals = vec![];
+    let mut cur = &head;
+    while let Some(node) = cur.as_ref() {
+        vals.push(node.val);
+        cur = &node.next;
+    }
+    let mut mono_stack: VecDeque<(usize, i32)> = VecDeque::new();
+    let mut ans = vec![0; vals.len()];
+    vals.iter().enumerate().for_each(|(i, &v)| {
+        while mono_stack.back().unwrap_or(&(0, i32::MAX)).1 < v {
+            let node = mono_stack.pop_back().unwrap();
+            ans[node.0] = v;
+        }
+        mono_stack.push_back((i, v));
+    });
+    if mono_stack.len() > 0 {
+        for i in mono_stack {
+            ans[i.0] = 0;
+        }
+    }
+    ans
+}
+
+/// 1020
+pub fn num_enclaves(mut grid: Vec<Vec<i32>>) -> i32 {
+    let (height, width) = (grid.len(), grid[0].len());
+    fn attach_to_boundary(
+        grid: &mut Vec<Vec<i32>>,
+        width: usize,
+        height: usize,
+        position: (usize, usize),
+    ) {
+        if grid[position.0][position.1] == 1 {
+            grid[position.0][position.1] = -1;
+            let direction = vec![(-1, 0), (1, 0), (0, -1), (0, 1)];
+            for d in direction.iter() {
+                let new_position = (
+                    (position.0 as i32 + d.0) as usize,
+                    (position.1 as i32 + d.1) as usize,
+                );
+                if new_position.0 < height && new_position.1 < width {
+                    attach_to_boundary(grid, width, height, new_position);
+                }
+            }
+        }
+    }
+    for i in 0..height {
+        attach_to_boundary(&mut grid, width, height, (i, 0));
+        attach_to_boundary(&mut grid, width, height, (i, width - 1));
+    }
+    for j in 0..width {
+        attach_to_boundary(&mut grid, width, height, (0, j));
+        attach_to_boundary(&mut grid, width, height, (height - 1, j));
+    }
+    grid.iter().fold(0, |acc, cur| {
+        cur.iter().fold(0, |a, &c| if c == 1 { a + c } else { a }) + acc
+    })
+}
+
 #[test]
 fn test_1100() {
-    num_pairs_divisible_by60(vec![30, 20, 150, 100, 40]);
+    println!(
+        "{:?}",
+        num_enclaves(vec![
+            vec![0, 0, 0, 0],
+            vec![1, 0, 1, 0],
+            vec![0, 1, 1, 0],
+            vec![0, 0, 0, 0],
+        ])
+    );
 }
