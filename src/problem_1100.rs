@@ -393,6 +393,14 @@ pub fn smallest_repunit_div_by_k(k: i32) -> i32 {
     -1
 }
 
+/// 1016
+pub fn query_string(s: String, n: i32) -> bool {
+    (1..=n).all(|c| {
+        let binary_string: String = format!("{:b}", c);
+        s.contains(&binary_string)
+    })
+}
+
 #[test]
 fn test_1100() {
     num_pairs_divisible_by60(vec![30, 20, 150, 100, 40]);
