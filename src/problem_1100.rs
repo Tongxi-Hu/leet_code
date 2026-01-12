@@ -487,6 +487,48 @@ pub fn num_enclaves(mut grid: Vec<Vec<i32>>) -> i32 {
     })
 }
 
+/// 1021
+pub fn camel_match(queries: Vec<String>, pattern: String) -> Vec<bool> {
+    fn is_match(query: &str, pattern: &str) -> bool {
+        let (mut i, query_arr, pattern_arr) = (0, query.as_bytes(), pattern.as_bytes());
+        for &ch in query_arr {
+            if i < pattern_arr.len() && ch == pattern_arr[i] {
+                i += 1;
+            } else if ch < b'a' {
+                return false;
+            }
+        }
+        i == pattern.len()
+    }
+    queries
+        .into_iter()
+        .map(|query| is_match(query.as_str(), pattern.as_str()))
+        .collect()
+}
+
+/// 1022
+pub fn sum_root_to_leaf(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    fn root_to_leaf_binary(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<String> {
+        if let Some(node) = root.as_ref() {
+            let mut left = root_to_leaf_binary(node.borrow().left.clone());
+            let mut right = root_to_leaf_binary(node.borrow().right.clone());
+            left.append(&mut right);
+            if left.len() == 0 {
+                return vec![node.borrow().val.to_string()];
+            }
+            return left
+                .iter()
+                .map(|s| node.borrow().val.to_string() + s)
+                .collect();
+        } else {
+            vec![]
+        }
+    }
+    root_to_leaf_binary(root)
+        .iter()
+        .fold(0, |acc, cur| acc + i32::from_str_radix(cur, 2).unwrap())
+}
+
 #[test]
 fn test_1100() {
     println!(
