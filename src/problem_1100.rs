@@ -1,4 +1,9 @@
-use std::{cell::RefCell, collections::VecDeque, rc::Rc};
+use std::{
+    cell::RefCell,
+    collections::{HashMap, VecDeque},
+    i32::{self, MAX},
+    rc::Rc,
+};
 
 use crate::common::{ListNode, TreeNode};
 
@@ -568,6 +573,94 @@ pub fn video_stitching(clips: Vec<Vec<i32>>, time: i32) -> i32 {
 /// 1025
 pub fn divisor_game(n: i32) -> bool {
     n % 2 == 0
+}
+
+/// 1026
+pub fn max_ancestor_diff(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    let mut max_diff = i32::MIN;
+    fn min_max(
+        root: Option<Rc<RefCell<TreeNode>>>,
+        max_diff: &mut i32,
+    ) -> (Option<i32>, Option<i32>) {
+        if let Some(node) = root.as_ref() {
+            let root_val = node.borrow().val;
+            let (left_min, left_max) = min_max(node.borrow().left.clone(), max_diff);
+            let (right_min, right_max) = min_max(node.borrow().right.clone(), max_diff);
+            let (mut new_min, mut new_max) = (root_val, root_val);
+            if let Some(v) = left_min {
+                *max_diff = (*max_diff).max((root_val - v).abs());
+                new_min = new_min.min(v)
+            }
+            if let Some(v) = left_max {
+                *max_diff = (*max_diff).max((root_val - v).abs());
+                new_max = new_max.max(v)
+            }
+            if let Some(v) = right_min {
+                *max_diff = (*max_diff).max((root_val - v).abs());
+                new_min = new_min.min(v)
+            }
+            if let Some(v) = right_max {
+                *max_diff = (*max_diff).max((root_val - v).abs());
+                new_max = new_max.max(v)
+            }
+            (Some(new_min), Some(new_max))
+        } else {
+            (None, None)
+        }
+    }
+    min_max(root, &mut max_diff);
+    max_diff
+}
+
+/// 1027
+pub fn longest_arith_seq_length(nums: Vec<i32>) -> i32 {
+    let mut record: HashMap<(usize, i32), usize> = HashMap::new();
+    let mut max = 1;
+    for cur in 0..nums.len() {
+        for pre in 0..cur {
+            let gap = nums[cur] - nums[pre];
+            let new_v = match record.get(&(pre, gap)) {
+                None => 2,
+                Some(v) => v + 1,
+            };
+            record.insert((cur, gap), new_v);
+            max = max.max(new_v);
+        }
+    }
+    max as i32
+}
+
+/// 1028
+pub fn recover_from_preorder(s: String) -> Option<Rc<RefCell<TreeNode>>> {
+    let mut ans: HashMap<i32, Option<Rc<RefCell<TreeNode>>>> = HashMap::new();
+    ans.insert(-1, Some(Rc::new(RefCell::new(TreeNode::new(0)))));
+    let mut add_tree = |v, p| {
+        ans.insert(p, Some(Rc::new(RefCell::new(TreeNode::new(v)))));
+        let mut r = ans[&(p - 1)].as_ref().unwrap().borrow_mut();
+        if r.left.is_none() {
+            r.left = ans[&p].clone();
+        } else {
+            r.right = ans[&p].clone();
+        }
+    };
+    let mut val = 0;
+    let mut dep = 0;
+    let mut has_val = false;
+    for c in s.chars() {
+        if c != '-' {
+            val = 10 * val + c as i32 - 48;
+            has_val = true;
+        } else if has_val {
+            add_tree(val, dep);
+            val = 0;
+            dep = 1;
+            has_val = false;
+        } else {
+            dep += 1;
+        }
+    }
+    add_tree(val, dep);
+    ans[&0].clone()
 }
 
 #[test]
