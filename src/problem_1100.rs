@@ -663,6 +663,31 @@ pub fn recover_from_preorder(s: String) -> Option<Rc<RefCell<TreeNode>>> {
     ans[&0].clone()
 }
 
+//// 1029
+pub fn two_city_sched_cost(mut costs: Vec<Vec<i32>>) -> i32 {
+    costs.sort_by_key(|c| c[0] - c[1]);
+    let length = costs.len();
+    costs.iter().enumerate().fold(0, |acc, cur| {
+        if cur.0 < length / 2 {
+            acc + cur.1[0]
+        } else {
+            acc + cur.1[1]
+        }
+    })
+}
+
+/// 1030
+pub fn all_cells_dist_order(rows: i32, cols: i32, r_center: i32, c_center: i32) -> Vec<Vec<i32>> {
+    let mut grid = vec![];
+    for i in 0..rows {
+        for j in 0..cols {
+            grid.push(vec![i, j]);
+        }
+    }
+    grid.sort_by_key(|a| (a[0] - r_center).abs() + (a[1] - c_center).abs());
+    grid
+}
+
 #[test]
 fn test_1100() {
     println!(
