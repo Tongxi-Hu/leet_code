@@ -1,6 +1,6 @@
 use std::{
     cell::RefCell,
-    collections::{HashMap, VecDeque},
+    collections::{HashMap, HashSet, VecDeque},
     i32::{self},
     rc::Rc,
 };
@@ -789,6 +789,121 @@ pub fn num_moves_stones(a: i32, b: i32, c: i32) -> Vec<i32> {
         },
         s[2] - s[0] - 2,
     ]
+}
+
+/// 1034
+pub fn color_border(mut grid: Vec<Vec<i32>>, row: i32, col: i32, color: i32) -> Vec<Vec<i32>> {
+    let old_color = grid[row as usize][col as usize];
+    let mut searched: HashSet<(usize, usize)> = HashSet::new();
+    let mut on_boarder: HashSet<(usize, usize)> = HashSet::new();
+    fn dfs(
+        grid: &Vec<Vec<i32>>,
+        row: usize,
+        col: usize,
+        old_color: i32,
+        searched: &mut HashSet<(usize, usize)>,
+        on_boarder: &mut HashSet<(usize, usize)>,
+    ) {
+        searched.insert((row, col));
+        let direction = [(-1, 0), (1, 0), (0, -1), (0, 1)];
+        direction
+            .iter()
+            .map(|d| return ((d.0 + row as i32) as usize, (d.1 + col as i32) as usize))
+            .for_each(|(new_r, new_c)| {
+                if new_r >= grid.len() || new_c >= grid[0].len() || grid[new_r][new_c] != old_color
+                {
+                    on_boarder.insert((row, col));
+                } else if !searched.contains(&(new_r, new_c)) {
+                    dfs(grid, new_r, new_c, old_color, searched, on_boarder);
+                }
+            });
+    }
+    dfs(
+        &grid,
+        row as usize,
+        col as usize,
+        old_color,
+        &mut searched,
+        &mut on_boarder,
+    );
+    on_boarder.iter().for_each(|e| {
+        grid[e.0][e.1] = color;
+    });
+    grid
+}
+
+/// 1035
+pub fn max_uncrossed_lines(nums1: Vec<i32>, nums2: Vec<i32>) -> i32 {
+    let mut dp = vec![vec![0; nums2.len() + 1]; nums1.len() + 1];
+    for i in 1..=nums1.len() {
+        for j in 1..=nums2.len() {
+            if nums1[i - 1] == nums2[j - 1] {
+                dp[i][j] = dp[i - 1][j - 1] + 1;
+            } else {
+                dp[i][j] = dp[i - 1][j].max(dp[i][j - 1]);
+            }
+        }
+    }
+    dp[nums1.len()][nums2.len()]
+}
+
+/// 1036
+pub fn is_escape_possible(blocked: Vec<Vec<i32>>, source: Vec<i32>, target: Vec<i32>) -> bool {
+    let mut nodes = blocked.iter().collect::<Vec<_>>();
+    nodes.push(&source);
+    nodes.push(&target);
+
+    let mut dx: Vec<i32> = nodes.iter().map(|x| x[0]).collect();
+    let mut dy: Vec<i32> = nodes.iter().map(|x| x[1]).collect();
+    dx.sort_unstable();
+    dy.sort_unstable();
+
+    let (mut hash_x, mut hash_y) = (HashMap::new(), HashMap::new());
+
+    let discrete = |xy, hash: &mut HashMap<_, _>| -> usize {
+        let (mut pos, mut pre) = (0usize, 0);
+        for &k in xy {
+            match k - pre {
+                0 => (),
+                1 => pos += 1,
+                _ => pos += 2,
+            }
+            hash.insert(k, pos);
+            pre = k;
+        }
+        pos + 1
+    };
+    let mut rows = discrete(&dx, &mut hash_x);
+    let mut cols = discrete(&dy, &mut hash_y);
+
+    rows += if *dx.last().unwrap() != 999999 { 1 } else { 0 };
+    cols += if *dy.last().unwrap() != 999999 { 1 } else { 0 };
+
+    let mut grid = vec![vec![false; cols]; rows];
+    blocked.iter().for_each(|x| {
+        grid[hash_x[&x[0]]][hash_y[&x[1]]] = true;
+    });
+
+    let t = (hash_x[&target[0]], hash_y[&target[1]]);
+    let mut q = VecDeque::new();
+    q.push_back((hash_x[&source[0]], hash_y[&source[1]]));
+    while let Some(pos) = q.pop_front() {
+        if pos == t {
+            return true;
+        }
+        for p in [
+            (pos.0 - 1, pos.1),
+            (pos.0 + 1, pos.1),
+            (pos.0, pos.1 - 1),
+            (pos.0, pos.1 + 1),
+        ] {
+            if p.0 < grid.len() && p.1 < grid[0].len() && !grid[p.0][p.1] {
+                q.push_back((p.0, p.1));
+                grid[p.0][p.1] = true;
+            }
+        }
+    }
+    false
 }
 
 #[test]
