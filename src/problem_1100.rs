@@ -775,6 +775,22 @@ impl StreamChecker {
     }
 }
 
+/// 1033
+pub fn num_moves_stones(a: i32, b: i32, c: i32) -> Vec<i32> {
+    let mut s = vec![a, b, c];
+    s.sort();
+    vec![
+        if s[2] - s[0] == 2 {
+            0
+        } else if s[2] - s[1] < 3 || s[1] - s[0] < 3 {
+            1
+        } else {
+            2
+        },
+        s[2] - s[0] - 2,
+    ]
+}
+
 #[test]
 fn test_1100() {
     println!(
