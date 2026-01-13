@@ -688,6 +688,93 @@ pub fn all_cells_dist_order(rows: i32, cols: i32, r_center: i32, c_center: i32) 
     grid
 }
 
+/// 1031
+pub fn max_sum_two_no_overlap(mut nums: Vec<i32>, first_len: i32, second_len: i32) -> i32 {
+    (1..nums.len()).for_each(|i| nums[i] += nums[i - 1]);
+    let (mut max_first, mut max_second, mut ret) = (
+        nums[first_len as usize - 1],
+        nums[second_len as usize - 1],
+        nums[(first_len + second_len) as usize - 1],
+    );
+    for i in (first_len + second_len) as usize..nums.len() {
+        max_first = max_first
+            .max(nums[i - second_len as usize] - nums[i - (first_len + second_len) as usize]);
+        max_second = max_second
+            .max(nums[i - first_len as usize] - nums[i - (first_len + second_len) as usize]);
+        ret = ret.max(
+            (max_first + nums[i] - nums[i - second_len as usize])
+                .max(max_second + nums[i] - nums[i - first_len as usize]),
+        );
+    }
+    ret
+}
+
+/// 1032
+#[derive(Debug, Clone)]
+struct Trie {
+    is_word: bool,
+    next: Vec<Option<Box<Trie>>>,
+}
+
+impl Trie {
+    fn new() -> Self {
+        Trie {
+            is_word: false,
+            next: vec![None; 26],
+        }
+    }
+}
+
+struct StreamChecker {
+    max_len: usize,
+    curr: String,
+    root: Box<Trie>,
+}
+
+impl StreamChecker {
+    fn new(words: Vec<String>) -> Self {
+        let (mut root, mut max_len) = (Box::new(Trie::new()), 0);
+        for word in words {
+            let mut curr_trie = &mut root;
+            max_len = max_len.max(word.len());
+            let word_arr = word.as_bytes();
+            for i in (0..word_arr.len()).rev() {
+                let ch = word_arr[i];
+                if curr_trie.next[(ch - b'a') as usize].is_none() {
+                    curr_trie.next[(ch - b'a') as usize] = Some(Box::new(Trie::new()));
+                }
+                curr_trie = curr_trie.next[(ch - b'a') as usize].as_mut().unwrap();
+            }
+            curr_trie.is_word = true;
+        }
+        StreamChecker {
+            max_len,
+            curr: "".to_string(),
+            root,
+        }
+    }
+
+    fn query(&mut self, letter: char) -> bool {
+        if self.curr.len() >= self.max_len {
+            self.curr.remove(0);
+        }
+        self.curr.push(letter);
+        let mut curr_trie = &mut self.root;
+        let curr_arr = self.curr.as_bytes();
+        for i in (0..curr_arr.len()).rev() {
+            let ch = curr_arr[i];
+            if curr_trie.next[(ch - b'a') as usize].is_none() {
+                return false;
+            }
+            curr_trie = curr_trie.next[(ch - b'a') as usize].as_mut().unwrap();
+            if curr_trie.is_word {
+                return true;
+            }
+        }
+        curr_trie.is_word
+    }
+}
+
 #[test]
 fn test_1100() {
     println!(
