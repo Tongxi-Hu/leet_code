@@ -1,6 +1,6 @@
 use std::{
     cell::RefCell,
-    collections::{HashMap, HashSet, VecDeque},
+    collections::{BinaryHeap, HashMap, HashSet, VecDeque},
     i32::{self},
     rc::Rc,
 };
@@ -968,6 +968,184 @@ pub fn num_moves_stones_ii(mut stones: Vec<i32>) -> Vec<i32> {
         }
     }
     vec![l as i32, h]
+}
+
+/// 1041
+pub fn is_robot_bounded(instructions: String) -> bool {
+    #[derive(PartialEq, Eq, Clone, Copy)]
+    enum Direction {
+        EAST,
+        WEST,
+        NORTH,
+        SOUTH,
+    }
+    let mut state = ((0, 0), Direction::NORTH);
+    instructions.chars().for_each(|c| match c {
+        'G' => match state.1 {
+            Direction::EAST => state.0 = (state.0.0 + 1, state.0.1),
+            Direction::WEST => state.0 = (state.0.0 - 1, state.0.1),
+            Direction::NORTH => state.0 = (state.0.0, state.0.1 + 1),
+            Direction::SOUTH => state.0 = (state.0.0, state.0.1 - 1),
+        },
+        'L' => match state.1 {
+            Direction::EAST => state.1 = Direction::NORTH,
+            Direction::WEST => state.1 = Direction::SOUTH,
+            Direction::NORTH => state.1 = Direction::WEST,
+            Direction::SOUTH => state.1 = Direction::EAST,
+        },
+        'R' => match state.1 {
+            Direction::EAST => state.1 = Direction::SOUTH,
+            Direction::WEST => state.1 = Direction::NORTH,
+            Direction::NORTH => state.1 = Direction::EAST,
+            Direction::SOUTH => state.1 = Direction::WEST,
+        },
+        _ => (),
+    });
+    !(state.0 != (0, 0) && state.1 == Direction::NORTH)
+}
+
+/// 1042
+pub fn garden_no_adj(n: i32, paths: Vec<Vec<i32>>) -> Vec<i32> {
+    use std::collections::VecDeque;
+    let mut path = vec![vec![]; n as usize];
+    for p in &paths {
+        path[p[0] as usize - 1].push(p[1] as usize - 1);
+        path[p[1] as usize - 1].push(p[0] as usize - 1);
+    }
+    let mut queue = VecDeque::new();
+    let mut res = vec![0; n as usize];
+    for i in 0..n as usize {
+        if res[i] == 0 {
+            queue.push_back(i);
+            while !queue.is_empty() {
+                let len = queue.len();
+                for _ in 0..len {
+                    let cur = queue.pop_front().unwrap();
+                    let mut temp = vec![0; 4];
+                    //应该用哪种颜色
+                    for &arround in &path[cur] {
+                        if res[arround] == 0 {
+                            queue.push_back(arround);
+                        } else {
+                            temp[res[arround] as usize - 1] = 1;
+                        }
+                    }
+                    for i in 0..4 {
+                        if temp[i] == 0 {
+                            res[cur] = i as i32 + 1;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    res
+}
+
+/// 1043
+pub fn max_sum_after_partitioning(nums: Vec<i32>, k: i32) -> i32 {
+    let n: usize = nums.len();
+    let mut dp: Vec<i32> = vec![0; n];
+    for i in 0..n {
+        let mut max_value: i32 = 0;
+        for cnt in 1..=(std::cmp::min(k, i as i32 + 1)) {
+            max_value = std::cmp::max(max_value, nums[i - cnt as usize + 1]);
+            dp[i] = std::cmp::max(
+                dp[i],
+                max_value * cnt
+                    + if i < cnt as usize {
+                        0
+                    } else {
+                        dp[i - cnt as usize]
+                    },
+            );
+        }
+    }
+    dp[n - 1]
+}
+
+/// 1044
+pub fn longest_dup_substring(s: String) -> String {
+    const P: u64 = 131;
+    let sv = s.as_bytes();
+    let size = s.len();
+    let mut p = vec![0; size + 1];
+    let mut h = vec![0; size + 1];
+    p[0] = 1;
+    for i in 1..=size {
+        h[i] = h[i - 1] * P + sv[i - 1] as u64;
+        p[i] = p[i - 1] * P;
+    }
+    let mut lo = 0;
+    let mut hi = size;
+    let mut start_pos = size;
+    let mut len = 0;
+
+    fn check(h: &Vec<u64>, p: &Vec<u64>, size: usize, len: usize) -> Option<usize> {
+        let mut ss = std::collections::HashSet::new();
+
+        for i in len..=size {
+            let code = h[i] - h[i - len] * p[len];
+            if ss.contains(&code) {
+                return Some(i - len);
+            } else {
+                ss.insert(code);
+            }
+        }
+
+        None
+    }
+
+    while lo < hi {
+        let mid = lo + (hi - lo + 1) / 2;
+
+        if let Some(start) = check(&h, &p, size, mid) {
+            lo = mid;
+            start_pos = start;
+            len = mid;
+        } else {
+            hi = mid - 1;
+        }
+    }
+
+    if start_pos == size {
+        return "".into();
+    }
+
+    s[start_pos..start_pos + len].into()
+}
+
+/// 1046
+pub fn last_stone_weight(stones: Vec<i32>) -> i32 {
+    let mut heap = BinaryHeap::new();
+    stones.iter().for_each(|&weight| {
+        heap.push(weight);
+    });
+    while heap.len() >= 2 {
+        let (first, second) = (heap.pop().unwrap(), heap.pop().unwrap());
+        if first != second {
+            heap.push(first - second);
+        }
+    }
+    if heap.len() == 0 {
+        return 0;
+    } else {
+        heap.pop().unwrap()
+    }
+}
+
+/// 1047
+pub fn remove_duplicates(s: String) -> String {
+    let mut stack = vec![];
+    s.chars().for_each(|c| {
+        if stack.len() == 0 || *stack.last().unwrap() != c {
+            stack.push(c)
+        } else {
+            stack.pop();
+        }
+    });
+    stack.iter().collect::<String>()
 }
 
 #[test]
