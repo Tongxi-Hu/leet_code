@@ -906,6 +906,70 @@ pub fn is_escape_possible(blocked: Vec<Vec<i32>>, source: Vec<i32>, target: Vec<
     false
 }
 
+/// 1037
+pub fn is_boomerang(points: Vec<Vec<i32>>) -> bool {
+    (points[1][1] - points[0][1]) * (points[2][0] - points[0][0])
+        != (points[2][1] - points[0][1]) * (points[1][0] - points[0][0])
+}
+
+/// 1038
+pub fn bst_to_gst(root: Option<Rc<RefCell<TreeNode>>>) -> Option<Rc<RefCell<TreeNode>>> {
+    fn reverse(root: Option<Rc<RefCell<TreeNode>>>, total: &mut i32) -> i32 {
+        if let Some(node) = root.as_ref() {
+            reverse(node.borrow().right.clone(), total);
+            *total = *total + node.borrow().val;
+            node.borrow_mut().val = *total;
+            reverse(node.borrow().left.clone(), total)
+        } else {
+            0
+        }
+    }
+    let mut total = 0;
+    reverse(root.clone(), &mut total);
+    root
+}
+
+/// 1039
+pub fn min_score_triangulation(values: Vec<i32>) -> i32 {
+    fn dfs(i: usize, j: usize, v: &Vec<i32>, memo: &mut Vec<Vec<i32>>) -> i32 {
+        if i + 1 == j {
+            return 0;
+        } else if memo[i][j] != -1 {
+            return memo[i][j];
+        } else {
+            let mut res = i32::MAX;
+            for k in i + 1..j {
+                res = res.min(dfs(i, k, v, memo) + dfs(k, j, v, memo) + v[i] * v[k] * v[j])
+            }
+            memo[i][j] = res;
+            res
+        }
+    }
+    let mut memo = vec![vec![-1; values.len()]; values.len()];
+    dfs(0, values.len() - 1, &values, &mut memo)
+}
+
+/// 1040
+pub fn num_moves_stones_ii(mut stones: Vec<i32>) -> Vec<i32> {
+    stones.sort();
+    let (mut i, n) = (0, stones.len());
+    let (mut l, h) = (
+        n,
+        (stones[n - 1] - n as i32 + 2 - stones[1]).max(stones[n - 2] - stones[0] - n as i32 + 2),
+    );
+    for j in 0..n {
+        while stones[j] - stones[i] >= n as i32 {
+            i += 1;
+        }
+        if j - i + 1 == n - 1 && stones[j] - stones[i] == n as i32 - 2 {
+            l = l.min(2);
+        } else {
+            l = l.min(n - (j - i + 1));
+        }
+    }
+    vec![l as i32, h]
+}
+
 #[test]
 fn test_1100() {
     println!(
