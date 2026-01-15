@@ -1265,6 +1265,52 @@ pub fn rearrange_barcodes(barcodes: Vec<i32>) -> Vec<i32> {
     res
 }
 
+/// 1061
+struct UnionFind {
+    f: Vec<usize>,
+}
+
+impl UnionFind {
+    fn new(n: usize) -> Self {
+        let f = (0..n).collect();
+        Self { f }
+    }
+
+    fn find(&mut self, x: usize) -> usize {
+        if self.f[x] != x {
+            self.f[x] = self.find(self.f[x]);
+        }
+        self.f[x]
+    }
+
+    fn unite(&mut self, x: usize, y: usize) {
+        let mut x = self.find(x);
+        let mut y = self.find(y);
+        if x == y {
+            return;
+        }
+        if x > y {
+            std::mem::swap(&mut x, &mut y);
+        }
+        self.f[y] = x;
+    }
+}
+
+pub fn smallest_equivalent_string(s1: String, s2: String, base_str: String) -> String {
+    let mut uf = UnionFind::new(26);
+    for (a, b) in s1.bytes().zip(s2.bytes()) {
+        uf.unite((a - b'a') as usize, (b - b'a') as usize);
+    }
+
+    base_str
+        .bytes()
+        .map(|c| {
+            let rep = uf.find((c - b'a') as usize);
+            (b'a' + rep as u8) as char
+        })
+        .collect()
+}
+
 #[test]
 fn test_1100() {
     println!(
