@@ -1189,6 +1189,61 @@ pub fn last_stone_weight_ii(stones: Vec<i32>) -> i32 {
     sum - 2 * dp[target]
 }
 
+/// 1051
+pub fn height_checker(heights: Vec<i32>) -> i32 {
+    let mut expected = heights.clone();
+    expected.sort();
+    expected
+        .iter()
+        .zip(&heights)
+        .fold(0, |acc, (a, b)| if *a != *b { acc + 1 } else { acc })
+}
+
+/// 1053
+pub fn prev_perm_opt1(mut arr: Vec<i32>) -> Vec<i32> {
+    let (n, mut i, mut j) = (arr.len(), arr.len() - 2, arr.len() - 1);
+    while i < n && arr[i] <= arr[i + 1] {
+        i -= 1;
+    }
+    if i >= n {
+        return arr;
+    }
+    while arr[i] <= arr[j] || j < n && arr[j] == arr[j - 1] {
+        j -= 1;
+    }
+    arr.swap(i, j);
+    arr
+}
+
+/// 1054
+pub fn rearrange_barcodes(barcodes: Vec<i32>) -> Vec<i32> {
+    let mut count: HashMap<i32, usize> = HashMap::new();
+    barcodes.iter().for_each(|c| {
+        let cap = count.entry(*c).or_insert(0);
+        *cap = *cap + 1;
+    });
+    let mut heap = BinaryHeap::new();
+    count.iter().for_each(|record| {
+        heap.push((*record.1, *record.0));
+    });
+    let mut res = vec![];
+    while let Some((largest_cnt, largest)) = heap.pop() {
+        if res.len() != 0 && *res.last().unwrap() == largest {
+            if let Some((second_cnt, second)) = heap.pop() {
+                res.push(second);
+                if second_cnt > 1 {
+                    heap.push((second_cnt - 1, second));
+                }
+            }
+        }
+        res.push(largest);
+        if largest_cnt > 1 {
+            heap.push((largest_cnt - 1, largest));
+        }
+    }
+    res
+}
+
 #[test]
 fn test_1100() {
     println!(
