@@ -1199,6 +1199,27 @@ pub fn height_checker(heights: Vec<i32>) -> i32 {
         .fold(0, |acc, (a, b)| if *a != *b { acc + 1 } else { acc })
 }
 
+/// 1052
+pub fn max_satisfied(customers: Vec<i32>, grumpy: Vec<i32>, minutes: i32) -> i32 {
+    let combined = customers
+        .into_iter()
+        .zip(grumpy)
+        .collect::<Vec<(i32, i32)>>();
+    let before = combined
+        .iter()
+        .fold(0, |acc, cur| if cur.1 == 0 { acc + cur.0 } else { acc });
+    let after = combined.windows(minutes as usize).fold(0, |acc, cur| {
+        let mood = cur.iter().fold(
+            0,
+            |acc, (cnt, mood)| {
+                if *mood == 1 { acc + cnt } else { acc }
+            },
+        );
+        acc.max(mood)
+    });
+    before + after
+}
+
 /// 1053
 pub fn prev_perm_opt1(mut arr: Vec<i32>) -> Vec<i32> {
     let (n, mut i, mut j) = (arr.len(), arr.len() - 2, arr.len() - 1);
