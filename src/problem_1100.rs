@@ -1148,6 +1148,47 @@ pub fn remove_duplicates(s: String) -> String {
     stack.iter().collect::<String>()
 }
 
+/// 1048
+pub fn longest_str_chain(mut words: Vec<String>) -> i32 {
+    words.sort_by(|a, b| a.len().cmp(&b.len()));
+    let mut dp = vec![1; words.len()];
+    fn is_precessor(a: &String, b: &String) -> bool {
+        if a.len() != b.len() + 1 {
+            return false;
+        } else {
+            for i in 0..a.len() {
+                let mut sub_a = a.clone();
+                sub_a.remove(i);
+                if sub_a == *b {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+    for i in 1..words.len() {
+        for j in 0..i {
+            if is_precessor(&words[i], &words[j]) {
+                dp[i] = dp[i].max(dp[j] + 1)
+            }
+        }
+    }
+    *dp.iter().max().unwrap()
+}
+
+/// 1049
+pub fn last_stone_weight_ii(stones: Vec<i32>) -> i32 {
+    let sum: i32 = stones.iter().sum();
+    let target = sum as usize / 2;
+    let mut dp = vec![0; target + 1];
+    stones.iter().for_each(|&n| {
+        (n as usize..=target).rev().for_each(|i| {
+            dp[i] = dp[i].max(dp[i - n as usize] + n);
+        });
+    });
+    sum - 2 * dp[target]
+}
+
 #[test]
 fn test_1100() {
     println!(
