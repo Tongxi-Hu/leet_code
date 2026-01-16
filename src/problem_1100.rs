@@ -1337,6 +1337,132 @@ pub fn max_equal_rows_after_flips(matrix: Vec<Vec<i32>>) -> i32 {
     cnt
 }
 
+/// 1073
+pub fn add_negabinary(arr1: Vec<i32>, arr2: Vec<i32>) -> Vec<i32> {
+    let (m, n, mut i, mut j, mut offset, mut list) = (
+        arr1.len(),
+        arr2.len(),
+        arr1.len() - 1,
+        arr2.len() - 1,
+        0,
+        Vec::new(),
+    );
+    while i < m || j < n || offset != 0 {
+        let (a, b) = (
+            if i >= m { 0 } else { arr1[i] },
+            if j >= n { 0 } else { arr2[j] },
+        );
+        let sum = a + b + offset;
+        offset = -1 * (sum >> 1);
+        list.insert(0, sum & 1);
+        i -= 1;
+        j -= 1;
+    }
+    let mut s = 0;
+    while s < list.len() && list[s] == 0 {
+        s += 1;
+    }
+    if s == list.len() {
+        return vec![0];
+    }
+    (0..(list.len() - s))
+        .map(|i| list[i + s])
+        .collect::<Vec<_>>()
+}
+
+/// 1074
+pub fn num_submatrix_sum_target(matrix: Vec<Vec<i32>>, target: i32) -> i32 {
+    pub fn subarray_sum(nums: Vec<i32>, k: i32) -> i32 {
+        let (mut ans, mut pre_sum, mut cnt) = (0, 0, HashMap::new());
+        nums.iter().for_each(|n| {
+            *cnt.entry(pre_sum).or_insert(0) += 1;
+            pre_sum = pre_sum + n;
+            if let Some(cnt) = cnt.get(&(pre_sum - k)) {
+                ans = ans + cnt;
+            }
+        });
+        ans
+    }
+
+    let (mut total, row, col) = (0, matrix.len(), matrix[0].len());
+    for i in 0..row {
+        for j in i..row {
+            let mut col_sum = vec![0; col];
+            col_sum.iter_mut().enumerate().for_each(|(c, v)| {
+                (i..=j).into_iter().for_each(|k| *v = *v + matrix[k][c]);
+            });
+            total = total + subarray_sum(col_sum, target);
+        }
+    }
+    total
+}
+
+/// 1078
+pub fn find_ocurrences(text: String, first: String, second: String) -> Vec<String> {
+    let words = text
+        .split(' ')
+        .map(|s| s.to_string())
+        .collect::<Vec<String>>();
+    let mut ans = vec![];
+    words.windows(3).for_each(|clip| {
+        if clip[0] == first && clip[1] == second {
+            ans.push(clip[2].clone())
+        }
+    });
+    ans
+}
+
+/// 1079
+pub fn num_tile_possibilities(tiles: String) -> i32 {
+    fn dfs(letter: &mut Vec<i32>) -> i32 {
+        let mut ans = 0;
+        for i in 0..26 {
+            if letter[i] == 0 {
+                continue;
+            }
+            ans += 1;
+            letter[i] -= 1;
+            ans += dfs(letter);
+            letter[i] += 1;
+        }
+        return ans;
+    }
+
+    let mut cnt = vec![0; 26];
+    tiles.as_bytes().iter().for_each(|c| {
+        cnt[(c - b'A') as usize] += 1;
+    });
+    dfs(&mut cnt)
+}
+
+/// 1080
+pub fn sufficient_subset(
+    root: Option<Rc<RefCell<TreeNode>>>,
+    limit: i32,
+) -> Option<Rc<RefCell<TreeNode>>> {
+    if let Some(node) = root.as_ref() {
+        let new_limit = limit - node.borrow().val;
+        if node.borrow().left.is_none() && node.borrow().right.is_none() {
+            return if node.borrow().val < limit {
+                None
+            } else {
+                root
+            };
+        }
+        let new_left = sufficient_subset(node.borrow().left.clone(), new_limit);
+        let new_right = sufficient_subset(node.borrow().right.clone(), new_limit);
+        if new_left.is_none() && new_right.is_none() {
+            return None;
+        } else {
+            node.borrow_mut().left = new_left;
+            node.borrow_mut().right = new_right;
+            return root;
+        }
+    } else {
+        None
+    }
+}
+
 #[test]
 fn test_1100() {
     println!(
