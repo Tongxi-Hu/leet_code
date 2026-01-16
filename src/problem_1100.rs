@@ -1311,6 +1311,32 @@ pub fn smallest_equivalent_string(s1: String, s2: String, base_str: String) -> S
         .collect()
 }
 
+/// 1071
+pub fn gcd_of_strings(str1: String, str2: String) -> String {
+    if str1.clone() + &str2 != str2.clone() + &str1 {
+        return "".to_string();
+    }
+
+    fn get_gcd_len(a: usize, b: usize) -> usize {
+        if b == 0 { a } else { get_gcd_len(b, a % b) }
+    }
+    str1[..get_gcd_len(str1.len(), str2.len())].to_string()
+}
+
+/// 1072
+pub fn max_equal_rows_after_flips(matrix: Vec<Vec<i32>>) -> i32 {
+    let (m, n, mut cnt) = (matrix.len(), matrix[0].len(), 0);
+    for i in 0..m {
+        let flip = (0..n).map(|j| 1 - matrix[i][j]).collect::<Vec<_>>();
+        cnt = cnt.max(
+            (i..m)
+                .filter(|&k| matrix[i] == matrix[k] || matrix[k] == flip)
+                .count() as i32,
+        );
+    }
+    cnt
+}
+
 #[test]
 fn test_1100() {
     println!(
