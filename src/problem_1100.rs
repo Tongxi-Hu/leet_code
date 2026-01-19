@@ -1463,6 +1463,49 @@ pub fn sufficient_subset(
     }
 }
 
+/// 1089
+pub fn duplicate_zeros(arr: &mut Vec<i32>) {
+    let mut dup = vec![];
+    arr.iter().for_each(|v| {
+        if *v == 0 {
+            dup.push(0);
+            dup.push(0);
+        } else {
+            dup.push(*v)
+        }
+    });
+    arr.iter_mut().enumerate().for_each(|(i, v)| {
+        *v = dup[i];
+    });
+}
+
+/// 1090
+pub fn largest_vals_from_labels(
+    values: Vec<i32>,
+    labels: Vec<i32>,
+    num_wanted: i32,
+    use_limit: i32,
+) -> i32 {
+    let mut sorted = values.into_iter().zip(labels).collect::<Vec<(i32, i32)>>();
+    sorted.sort_by(|a, b| b.0.cmp(&a.0));
+    let (mut ans, mut cnt, mut label_limit): (i32, i32, HashMap<i32, i32>) = (0, 0, HashMap::new());
+    for i in 0..sorted.len() {
+        let label = sorted[i].1;
+        let label_cont = label_limit.entry(label).or_insert(0);
+        if *label_cont == use_limit {
+            continue;
+        } else {
+            cnt += 1;
+            ans = ans + sorted[i].0;
+            *label_cont = *label_cont + 1;
+        }
+        if cnt == num_wanted {
+            break;
+        }
+    }
+    ans
+}
+
 #[test]
 fn test_1100() {
     println!(
