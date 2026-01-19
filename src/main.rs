@@ -3,6 +3,7 @@ mod common;
 mod problem_100;
 mod problem_1000;
 mod problem_1100;
+mod problem_1200;
 mod problem_200;
 mod problem_300;
 mod problem_400;
