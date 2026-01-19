@@ -1506,6 +1506,192 @@ pub fn largest_vals_from_labels(
     ans
 }
 
+/// 1091
+pub fn shortest_path_binary_matrix(grid: Vec<Vec<i32>>) -> i32 {
+    let size = grid.len();
+    if grid[0][0] == 1 || grid[size - 1][size - 1] == 1 {
+        return -1;
+    }
+    let (mut shortest_path, mut visited) = (VecDeque::new(), vec![vec![false; size]; size]);
+    shortest_path.push_back((0, 0, 1));
+    visited[0][0] = true;
+    while let Some((i, j, length)) = shortest_path.pop_front() {
+        if i == size - 1 && j == size - 1 {
+            return length;
+        } else {
+            for [x, y] in [
+                [1, 0],
+                [1, 1],
+                [0, 1],
+                [-1, 1],
+                [-1, 0],
+                [-1, -1],
+                [0, -1],
+                [1, -1],
+            ] {
+                let (new_i, new_j) = (i + x as usize, j + y as usize);
+                if new_i < size
+                    && new_j < size
+                    && visited[new_i][new_j] == false
+                    && grid[new_i][new_j] == 0
+                {
+                    shortest_path.push_back((new_i, new_j, length + 1));
+                    visited[new_i][new_j] = true;
+                }
+            }
+        }
+    }
+    -1
+}
+
+/// 1092
+pub fn shortest_common_supersequence(str1: String, str2: String) -> String {
+    let (m, n, s1_arr, s2_arr) = (str1.len(), str2.len(), str1.as_bytes(), str2.as_bytes());
+    let mut dp = vec![vec![0; n + 1]; m + 1];
+    for i in 0..m {
+        for j in 0..n {
+            dp[i + 1][j + 1] = if s1_arr[i] == s2_arr[j] {
+                dp[i][j] + 1
+            } else {
+                dp[i + 1][j].max(dp[i][j + 1])
+            };
+        }
+    }
+    let (mut ret, mut i, mut j) = (vec![], m - 1, n - 1);
+    while i < m || j < n {
+        let mut ch = b' ';
+        if i >= m || j >= n {
+            if i >= n {
+                ch = s2_arr[j];
+                j -= 1;
+            } else {
+                ch = s1_arr[i];
+                i -= 1;
+            }
+        } else if s1_arr[i] == s2_arr[j] {
+            ch = s1_arr[i];
+            i -= 1;
+            j -= 1;
+        } else {
+            if dp[i][j + 1] > dp[i + 1][j] {
+                ch = s1_arr[i];
+                i -= 1;
+            } else {
+                ch = s2_arr[j];
+                j -= 1;
+            }
+        }
+        ret.insert(0, ch);
+    }
+    ret.iter().map(|&x| x as char).collect::<String>()
+}
+
+/// 1093
+pub fn sample_stats(count: Vec<i32>) -> Vec<f64> {
+    let (mut min, mut max, mut mode, n) = (-1, 0, 0, count.len());
+    let mean;
+    let median;
+    let mut sum = 0.0;
+    for i in 0..n {
+        if count[i] == 0 {
+            continue;
+        }
+        if min == -1 {
+            min = i as i32;
+        }
+        max = i as i32;
+        sum += 1.0 * count[i] as f64 * i as f64;
+        if count[i] > count[mode as usize] {
+            mode = i as i32;
+        }
+    }
+
+    let (mut l, mut r, mut nl, mut nr, mut mid1, mut mid2) = (0, 255, 0, 0, 0, 0);
+    while l <= r {
+        while count[l] == 0 {
+            l += 1;
+        }
+        while count[r] == 0 {
+            r -= 1;
+        }
+        if nl < nr {
+            nl += count[l];
+            mid1 = l;
+            l += 1;
+        } else {
+            nr += count[r];
+            mid2 = r;
+            r -= 1;
+        }
+    }
+    mean = sum / (nl + nr) as f64;
+    median = if nl < nr {
+        mid2 as f64
+    } else if nl > nr {
+        mid1 as f64
+    } else {
+        (mid1 + mid2) as f64 / 2.0
+    };
+    vec![min as f64, max as f64, mean, median, mode as f64]
+}
+
+/// 1094
+pub fn car_pooling(trips: Vec<Vec<i32>>, capacity: i32) -> bool {
+    let (mut start, mut get_on, mut end, mut get_off) =
+        (i32::MAX, HashMap::new(), i32::MIN, HashMap::new());
+    trips.iter().for_each(|v| {
+        let on = get_on.entry(v[1]).or_insert(0);
+        *on = *on + v[0];
+        start = start.min(v[1]);
+        let off = get_off.entry(v[2]).or_insert(0);
+        *off = *off + v[0];
+        end = end.max(v[2]);
+    });
+    let mut cur = 0;
+    for location in start..=end {
+        let off = get_off.get(&location).unwrap_or(&0);
+        let on = get_on.get(&location).unwrap_or(&0);
+        cur = cur - *off + *on;
+        if cur > capacity {
+            return false;
+        }
+    }
+    true
+}
+
+/// 1096
+pub fn brace_expansion_ii(expression: String) -> Vec<String> {
+    use std::collections::{HashSet, VecDeque};
+    let (mut ret, mut queue) = (HashSet::new(), VecDeque::new());
+    queue.push_back(expression);
+
+    while let Some(curr) = queue.pop_front() {
+        let (mut left, mut right, curr_arr) = (usize::MAX, 0, curr.as_bytes());
+        while right < curr.len() && curr_arr[right] != b'}' {
+            if curr_arr[right] == b'{' {
+                left = right;
+            }
+            right += 1;
+        }
+        if left == usize::MAX {
+            ret.insert(curr);
+            continue;
+        }
+        let (start, end) = (curr[0..left].to_string(), curr[right + 1..].to_string());
+        for word in curr[left + 1..right]
+            .to_string()
+            .split(",")
+            .collect::<Vec<_>>()
+        {
+            queue.push_back(format!("{}{}{}", start, word, end));
+        }
+    }
+
+    let mut list = ret.into_iter().collect::<Vec<_>>();
+    list.sort();
+    list
+}
+
 #[test]
 fn test_1100() {
     println!(
