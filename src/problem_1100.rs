@@ -1559,7 +1559,7 @@ pub fn shortest_common_supersequence(str1: String, str2: String) -> String {
     }
     let (mut ret, mut i, mut j) = (vec![], m - 1, n - 1);
     while i < m || j < n {
-        let mut ch = b' ';
+        let ch;
         if i >= m || j >= n {
             if i >= n {
                 ch = s2_arr[j];
