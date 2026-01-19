@@ -26,3 +26,20 @@ pub fn path_in_zig_zag_tree(label: i32) -> Vec<i32> {
     ret.reverse();
     ret
 }
+
+/// 1105
+pub fn min_height_shelves(books: Vec<Vec<i32>>, shelf_width: i32) -> i32 {
+    let n = books.len();
+    let mut dp = vec![0; n + 1];
+    for i in 1..=n {
+        let (mut j, mut width, mut max_height) = (i - 1, books[i - 1][0], books[i - 1][1]);
+        dp[i] = dp[i - 1] + max_height;
+        while j > 0 && width + books[j - 1][0] <= shelf_width {
+            max_height = max_height.max(books[j - 1][1]);
+            width += books[j - 1][0];
+            dp[i] = dp[i].min(dp[j - 1] + max_height);
+            j -= 1;
+        }
+    }
+    dp[n]
+}
