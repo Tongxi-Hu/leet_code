@@ -126,56 +126,36 @@ pub fn corp_flight_bookings(bookings: Vec<Vec<i32>>, n: i32) -> Vec<i32> {
     time_line
 }
 
-// /// 1110
-// pub fn del_nodes(
-//     root: Option<Rc<RefCell<TreeNode>>>,
-//     mut to_delete: Vec<i32>,
-// ) -> Vec<Option<Rc<RefCell<TreeNode>>>> {
-//     let mut trees = vec![root];
-//     fn delete_target(
-//         target: i32,
-//         tree: Option<Rc<RefCell<TreeNode>>>,
-//     ) -> (bool, Vec<Option<Rc<RefCell<TreeNode>>>>) {
-//         let mut new_tree = vec![];
-//         if let Some(node) = tree.as_ref() {
-//             if node.borrow().val == target {
-//                 if node.borrow().left.is_some() {
-//                     new_tree.push(node.borrow().left.clone());
-//                 }
-//                 if node.borrow().right.is_some() {
-//                     new_tree.push(node.borrow().right.clone());
-//                 }
-//                 node.borrow_mut().left = None;
-//                 node.borrow_mut().right = None;
-//                 return (true, new_tree);
-//             } else {
-//                 let (left_removed, mut left_tree) =
-//                     delete_target(target, node.borrow().left.clone());
-//                 let (right_memoved, mut right_tree) =
-//                     delete_target(target, node.borrow().right.clone());
-//                 if left_removed {
-//                     node.borrow_mut().left = None;
-//                 }
-//                 if right_memoved {
-//                     node.borrow_mut().right = None;
-//                 }
-//                 new_tree.push(tree);
-//                 new_tree.append(&mut left_tree);
-//                 new_tree.append(&mut right_tree);
-//             }
-//         }
-//         (false, new_tree)
-//     }
-//     while to_delete.len() != 0 {
-//         let target = to_delete.pop().unwrap();
-//         let size = trees.len();
-//         for _ in 0..size {
-//             let (_, mut new_tree) = delete_target(target, trees.remove(0));
-//             trees.append(&mut new_tree);
-//         }
-//     }
-//     trees
-// }
+/// 1110
+pub fn del_nodes(
+    root: Option<Rc<RefCell<TreeNode>>>,
+    mut to_delete: Vec<i32>,
+) -> Vec<Option<Rc<RefCell<TreeNode>>>> {
+    let mut ret = vec![];
+    fn dfs(
+        root: Option<Rc<RefCell<TreeNode>>>,
+        to_delete: &mut Vec<i32>,
+        ret: &mut Vec<Option<Rc<RefCell<TreeNode>>>>,
+        is_root: bool,
+    ) -> Option<Rc<RefCell<TreeNode>>> {
+        if root.is_none() {
+            return None;
+        }
+        let is_delete = to_delete.contains(&root.as_ref().unwrap().borrow().val);
+        if !is_delete && is_root {
+            ret.push(root.clone());
+        }
+        let (left, right) = (
+            root.as_ref().unwrap().borrow().left.clone(),
+            root.as_ref().unwrap().borrow().right.clone(),
+        );
+        root.as_ref().unwrap().borrow_mut().left = dfs(left, to_delete, ret, is_delete);
+        root.as_ref().unwrap().borrow_mut().right = dfs(right, to_delete, ret, is_delete);
+        if is_delete { None } else { root.clone() }
+    }
+    dfs(root, &mut to_delete, &mut ret, true);
+    ret
+}
 
 /// 1111
 pub fn max_depth_after_split(seq: String) -> Vec<i32> {
