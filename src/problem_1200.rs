@@ -2,6 +2,10 @@ use std::{
     cell::RefCell,
     collections::{HashMap, VecDeque},
     rc::Rc,
+    sync::{
+        Condvar, Mutex,
+        mpsc::{Receiver, Sender, channel},
+    },
 };
 
 use crate::common::TreeNode;
@@ -172,3 +176,116 @@ pub fn corp_flight_bookings(bookings: Vec<Vec<i32>>, n: i32) -> Vec<i32> {
 //     }
 //     trees
 // }
+
+/// 1111
+pub fn max_depth_after_split(seq: String) -> Vec<i32> {
+    let (mut d, mut ans) = (0, vec![]);
+    seq.chars().for_each(|c| match c {
+        '(' => {
+            d = d + 1;
+            ans.push(d % 2);
+        }
+        ')' => {
+            ans.push(d % 2);
+            d = d - 1;
+        }
+        _ => (),
+    });
+    ans
+}
+
+/// 1114
+struct Foo {
+    s_1: Sender<()>,
+    r_1: Mutex<Receiver<()>>,
+    s_2: Sender<()>,
+    r_2: Mutex<Receiver<()>>,
+}
+
+impl Foo {
+    fn new() -> Self {
+        let (s_1, r_1) = channel();
+        let (s_2, r_2) = channel();
+        Foo {
+            s_1,
+            r_1: Mutex::new(r_1),
+            s_2,
+            r_2: Mutex::new(r_2),
+        }
+    }
+
+    fn first<F>(&self, print_first: F)
+    where
+        F: FnOnce(),
+    {
+        // Do not change this line
+        print_first();
+        let _ = self.s_1.send(());
+    }
+
+    fn second<F>(&self, print_second: F)
+    where
+        F: FnOnce(),
+    {
+        // Do not change this line
+        let _ = self.r_1.lock().unwrap().recv();
+        print_second();
+        let _ = self.s_2.send(());
+    }
+
+    fn third<F>(&self, print_third: F)
+    where
+        F: FnOnce(),
+    {
+        let _ = self.r_2.lock().unwrap().recv();
+        // Do not change this line
+        print_third();
+    }
+}
+
+/// 1115
+struct FooBar {
+    n: usize,
+    state: Mutex<i32>,
+    cv: Condvar,
+}
+
+impl FooBar {
+    fn new(n: usize) -> Self {
+        FooBar {
+            n,
+            state: Mutex::new(0),
+            cv: Condvar::new(),
+        }
+    }
+
+    fn foo<F>(&self, print_foo: F)
+    where
+        F: Fn(),
+    {
+        for _ in 0..self.n {
+            let mut state = self.state.lock().unwrap();
+            while *state != 0 {
+                state = self.cv.wait(state).unwrap();
+            }
+            print_foo();
+            *state = 1;
+            self.cv.notify_one();
+        }
+    }
+
+    fn bar<F>(&self, print_bar: F)
+    where
+        F: Fn(),
+    {
+        for _ in 0..self.n {
+            let mut state = self.state.lock().unwrap();
+            while *state != 1 {
+                state = self.cv.wait(state).unwrap();
+            }
+            print_bar();
+            *state = 0;
+            self.cv.notify_one();
+        }
+    }
+}
