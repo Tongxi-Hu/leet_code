@@ -457,3 +457,23 @@ pub fn mct_from_leaf_values(arr: Vec<i32>) -> i32 {
     }
     min_sum
 }
+
+/// 1137
+pub fn tribonacci(n: i32) -> i32 {
+    if n == 0 {
+        return 0;
+    } else if n == 1 || n == 2 {
+        return 1;
+    } else {
+        let mut pre_pre = 0;
+        let mut pre = 1;
+        let mut cur = 1;
+        for _ in 3..=n {
+            let temp = pre_pre;
+            pre_pre = pre;
+            pre = cur;
+            cur = pre_pre + pre + temp;
+        }
+        cur
+    }
+}
