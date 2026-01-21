@@ -269,3 +269,99 @@ impl FooBar {
         }
     }
 }
+
+/// 1122
+pub fn relative_sort_array(mut arr1: Vec<i32>, arr2: Vec<i32>) -> Vec<i32> {
+    let record = arr2
+        .iter()
+        .enumerate()
+        .fold(HashMap::new(), |mut acc, cur| {
+            acc.insert(*cur.1, cur.0);
+            acc
+        });
+    arr1.sort_by(|a, b| {
+        let (position_a, position_b) = (
+            record.get(a).unwrap_or(&usize::MAX),
+            record.get(b).unwrap_or(&usize::MAX),
+        );
+        if *position_a == usize::MAX && *position_b == usize::MAX {
+            return a.cmp(b);
+        } else {
+            position_a.cmp(position_b)
+        }
+    });
+    arr1
+}
+
+/// 1123
+pub fn lca_deepest_leaves(root: Option<Rc<RefCell<TreeNode>>>) -> Option<Rc<RefCell<TreeNode>>> {
+    fn depth(root: Option<Rc<RefCell<TreeNode>>>) -> (usize, Option<Rc<RefCell<TreeNode>>>) {
+        if let Some(node) = root.as_ref() {
+            let (l_depth, l_root) = depth(node.borrow().left.clone());
+            let (r_depth, r_root) = depth(node.borrow().right.clone());
+            if l_depth > r_depth {
+                return (l_depth + 1, l_root);
+            } else if r_depth > l_depth {
+                return (r_depth + 1, r_root);
+            } else {
+                return (r_depth + 1, root);
+            }
+        } else {
+            (0, None)
+        }
+    }
+    depth(root).1
+}
+
+/// 1124
+pub fn longest_wpi(hours: Vec<i32>) -> i32 {
+    let (mut ans, mut map) = (0, HashMap::with_capacity(hours.len()));
+    hours.into_iter().enumerate().fold(0, |mut acc, (idx, x)| {
+        acc += if x > 8 { 1 } else { -1 };
+        match acc > 0 {
+            true => ans = idx + 1,
+            false => {
+                match map.get(&(acc - 1)) {
+                    Some(v) => ans = ans.max(idx - v),
+                    None => (),
+                };
+                map.entry(acc).or_insert(idx);
+            }
+        };
+        acc
+    });
+    ans as i32
+}
+
+/// 1125
+pub fn smallest_sufficient_team(req_skills: Vec<String>, people: Vec<Vec<String>>) -> Vec<i32> {
+    use std::collections::HashMap;
+    let (m, n) = (people.len(), req_skills.len());
+    let (mut dp, skill_index) = (
+        vec![None; 1 << n],
+        req_skills
+            .into_iter()
+            .enumerate()
+            .map(|(index, skill)| (skill, index))
+            .collect::<HashMap<String, usize>>(),
+    );
+    dp[0] = Some(vec![]);
+    for i in 0..m {
+        let curr_skill = people[i]
+            .iter()
+            .fold(0, |curr_skill, s| curr_skill | 1 << skill_index[s]);
+        for prev in 0..dp.len() {
+            if dp[prev].is_none() {
+                continue;
+            }
+            let curr = curr_skill | prev;
+            if dp[curr].is_none()
+                || dp[prev].as_ref().unwrap().len() + 1 < dp[curr].as_ref().unwrap().len()
+            {
+                dp[curr] = dp[prev].clone();
+                dp[curr].as_mut().unwrap().push(i as i32);
+            }
+        }
+    }
+    dp[(1 << n) - 1].as_ref().unwrap().clone()
+}
