@@ -536,3 +536,77 @@ pub fn alphabet_board_path(target: String) -> String {
         })
         .0
 }
+
+/// 1139
+pub fn largest1_bordered_square(grid: Vec<Vec<i32>>) -> i32 {
+    let (height, width) = (grid.len(), grid[0].len());
+    let (mut left, mut up, mut max) = (
+        vec![vec![0; width]; height],
+        vec![vec![0; width]; height],
+        0,
+    );
+    for r in 0..height {
+        for c in 0..width {
+            if grid[r][c] == 1 {
+                if c - 1 < width {
+                    left[r][c] = left[r][c - 1] + 1;
+                } else {
+                    left[r][c] = 1;
+                }
+                if r - 1 < height {
+                    up[r][c] = up[r - 1][c] + 1;
+                } else {
+                    up[r][c] = 1;
+                }
+            }
+            for l in 1..=left[r][c].min(up[r][c]) {
+                if up[r][c - l + 1] >= l && left[r - l + 1][c] >= l {
+                    max = max.max(l);
+                }
+            }
+        }
+    }
+    (max * max) as i32
+}
+
+/// 1140
+pub fn stone_game_ii(piles: Vec<i32>) -> i32 {
+    let mut sum = 0;
+    let len = piles.len();
+
+    let mut dp = vec![vec![0; len + 1]; len];
+
+    for i in (0..len).rev() {
+        sum += piles[i];
+        for m in 1..len + 1 {
+            if i + 2 * m >= len {
+                dp[i][m] = sum;
+            } else {
+                for x in 1..2 * m + 1 {
+                    dp[i][m] = dp[i][m].max(sum - dp[i + x][m.max(x)]);
+                }
+            }
+        }
+    }
+    dp[0][1]
+}
+
+/// 1143
+pub fn longest_common_subsequence(text1: String, text2: String) -> i32 {
+    let (ch1, ch2) = (
+        text1.chars().collect::<Vec<char>>(),
+        text2.chars().collect::<Vec<char>>(),
+    );
+    let (len1, len2) = (ch1.len(), ch2.len());
+    let mut dp = vec![vec![0; len2 + 1]; len1 + 1];
+    for i in 1..=len1 {
+        for j in 1..=len2 {
+            if ch1[i - 1] == ch2[j - 1] {
+                dp[i][j] = dp[i - 1][j - 1] + 1
+            } else {
+                dp[i][j] = dp[i][j - 1].max(dp[i - 1][j])
+            }
+        }
+    }
+    dp[len1][len2]
+}
