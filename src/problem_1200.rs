@@ -652,3 +652,14 @@ pub fn btree_game_winning_move(root: Option<Rc<RefCell<TreeNode>>>, n: i32, x: i
     dfs(root, x, n, &mut ans);
     ans > n - ans
 }
+
+/// 1147
+pub fn longest_decomposition(text: String) -> i32 {
+    let n = text.len();
+    for i in 0..n / 2 {
+        if text[..i + 1] == text[n - i - 1..] {
+            return 2 + longest_decomposition(text[i + 1..n - i - 1].to_owned());
+        }
+    }
+    if n == 0 { 0 } else { 1 }
+}
