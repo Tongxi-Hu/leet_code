@@ -610,3 +610,37 @@ pub fn longest_common_subsequence(text1: String, text2: String) -> i32 {
     }
     dp[len1][len2]
 }
+
+/// 1144
+// pub fn moves_to_make_zigzag(nums: Vec<i32>) -> i32 {
+//     let (mut old_max, mut even_max) = (0, 0);
+//     for i in 0..nums.len() {
+//         if i.is_multiple_of(2) {
+//         } else {
+//         }
+//     }
+//     old_max.min(even_max)
+// }
+
+/// 1145
+pub fn btree_game_winning_move(root: Option<Rc<RefCell<TreeNode>>>, n: i32, x: i32) -> bool {
+    fn dfs(root: Option<Rc<RefCell<TreeNode>>>, x: i32, n: i32, ans: &mut i32) -> i32 {
+        match root {
+            Some(r) => {
+                let left = dfs(r.borrow_mut().left.take(), x, n, ans);
+                let right = dfs(r.borrow_mut().right.take(), x, n, ans);
+                if r.borrow().val == x {
+                    *ans = *[*ans, left, right, n - left - right - 1]
+                        .iter()
+                        .max()
+                        .unwrap();
+                }
+                left + right + 1
+            }
+            None => 0,
+        }
+    }
+    let mut ans = 0;
+    dfs(root, x, n, &mut ans);
+    ans > n - ans
+}
