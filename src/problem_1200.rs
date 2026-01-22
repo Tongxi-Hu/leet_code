@@ -477,3 +477,62 @@ pub fn tribonacci(n: i32) -> i32 {
         cur
     }
 }
+
+/// 1138
+pub fn alphabet_board_path(target: String) -> String {
+    let locations = (b'a'..=b'z')
+        .map(|c| {
+            let distance = (c - b'a') as i8;
+            (c as char, (distance / 5, distance % 5))
+        })
+        .collect::<HashMap<char, (i8, i8)>>();
+    target
+        .chars()
+        .fold((String::new(), (0, 0)), |mut acc, cur| {
+            let location = locations.get(&cur).unwrap();
+            let (y_diff, x_diff) = (location.0 - acc.1.0, location.1 - acc.1.1);
+            if acc.1.0 == 5 {
+                if y_diff > 0 {
+                    for _ in 0..y_diff {
+                        acc.0.push('D');
+                    }
+                } else if y_diff < 0 {
+                    for _ in 0..-y_diff {
+                        acc.0.push('U');
+                    }
+                }
+                if x_diff > 0 {
+                    for _ in 0..x_diff {
+                        acc.0.push('R');
+                    }
+                } else if x_diff < 0 {
+                    for _ in 0..-x_diff {
+                        acc.0.push('L');
+                    }
+                }
+            } else {
+                if x_diff > 0 {
+                    for _ in 0..x_diff {
+                        acc.0.push('R');
+                    }
+                } else if x_diff < 0 {
+                    for _ in 0..-x_diff {
+                        acc.0.push('L');
+                    }
+                }
+                if y_diff > 0 {
+                    for _ in 0..y_diff {
+                        acc.0.push('D');
+                    }
+                } else if y_diff < 0 {
+                    for _ in 0..-y_diff {
+                        acc.0.push('U');
+                    }
+                }
+            }
+
+            acc.0.push('!');
+            (acc.0, *location)
+        })
+        .0
+}
