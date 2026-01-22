@@ -612,15 +612,23 @@ pub fn longest_common_subsequence(text1: String, text2: String) -> i32 {
 }
 
 /// 1144
-// pub fn moves_to_make_zigzag(nums: Vec<i32>) -> i32 {
-//     let (mut old_max, mut even_max) = (0, 0);
-//     for i in 0..nums.len() {
-//         if i.is_multiple_of(2) {
-//         } else {
-//         }
-//     }
-//     old_max.min(even_max)
-// }
+pub fn moves_to_make_zigzag(nums: Vec<i32>) -> i32 {
+    let n = nums.len();
+    let mut ans = [0, 0];
+    for k in 0..2 {
+        for i in (k..n).step_by(2) {
+            let mut d = 0;
+            if i > 0 {
+                d = d.max(nums[i] - nums[i - 1] + 1);
+            }
+            if i + 1 < n {
+                d = d.max(nums[i] - nums[i + 1] + 1);
+            }
+            ans[k] += d
+        }
+    }
+    ans[0].min(ans[1])
+}
 
 /// 1145
 pub fn btree_game_winning_move(root: Option<Rc<RefCell<TreeNode>>>, n: i32, x: i32) -> bool {
