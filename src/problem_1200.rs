@@ -1,6 +1,7 @@
 use std::{
     cell::RefCell,
     collections::{HashMap, VecDeque},
+    i32,
     iter::repeat,
     rc::Rc,
     sync::{
@@ -827,7 +828,7 @@ impl CountQuicker {
     fn size(&mut self, indies_index: i32, index: i32) -> i32 {
         let mut l = 0;
         let mut r = self.cnt[indies_index as usize].len() as i32 - 1;
-        let mut m = 0;
+        let mut m;
         let mut ans = -1;
         while l <= r {
             m = (l + r) / 2;
@@ -884,6 +885,152 @@ pub fn count_characters(words: Vec<String>, chars: String) -> i32 {
         }
         acc + if is_in { cur.len() } else { 0 }
     }) as i32
+}
+
+/// 1161
+pub fn max_level_sum(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    let (mut level_node, mut level_sum) = (vec![root], vec![]);
+    fn bfs(level_node: &mut Vec<Option<Rc<RefCell<TreeNode>>>>, level_sum: &mut Vec<i32>) {
+        let mut sum = 0;
+        for _ in 0..level_node.len() {
+            let v = level_node.remove(0);
+            if let Some(node) = v.as_ref() {
+                sum = sum + node.borrow().val;
+                if node.borrow().left.is_some() {
+                    level_node.push(node.borrow().left.clone());
+                }
+                if node.borrow().right.is_some() {
+                    level_node.push(node.borrow().right.clone());
+                }
+            }
+        }
+        level_sum.push(sum)
+    }
+    while level_node.len() != 0 {
+        bfs(&mut level_node, &mut level_sum);
+    }
+    (level_sum
+        .iter()
+        .position(|v| v == level_sum.iter().max().unwrap())
+        .unwrap()
+        + 1) as i32
+}
+
+/// 1162
+pub fn max_distance(grid: Vec<Vec<i32>>) -> i32 {
+    let (height, width) = (grid.len(), grid[0].len());
+    let mut dp = vec![vec![0; width]; height];
+    for r in 0..height {
+        for c in 0..width {
+            if grid[r][c] == 0 {
+                dp[r][c] = i32::MAX;
+                if r > 0 && dp[r - 1][c] != i32::MAX {
+                    dp[r][c] = dp[r][c].min(dp[r - 1][c] + 1);
+                }
+                if c > 0 && dp[r][c - 1] != i32::MAX {
+                    dp[r][c] = dp[r][c].min(dp[r][c - 1] + 1);
+                }
+            }
+        }
+    }
+    for r in (0..height).rev() {
+        for c in (0..width).rev() {
+            if r < height - 1 && dp[r + 1][c] != i32::MAX {
+                dp[r][c] = dp[r][c].min(dp[r + 1][c] + 1);
+            }
+            if c < width - 1 && dp[r][c + 1] != i32::MAX {
+                dp[r][c] = dp[r][c].min(dp[r][c + 1] + 1);
+            }
+        }
+    }
+    let max = *dp.iter().flatten().max().unwrap();
+    return if max == i32::MAX || max == 0 { -1 } else { max };
+}
+
+/// 1163
+pub fn last_substring(s: String) -> String {
+    let (mut i, mut j, mut k, n, s_arr) = (0, 1, 0, s.len(), s.as_bytes());
+    while j + k < n {
+        if s_arr[i + k] == s_arr[j + k] {
+            k += 1;
+        } else if s_arr[i + k] < s_arr[j + k] {
+            i = j.max(i + k + 1);
+            j = i + 1;
+            k = 0;
+        } else {
+            j = j + k + 1;
+            k = 0;
+        }
+    }
+    s[i..].to_owned()
+}
+
+/// 1169
+pub fn invalid_transactions(transactions: Vec<String>) -> Vec<String> {
+    use std::collections::{HashMap, HashSet};
+    let mut trans_map = HashMap::new(); // name -> (time, count, city)
+    let mut invalid_indexes = HashSet::new();
+    for (index, s) in transactions.iter().enumerate() {
+        let item: Vec<_> = s.split(',').collect();
+        let (name, time, count, city) = (
+            item[0].to_string(),
+            item[1].parse::<u32>().unwrap(),
+            item[2].parse::<u32>().unwrap(),
+            item[3].to_string(),
+        );
+
+        if count > 1000 {
+            invalid_indexes.insert(index);
+        }
+
+        let transes = trans_map.entry(name).or_insert(vec![]);
+        for (time1, city1, index1) in &*transes {
+            if (time).abs_diff(*time1) <= 60 && *city1 != city {
+                invalid_indexes.insert(index);
+                invalid_indexes.insert(*index1);
+            }
+        }
+
+        transes.push((time, city, index));
+    }
+    invalid_indexes
+        .iter()
+        .map(|index| transactions[*index].clone())
+        .collect()
+}
+
+/// 1170
+pub fn num_smaller_by_frequency(queries: Vec<String>, words: Vec<String>) -> Vec<i32> {
+    let (_, n) = (queries.len(), words.len());
+    fn get_count(word: &String) -> i32 {
+        let mut cnt = vec![0; 26];
+        word.bytes().for_each(|ch| cnt[(ch - b'a') as usize] += 1);
+        for c in cnt {
+            if c != 0 {
+                return c;
+            }
+        }
+        0
+    }
+    let (mut words_cnt, mut ret) = (
+        words.iter().map(|word| get_count(word)).collect::<Vec<_>>(),
+        vec![],
+    );
+    words_cnt.sort();
+    for query in queries {
+        let count = get_count(&query);
+        let (mut l, mut r) = (0, n - 1);
+        while l <= r && r < n {
+            let mid = l + ((r - l) >> 1);
+            if words_cnt[mid] <= count {
+                l = mid + 1;
+            } else {
+                r = mid - 1;
+            }
+        }
+        ret.push((n - l) as i32)
+    }
+    ret
 }
 
 #[test]
