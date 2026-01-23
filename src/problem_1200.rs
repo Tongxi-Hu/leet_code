@@ -663,3 +663,24 @@ pub fn longest_decomposition(text: String) -> i32 {
     }
     if n == 0 { 0 } else { 1 }
 }
+
+/// 1154
+pub fn day_of_year(date: String) -> i32 {
+    let month_days = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30];
+    let (year, month, day): (i32, i32, i32) = {
+        let parts: Vec<&str> = date.split('-').collect();
+        (
+            parts[0].parse().unwrap(),
+            parts[1].parse().unwrap(),
+            parts[2].parse().unwrap(),
+        )
+    };
+    let total = month_days[0..(month - 1) as usize].iter().sum::<i32>();
+    let leap_year = year % 400 == 0 || (year % 4 == 0 && year % 100 != 0);
+    let total = if leap_year && month >= 3 {
+        total + 1
+    } else {
+        total
+    };
+    total + day
+}
