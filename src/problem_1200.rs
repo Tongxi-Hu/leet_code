@@ -1204,6 +1204,56 @@ pub fn find_num_of_valid_words(words: Vec<String>, puzzles: Vec<String>) -> Vec<
     result
 }
 
+/// 1184
+pub fn distance_between_bus_stops(distance: Vec<i32>, start: i32, destination: i32) -> i32 {
+    if start == destination {
+        return 0;
+    }
+    fn partial_sum(dis: &Vec<i32>, start: usize, destination: usize) -> i32 {
+        dis[start..destination].iter().fold(0, |acc, cur| acc + cur)
+    }
+    let (start, destination) = (start as usize, destination as usize);
+    if start == destination {
+        return 0;
+    } else if start < destination {
+        let in_order = partial_sum(&distance, start, destination);
+        let reverse = partial_sum(&distance, 0, start)
+            + partial_sum(&distance, destination, distance.len() - 1)
+            + distance[distance.len() - 1];
+        in_order.min(reverse)
+    } else {
+        let in_order = partial_sum(&distance, destination, start);
+        let reverse = partial_sum(&distance, 0, destination)
+            + partial_sum(&distance, start, distance.len() - 1)
+            + distance[distance.len() - 1];
+        in_order.min(reverse)
+    }
+}
+
+/// 1185
+pub fn day_of_the_week(day: i32, month: i32, year: i32) -> String {
+    let days = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+    ];
+
+    let (mut y, mut m, d) = (year, month, day);
+    if m < 3 {
+        m += 12;
+        y -= 1;
+    }
+    let (c, y) = (y / 100, y % 100);
+    let mut week = (y + y / 4 + c / 4 - 2 * c + 26 * (m + 1) / 10 + d - 1);
+    week = (week % 7 + 7) % 7;
+
+    return days[week as usize].to_string();
+}
+
 #[test]
 fn test_1200() {
     num_rolls_to_target(3, 6, 6);
