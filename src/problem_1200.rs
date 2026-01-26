@@ -1,6 +1,6 @@
 use std::{
     cell::RefCell,
-    collections::{HashMap, VecDeque},
+    collections::{BinaryHeap, HashMap, VecDeque},
     i32,
     iter::repeat,
     rc::Rc,
@@ -10,7 +10,7 @@ use std::{
     },
 };
 
-use crate::common::TreeNode;
+use crate::common::{ListNode, TreeNode};
 
 /// 1103
 pub fn distribute_candies(mut candies: i32, n: i32) -> Vec<i32> {
@@ -1031,6 +1031,89 @@ pub fn num_smaller_by_frequency(queries: Vec<String>, words: Vec<String>) -> Vec
         ret.push((n - l) as i32)
     }
     ret
+}
+
+/// 1171
+pub fn remove_zero_sum_sublists(head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
+    let mut dummy = Some(Box::new(ListNode { val: 0, next: head }));
+    let (mut sum, mut pointer, mut prefix) = (0, &dummy, HashMap::new());
+    while let Some(node) = pointer.as_ref() {
+        sum = node.val + sum;
+        prefix.insert(sum, pointer.clone());
+        pointer = &node.next;
+    }
+    sum = 0;
+    let mut pointer = &mut dummy;
+    while let Some(node) = pointer.as_mut() {
+        sum = node.val + sum;
+        let position = prefix.get_mut(&sum).unwrap();
+        node.next = position.as_mut().unwrap().next.take();
+        pointer = &mut node.next;
+    }
+
+    dummy.unwrap().next
+}
+
+/// 1172
+struct DinnerPlates {
+    stack_map: HashMap<i32, Vec<i32>>,
+    index: BinaryHeap<i32>,
+    max_index: i32,
+    capacity: usize,
+}
+
+impl DinnerPlates {
+    fn new(capacity: i32) -> Self {
+        let capacity = capacity as usize;
+        Self {
+            stack_map: HashMap::new(),
+            index: BinaryHeap::new(),
+            max_index: 0,
+            capacity,
+        }
+    }
+
+    fn push(&mut self, val: i32) {
+        if let Some(mut target) = self.index.pop() {
+            target = -target;
+            self.max_index = self.max_index.max(target);
+            let list = self.stack_map.entry(target).or_insert(vec![]);
+            (*list).push(val);
+        } else {
+            let list = self.stack_map.entry(self.max_index).or_insert(vec![]);
+            if (*list).len() != self.capacity {
+                (*list).push(val);
+            } else {
+                self.max_index += 1;
+                self.stack_map.insert(self.max_index, vec![val]);
+            }
+        }
+    }
+
+    fn pop(&mut self) -> i32 {
+        while let Some(ref_list) = self.stack_map.get_mut(&self.max_index) {
+            if let Some(num) = ref_list.pop() {
+                self.index.push(-self.max_index);
+                return num;
+            }
+            self.max_index -= 1;
+        }
+        self.max_index = 0;
+        -1
+    }
+
+    fn pop_at_stack(&mut self, index: i32) -> i32 {
+        if let Some(ref_list) = self.stack_map.get_mut(&index) {
+            if let Some(num) = ref_list.pop() {
+                self.index.push(-index);
+                num
+            } else {
+                -1
+            }
+        } else {
+            -1
+        }
+    }
 }
 
 #[test]
