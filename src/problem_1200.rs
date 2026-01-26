@@ -1350,6 +1350,76 @@ pub fn reverse_parentheses(s: String) -> String {
     })
 }
 
+/// 1191
+pub fn k_concatenation_max_sum(arr: Vec<i32>, k: i32) -> i32 {
+    fn max_sub_array(nums: &[i32], repeat: usize) -> i32 {
+        let n = nums.len();
+        let mut ans = 0;
+        let mut f = 0;
+        for i in 0..n * repeat {
+            f = f.max(0) + nums[i % n];
+            ans = ans.max(f);
+        }
+        ans
+    }
+    if k == 1 {
+        return max_sub_array(&arr, 1);
+    }
+    let mut ans = max_sub_array(&arr, 2) as i64;
+    let s = arr.into_iter().sum::<i32>();
+    ans += s.max(0) as i64 * (k - 2) as i64;
+    (ans % 1_000_000_007) as i32
+}
+
+/// 1192
+pub fn critical_connections(n: i32, connections: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+    let n = n as usize;
+    let mut g = vec![vec![]; n];
+
+    for e in connections {
+        let (a, b) = (e[0] as usize, e[1] as usize);
+        g[a].push(b);
+        g[b].push(a);
+    }
+
+    fn tarjan_search(
+        node: usize,
+        parent: usize,
+        g: &Vec<Vec<usize>>,
+        dnf: &mut Vec<i32>,
+        low: &mut Vec<i32>,
+        time: i32,
+        res: &mut Vec<Vec<i32>>,
+    ) {
+        dnf[node] = time;
+        low[node] = time;
+
+        for &child in &g[node] {
+            if child == parent {
+                continue;
+            }
+
+            if dnf[child] == -1 {
+                tarjan_search(child, node, g, dnf, low, time + 1, res);
+                low[node] = low[node].min(low[child]);
+                // get critical edge. aka. bridge.
+                if dnf[node] < low[child] {
+                    res.push(vec![node as i32, child as i32]);
+                }
+            } else {
+                low[node] = low[node].min(dnf[child]);
+            }
+        }
+    }
+
+    let mut dnf = vec![-1; n];
+    let mut low = vec![0; n];
+    let mut res = vec![];
+    tarjan_search(0, n, &g, &mut dnf, &mut low, 0, &mut res);
+
+    res
+}
+
 #[test]
 fn test_1200() {
     reverse_parentheses("(ed(et(oc))el)".to_string());
