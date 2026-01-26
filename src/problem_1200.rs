@@ -4,7 +4,6 @@ use std::{
     i32,
     iter::repeat,
     rc::Rc,
-    str::Chars,
     sync::{
         Condvar, Mutex,
         mpsc::{Receiver, Sender, channel},
