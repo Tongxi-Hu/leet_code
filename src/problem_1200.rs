@@ -4,6 +4,7 @@ use std::{
     i32,
     iter::repeat,
     rc::Rc,
+    str::Chars,
     sync::{
         Condvar, Mutex,
         mpsc::{Receiver, Sender, channel},
@@ -1176,7 +1177,7 @@ pub fn find_num_of_valid_words(words: Vec<String>, puzzles: Vec<String>) -> Vec<
     for word in words {
         let mut posts = 0;
         for character in word.chars() {
-            posts |= (1 << (character as i32 - 'a' as i32));
+            posts |= 1 << (character as i32 - 'a' as i32);
         }
         words_set[posts] += 1;
     }
@@ -1188,7 +1189,7 @@ pub fn find_num_of_valid_words(words: Vec<String>, puzzles: Vec<String>) -> Vec<
         let mut characters = puzzle.chars();
         let head = characters.nth(0).unwrap();
         for character in characters {
-            posts |= (1 << (character as i32 - 'a' as i32))
+            posts |= 1 << (character as i32 - 'a' as i32)
         }
         let mut sub = posts;
         loop {
@@ -1248,13 +1249,108 @@ pub fn day_of_the_week(day: i32, month: i32, year: i32) -> String {
         y -= 1;
     }
     let (c, y) = (y / 100, y % 100);
-    let mut week = (y + y / 4 + c / 4 - 2 * c + 26 * (m + 1) / 10 + d - 1);
+    let mut week = y + y / 4 + c / 4 - 2 * c + 26 * (m + 1) / 10 + d - 1;
     week = (week % 7 + 7) % 7;
 
     return days[week as usize].to_string();
 }
 
+/// 1186
+pub fn maximum_sum(arr: Vec<i32>) -> i32 {
+    let (mut res, mut dp_0, mut dp_1) = (arr[0], arr[0], 0);
+    for i in 1..arr.len() {
+        dp_1 = (dp_1 + arr[i]).max(dp_0);
+        dp_0 = (dp_0).max(0) + arr[i];
+        res = res.max(dp_0).max(dp_1);
+    }
+    res
+}
+
+/// 1187
+pub fn make_array_increasing(mut arr1: Vec<i32>, mut arr2: Vec<i32>) -> i32 {
+    const MAX: i32 = 1000000001;
+    arr2.sort_unstable();
+    arr2.dedup();
+    arr1.push(MAX);
+    arr1.insert(0, -1);
+
+    let mut dp = vec![MAX; arr1.len()];
+    dp[0] = 0;
+
+    for i in 1..arr1.len() {
+        let j = match arr2.binary_search(&arr1[i]) {
+            Ok(pos) => pos,
+            Err(pos) => pos,
+        };
+
+        for k in 1..=j.min(i - 1) {
+            if arr1[i - k - 1] < arr2[j - k] {
+                dp[i] = dp[i].min(dp[i - k - 1] + k as i32);
+            }
+        }
+
+        if arr1[i - 1] < arr1[i] {
+            dp[i] = dp[i].min(dp[i - 1]);
+        }
+    }
+
+    let res = dp[arr1.len() - 1];
+
+    if res >= MAX { -1 } else { res }
+}
+
+/// 1189
+pub fn max_number_of_balloons(text: String) -> i32 {
+    let mut single = HashMap::new();
+    let mut double = HashMap::new();
+    text.chars().for_each(|c| match c {
+        'b' | 'a' | 'n' => {
+            let n = single.entry(c).or_insert(0);
+            *n = *n + 1;
+        }
+        'l' | 'o' => {
+            let n = double.entry(c).or_insert(0);
+            *n = *n + 1;
+        }
+        _ => {}
+    });
+    if single.len() != 3 || double.len() != 2 {
+        return 0;
+    }
+    *single
+        .values()
+        .min()
+        .unwrap_or(&0)
+        .min(&(double.values().min().unwrap_or(&0) / 2))
+}
+
+/// 1190
+pub fn reverse_parentheses(s: String) -> String {
+    let mut stack = Vec::new();
+    s.as_bytes().iter().fold(String::new(), |mut res, &c| {
+        match (stack.len(), c) {
+            (0, c) if c != b'(' => res.push(c as char),
+            (_, b')') => {
+                let mut temp = vec![];
+                loop {
+                    let c = stack.pop().unwrap();
+                    if c == b'(' {
+                        break;
+                    }
+                    temp.push(c);
+                }
+                match stack.len() {
+                    0 => res.push_str(&String::from_utf8(temp).unwrap()),
+                    _ => stack.append(&mut temp),
+                }
+            }
+            _ => stack.push(c),
+        }
+        res
+    })
+}
+
 #[test]
 fn test_1200() {
-    num_rolls_to_target(3, 6, 6);
+    reverse_parentheses("(ed(et(oc))el)".to_string());
 }
