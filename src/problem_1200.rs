@@ -1116,6 +1116,94 @@ impl DinnerPlates {
     }
 }
 
+/// 1175
+pub fn num_prime_arrangements(n: i32) -> i32 {
+    if n < 2 {
+        return 1;
+    }
+    let is_prime = |num: i32| -> bool {
+        for i in 2..=num / 2 {
+            if num % i == 0 {
+                return false;
+            }
+        }
+        true
+    };
+
+    let (mut ret, prime, not_prime) = (
+        1,
+        (3..=n).filter(|i| is_prime(*i)).count() as i32 + 1,
+        (3..=n).filter(|i| !is_prime(*i)).count() as i32 + 1,
+    );
+    for i in 1..=prime {
+        ret *= i as i64;
+        ret %= 1000000007;
+    }
+    for i in 1..=not_prime {
+        ret *= i as i64;
+        ret %= 1000000007;
+    }
+    ret as i32
+}
+
+/// 1177
+pub fn can_make_pali_queries(s: String, queries: Vec<Vec<i32>>) -> Vec<bool> {
+    let (mut prefix, mut ret) = (vec![0; s.len() + 1], vec![]);
+    for i in 0..s.len() {
+        prefix[i + 1] = prefix[i] ^ 1 << (s.as_bytes()[i] - b'a');
+    }
+    for query in queries {
+        ret.push(
+            if (prefix[query[1] as usize + 1] ^ prefix[query[0] as usize] as i32).count_ones()
+                as i32
+                / 2
+                <= query[2]
+            {
+                true
+            } else {
+                false
+            },
+        );
+    }
+    ret
+}
+
+/// 1178
+pub fn find_num_of_valid_words(words: Vec<String>, puzzles: Vec<String>) -> Vec<i32> {
+    let mut result = Vec::new();
+
+    let mut words_set = vec![0; (2 as usize).pow(27) - 1];
+    for word in words {
+        let mut posts = 0;
+        for character in word.chars() {
+            posts |= (1 << (character as i32 - 'a' as i32));
+        }
+        words_set[posts] += 1;
+    }
+
+    for puzzle in puzzles {
+        let mut count = 0;
+
+        let mut posts = 0;
+        let mut characters = puzzle.chars();
+        let head = characters.nth(0).unwrap();
+        for character in characters {
+            posts |= (1 << (character as i32 - 'a' as i32))
+        }
+        let mut sub = posts;
+        loop {
+            sub = (sub - 1) & posts;
+            count += words_set[sub + (1 << (head as i32 - 'a' as i32))];
+            if sub == posts {
+                break;
+            }
+        }
+        result.push(count);
+    }
+
+    result
+}
+
 #[test]
 fn test_1200() {
     num_rolls_to_target(3, 6, 6);
