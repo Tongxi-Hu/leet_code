@@ -1419,6 +1419,21 @@ pub fn critical_connections(n: i32, connections: Vec<Vec<i32>>) -> Vec<Vec<i32>>
     res
 }
 
+/// 1200
+pub fn minimum_abs_difference(mut arr: Vec<i32>) -> Vec<Vec<i32>> {
+    arr.sort();
+    let (mut min, mut pair) = (i32::MAX, vec![]);
+    for i in 0..arr.len() - 1 {
+        if arr[i + 1] - arr[i] < min {
+            min = arr[i + 1] - arr[i];
+            pair = vec![vec![arr[i], arr[i + 1]]];
+        } else if arr[i + 1] - arr[i] == min {
+            pair.push(vec![arr[i], arr[i + 1]]);
+        }
+    }
+    pair
+}
+
 #[test]
 fn test_1200() {
     reverse_parentheses("(ed(et(oc))el)".to_string());
