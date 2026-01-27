@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::collections::{HashMap, HashSet, VecDeque};
 
 /// 1201
 pub fn nth_ugly_number(n: i32, a: i32, b: i32, c: i32) -> i32 {
@@ -230,4 +230,122 @@ impl Skiplist {
             }
         }
     }
+}
+
+/// 1207
+pub fn unique_occurrences(arr: Vec<i32>) -> bool {
+    let total = arr.iter().fold(HashMap::new(), |mut acc, cur| {
+        let cnt = acc.entry(cur).or_insert(0);
+        *cnt = *cnt + 1;
+        acc
+    });
+    total.values().collect::<HashSet<&i32>>().len() == total.len()
+}
+
+/// 1208
+pub fn equal_substring(s: String, t: String, max_cost: i32) -> i32 {
+    fn cost(a: char, b: char) -> i32 {
+        let (a, b) = (a as u8, b as u8);
+        if a >= b {
+            (a - b) as i32
+        } else {
+            (b - a) as i32
+        }
+    }
+    let (length, s_char, t_char) = (
+        s.len(),
+        s.chars().collect::<Vec<char>>(),
+        t.chars().collect::<Vec<char>>(),
+    );
+    let (mut l, mut diff, mut max_len) = (0, 0, 0);
+    for r in 0..length {
+        diff = diff + cost(s_char[r], t_char[r]);
+        while diff > max_cost {
+            diff = diff - cost(s_char[l], t_char[l]);
+            l = l + 1;
+        }
+        max_len = max_len.max(r - l + 1);
+    }
+
+    max_len as i32
+}
+
+/// 1209
+pub fn remove_duplicates(s: String, k: i32) -> String {
+    let chars = s.chars().collect::<Vec<char>>();
+    let cnt = chars.iter().fold(VecDeque::new(), |mut acc, &c| {
+        if acc.back().is_some() {
+            let last: (char, i32) = acc.pop_back().unwrap();
+            if last.0 == c {
+                if last.1 != k - 1 {
+                    acc.push_back((c, last.1 + 1));
+                }
+            } else {
+                acc.push_back(last);
+                acc.push_back((c, 1));
+            }
+        } else {
+            acc.push_back((c, 1));
+        }
+        acc
+    });
+    cnt.iter().fold("".to_string(), |mut acc, cur| {
+        (0..cur.1).into_iter().for_each(|_| acc.push(cur.0));
+        acc
+    })
+}
+
+/// 1210
+pub fn minimum_moves(grid: Vec<Vec<i32>>) -> i32 {
+    #[derive(Clone)]
+    struct Point {
+        x: i32,
+        y: i32,
+        s: i32,
+    }
+
+    let dirs = [
+        Point { x: 1, y: 0, s: 0 },
+        Point { x: 0, y: 1, s: 0 },
+        Point { x: 0, y: 0, s: 1 },
+    ];
+    let n: i32 = grid.len() as i32;
+    let mut visit = vec![vec![vec![false; 2]; n as usize]; n as usize];
+    visit[0][0][0] = true;
+    let mut q = vec![Some(Point { x: 0, y: 0, s: 0 })];
+    let mut step = 1;
+    while !q.is_empty() {
+        let mut tmp: Vec<Option<Point>> = vec![];
+        //tmp.clone_from_slice(&q);
+        tmp = q.clone();
+        q.clear();
+        while let Some(t) = tmp.pop() {
+            let t1 = t.unwrap();
+            for d in &dirs {
+                let (x, y, s) = (t1.x + d.x, t1.y + d.y, t1.s ^ d.s);
+                let (x2, y2) = (x + s, y + (s ^ 1));
+                if x2 < n
+                    && y2 < n
+                    && !visit
+                        .get(x as usize)
+                        .unwrap()
+                        .get(y as usize)
+                        .unwrap()
+                        .get(s as usize)
+                        .unwrap()
+                    && grid[x as usize][y as usize] == 0
+                    && grid[x2 as usize][y2 as usize] == 0
+                    && (d.s == 0 || grid[(x + 1) as usize][(y + 1) as usize] == 0)
+                {
+                    if x == n - 1 && y == n - 2 {
+                        return step;
+                    }
+                    visit[x as usize][y as usize][s as usize] = true;
+                    q.push(Some(Point { x: x, y: y, s: s }));
+                }
+            }
+        }
+        step += 1;
+    }
+    -1
 }
