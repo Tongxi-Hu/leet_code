@@ -349,3 +349,46 @@ pub fn minimum_moves(grid: Vec<Vec<i32>>) -> i32 {
     }
     -1
 }
+
+/// 1217
+pub fn min_cost_to_move_chips(position: Vec<i32>) -> i32 {
+    let cnt = position.iter().fold((0, 0), |mut acc, cur| {
+        if cur % 2 == 0 {
+            acc.0 = acc.0 + 1;
+        } else {
+            acc.1 = acc.1 + 1
+        }
+        acc
+    });
+    return cnt.1.min(cnt.0);
+}
+
+/// 1218
+pub fn longest_subsequence(arr: Vec<i32>, difference: i32) -> i32 {
+    let mut record = HashMap::new();
+    arr.iter().for_each(|i| {
+        let last = i - difference;
+        if record.contains_key(&last) {
+            record.insert(i, record.get(&last).unwrap() + 1);
+        } else {
+            record.insert(i, 1);
+        }
+    });
+    *record.values().max().unwrap()
+}
+
+/// 1219
+// pub fn get_maximum_gold(grid: Vec<Vec<i32>>) -> i32 {}
+
+/// 1220
+pub fn count_vowel_permutation(n: i32) -> i32 {
+    let m: i64 = 1000000007;
+    ((1..n)
+        .into_iter()
+        .fold((1, 1, 1, 1, 1, 5), |(a, e, i, o, u, _), _| {
+            let (_a, _e, _i, _o, _u) = ((e + i + u) % m, (a + i) % m, (e + o) % m, i, (i + o) % m);
+            (_a, _e, _i, _o, _u, (_a + _e + _i + _o + _u))
+        })
+        .5
+        % m) as i32
+}
