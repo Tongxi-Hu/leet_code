@@ -378,7 +378,39 @@ pub fn longest_subsequence(arr: Vec<i32>, difference: i32) -> i32 {
 }
 
 /// 1219
-// pub fn get_maximum_gold(grid: Vec<Vec<i32>>) -> i32 {}
+pub fn get_maximum_gold(mut grid: Vec<Vec<i32>>) -> i32 {
+    let (mut gold, mut max) = (0, 0);
+    fn dfs(grid: &mut Vec<Vec<i32>>, location: (usize, usize), gold: &mut i32, max: &mut i32) {
+        let (i, j) = location;
+        let direction = vec![(-1, 0), (1, 0), (0, 1), (0, -1)];
+        let current = grid[i][j];
+        grid[i][j] = 0;
+        *gold = *gold + current;
+        let is_boundary = direction.iter().fold(true, |mut is_boundary, step| {
+            let (new_x, new_y) = ((i as i32 + step.0) as usize, (j as i32 + step.1) as usize);
+            if new_x < grid.len() && new_y < grid[0].len() && grid[new_x][new_y] != 0 {
+                dfs(grid, (new_x, new_y), gold, max);
+                is_boundary = false;
+                is_boundary
+            } else {
+                is_boundary
+            }
+        });
+        if is_boundary {
+            *max = *max.max(gold);
+        }
+        grid[i][j] = current;
+        *gold = *gold - current;
+    }
+    for i in 0..grid.len() {
+        for j in 0..grid[0].len() {
+            if grid[i][j] != 0 {
+                dfs(&mut grid, (i, j), &mut gold, &mut max);
+            }
+        }
+    }
+    max
+}
 
 /// 1220
 pub fn count_vowel_permutation(n: i32) -> i32 {
