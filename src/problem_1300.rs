@@ -524,3 +524,116 @@ pub fn max_equal_freq(nums: Vec<i32>) -> i32 {
     }
     1
 }
+
+/// 1227
+pub fn nth_person_gets_nth_seat(n: i32) -> f64 {
+    if n == 1 { 1.0 } else { 0.5 }
+}
+
+/// 1232
+pub fn check_straight_line(coordinates: Vec<Vec<i32>>) -> bool {
+    if coordinates.len() == 2 {
+        true
+    } else {
+        if coordinates[1][1] == coordinates[0][1] {
+            return coordinates.iter().all(|c| c[1] == coordinates[0][1]);
+        } else if coordinates[1][0] == coordinates[0][0] {
+            return coordinates.iter().all(|c| c[0] == coordinates[0][0]);
+        } else {
+            let slop = ((coordinates[1][1] - coordinates[0][1]) as f64)
+                / ((coordinates[1][0] - coordinates[0][0]) as f64);
+            return coordinates.iter().skip(1).all(|c| {
+                ((c[1] - coordinates[0][1]) as f64) / ((c[0] - coordinates[0][0]) as f64) == slop
+            });
+        };
+    }
+}
+
+/// 1233
+pub fn remove_subfolders(folder: Vec<String>) -> Vec<String> {
+    if folder.is_empty() {
+        return Vec::new();
+    }
+    let mut result: Vec<String> = Vec::new();
+    folder.iter().for_each(|f| {
+        if let Some(prev) = result.last() {
+            let prefix = format!("{}/", prev);
+            if !f.starts_with(&prefix) {
+                result.push(f.clone());
+            }
+        }
+    });
+    result
+}
+
+/// 1234
+pub fn balanced_string(s: String) -> i32 {
+    let (mut cnt_q, mut cnt_w, mut cnt_e, mut cnt_r) = (0_i32, 0_i32, 0_i32, 0_i32);
+    let (n, mut left, mut right): (usize, usize, usize) = (s.len(), 0_usize, 0_usize);
+    let mut s_char: Vec<char> = vec![' '; n];
+    for c in s.chars() {
+        match c {
+            'Q' => cnt_q += 1,
+            'W' => cnt_w += 1,
+            'E' => cnt_e += 1,
+            _ => cnt_r += 1,
+        }
+        s_char[left] = c;
+        left += 1;
+    }
+    let target: i32 = s.len() as i32 / 4;
+    if cnt_q == target && cnt_w == target && cnt_e == target && cnt_r == target {
+        return 0;
+    }
+    let mut res: usize = 2147483647_usize;
+    left = 0;
+    while right < n {
+        while (cnt_q > target || cnt_w > target || cnt_e > target || cnt_r > target) && right < n {
+            match s_char[right] {
+                'Q' => cnt_q -= 1,
+                'W' => cnt_w -= 1,
+                'E' => cnt_e -= 1,
+                _ => cnt_r -= 1,
+            }
+            right += 1;
+        }
+        if cnt_q > target || cnt_w > target || cnt_e > target || cnt_r > target {
+            break;
+        }
+        while left < right
+            && cnt_q <= target
+            && cnt_w <= target
+            && cnt_e <= target
+            && cnt_r <= target
+        {
+            match s_char[left] {
+                'Q' => cnt_q += 1,
+                'W' => cnt_w += 1,
+                'E' => cnt_e += 1,
+                _ => cnt_r += 1,
+            }
+            left += 1;
+        }
+        res = std::cmp::min(res, right - left + 1);
+    }
+    res as i32
+}
+
+/// 1235
+pub fn job_scheduling(start_time: Vec<i32>, end_time: Vec<i32>, profit: Vec<i32>) -> i32 {
+    let mut jobs = start_time
+        .iter()
+        .zip(end_time.iter())
+        .zip(profit.iter())
+        .map(|((&s, &e), &p)| (s, e, p))
+        .collect::<Vec<_>>();
+    jobs.sort_unstable_by(|a, b| a.1.cmp(&b.1));
+
+    let n = jobs.len();
+    let mut f = vec![0; n + 1];
+    for (i, &(st, _, p)) in jobs.iter().enumerate() {
+        let j = jobs[..i].partition_point(|job| job.1 <= st);
+        f[i + 1] = f[i].max(f[j] + p);
+    }
+    f[n]
+}
