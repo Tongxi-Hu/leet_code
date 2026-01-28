@@ -424,3 +424,103 @@ pub fn count_vowel_permutation(n: i32) -> i32 {
         .5
         % m) as i32
 }
+
+/// 1221
+pub fn balanced_string_split(s: String) -> i32 {
+    s.chars()
+        .fold((0, 0), |(mut diff, cut), cur| {
+            if cur == 'R' {
+                diff = diff + 1;
+            } else {
+                diff = diff - 1;
+            }
+            if diff == 0 {
+                (diff, cut + 1)
+            } else {
+                (diff, cut)
+            }
+        })
+        .1
+}
+
+/// 1222
+pub fn queens_attackthe_king(queens: Vec<Vec<i32>>, king: Vec<i32>) -> Vec<Vec<i32>> {
+    let dir = vec![
+        (1, 0),
+        (-1, 0),
+        (0, 1),
+        (0, -1),
+        (1, 1),
+        (-1, -1),
+        (1, -1),
+        (-1, 1),
+    ];
+
+    dir.iter().fold(vec![], |mut acc, d| {
+        for i in 0..8 {
+            let (r, c) = ((king[0] as i32) + i * d.0, (king[1] as i32) + i * d.1);
+            if r < 8 && c < 8 {
+                if queens.iter().find(|q| **q == vec![r, c]).is_some() {
+                    acc.push(vec![r, c]);
+                    break;
+                }
+            }
+        }
+        acc
+    })
+}
+
+/// 1223
+pub fn die_simulator(n: i32, roll_max: Vec<i32>) -> i32 {
+    let mut dp = vec![vec![1_i64; 6]; n as usize];
+
+    for i in 1..n as usize {
+        for j in 0..6 {
+            dp[i][j] = 0;
+
+            for k in 0..6 {
+                dp[i][j] += dp[i - 1][k];
+            }
+
+            if (roll_max[j] as usize) < i {
+                for k in 0..6 {
+                    if k != j {
+                        dp[i][j] -= dp[i - 1 - roll_max[j] as usize][k]
+                    }
+                }
+            }
+
+            if roll_max[j] as usize == i {
+                dp[i][j] -= 1;
+            }
+
+            dp[i][j] %= 1_000_000_007;
+
+            if dp[i][j] < 0 {
+                dp[i][j] += 1_000_000_007;
+            }
+        }
+    }
+
+    (dp[n as usize - 1].iter().sum::<i64>() % 1_000_000_007) as i32
+}
+
+/// 1224
+pub fn max_equal_freq(nums: Vec<i32>) -> i32 {
+    let (mut cnt, mut freq) = (vec![0; 100001], vec![0; 100001]);
+    nums.iter().for_each(|num| {
+        cnt[*num as usize] += 1;
+        freq[cnt[*num as usize] as usize] += 1;
+    });
+    for i in (1..nums.len()).rev() {
+        if freq[cnt[nums[i] as usize] as usize] * cnt[nums[i] as usize] == i {
+            return i as i32 + 1;
+        }
+        freq[cnt[nums[i] as usize] as usize] -= 1;
+        cnt[nums[i] as usize] -= 1;
+        if freq[cnt[nums[i - 1] as usize] as usize] * cnt[nums[i - 1] as usize] == i {
+            return i as i32 + 1;
+        }
+    }
+    1
+}
