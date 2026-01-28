@@ -637,3 +637,26 @@ pub fn job_scheduling(start_time: Vec<i32>, end_time: Vec<i32>, profit: Vec<i32>
     }
     f[n]
 }
+
+/// 1238
+pub fn circular_permutation(n: i32, start: i32) -> Vec<i32> {
+    let mut res: Vec<i32> = vec![0, 1];
+    for bit in 1..n {
+        let next: Vec<i32> = res.iter().rev().map(|x| (*x) | (1 << bit)).collect();
+        res.extend(next.iter());
+    }
+    let (mut first, mut second) = (vec![], vec![]);
+    let mut flag: bool = false;
+    for num in res {
+        if num == start {
+            flag = true
+        }
+        if flag {
+            second.push(num);
+        } else {
+            first.push(num);
+        }
+    }
+    second.extend(first.iter());
+    second
+}
