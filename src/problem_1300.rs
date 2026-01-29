@@ -731,3 +731,90 @@ pub fn tiling_rectangle(n: i32, m: i32) -> i32 {
     }
     cal(n, m, &mut vec![vec![0; m as usize + 1]; n as usize + 1])
 }
+
+/// 1247
+pub fn minimum_swap(s1: String, s2: String) -> i32 {
+    let cnt = s1.chars().zip(s2.chars()).fold((0, 0), |acc, cur| {
+        if cur.0 == cur.1 {
+            return acc;
+        } else if cur.0 == 'x' && cur.1 == 'y' {
+            return (acc.0 + 1, acc.1);
+        } else {
+            return (acc.0, acc.1 + 1);
+        }
+    });
+    if (cnt.0 + cnt.1) % 2 == 1 {
+        return -1;
+    } else {
+        cnt.0 / 2 + cnt.0 % 2 + cnt.1 / 2 + cnt.1 % 2
+    }
+}
+
+/// 1248
+pub fn number_of_subarrays(nums: Vec<i32>, k: i32) -> i32 {
+    let k = k as usize;
+    let mut cnt = vec![0; nums.len() + 1];
+    cnt[0] = 1;
+    nums.iter()
+        .fold((0, 0, cnt), |mut acc, cur| {
+            if cur % 2 == 1 {
+                acc.1 = acc.1 + 1;
+            }
+            acc.2[acc.1] = acc.2[acc.1] + 1;
+            if acc.1 >= k {
+                acc.0 = acc.0 + acc.2[acc.1 - k]
+            };
+            (acc.0, acc.1, acc.2)
+        })
+        .0
+}
+
+/// 1249
+pub fn min_remove_to_make_valid(s: String) -> String {
+    let (mut stack, mut invalid) = (VecDeque::new(), Vec::new());
+    s.chars()
+        .enumerate()
+        .filter(|(_, c)| *c == '(' || *c == ')')
+        .for_each(|(i, c)| {
+            if c == '(' {
+                stack.push_back(i);
+            } else {
+                if stack.is_empty() {
+                    invalid.push(i)
+                } else {
+                    stack.pop_back();
+                }
+            }
+        });
+    s.chars()
+        .enumerate()
+        .fold("".to_string(), |mut acc, (i, cur)| {
+            if !stack.contains(&i) && !invalid.contains(&i) {
+                acc.push(cur);
+            }
+            acc
+        })
+}
+
+///1250
+pub fn is_good_array(nums: Vec<i32>) -> bool {
+    let gcd = |mut first: i32, mut second: i32| -> i32 {
+        let mut temp: i32;
+        if first < second {
+            temp = second;
+            second = first;
+            first = temp;
+        }
+        while second != 0 {
+            temp = first % second;
+            first = second;
+            second = temp;
+        }
+        first
+    };
+    let mut res: i32 = nums[0];
+    for index in 1..nums.len() {
+        res = gcd(res, nums[index]);
+    }
+    res == 1
+}
