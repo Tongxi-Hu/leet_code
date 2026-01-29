@@ -660,3 +660,74 @@ pub fn circular_permutation(n: i32, start: i32) -> Vec<i32> {
     second.extend(first.iter());
     second
 }
+
+/// 1239
+pub fn max_length(arr: Vec<String>) -> i32 {
+    let mut ans: i32 = 0;
+    let mut masks: Vec<i32> = vec![0];
+    for s in arr {
+        let mut mask = 0;
+        for ch in s.chars() {
+            let mut ch = ch as usize;
+            ch = ch as usize - 97;
+            if (mask >> ch) & 1 != 0 {
+                mask = 0;
+                break;
+            }
+            mask |= 1 << ch;
+        }
+        if mask == 0 {
+            continue;
+        }
+        let n = masks.len();
+        for i in 0..n {
+            let m = masks[i];
+            if m & mask == 0 {
+                masks.push(m | mask);
+                ans = ans.max((((m | mask) as usize).count_ones()) as i32);
+            }
+        }
+    }
+    return ans;
+}
+
+/// 1240
+pub fn tiling_rectangle(n: i32, m: i32) -> i32 {
+    if n > m {
+        return tiling_rectangle(m, n);
+    }
+    fn cal(n: i32, m: i32, cache: &mut Vec<Vec<i32>>) -> i32 {
+        if n > m {
+            return cal(m, n, cache);
+        }
+        if n == 0 {
+            return 0;
+        }
+        if n == m {
+            return 1;
+        }
+        if n == 1 {
+            return m;
+        }
+        if cache[n as usize][m as usize] > 0 {
+            return cache[n as usize][m as usize];
+        }
+        let (mut count, max_size) = (i32::MAX, m.min(n));
+        for i in 1..=max_size {
+            count = count.min(1 + cal(n - i, m, cache) + cal(i, m - i, cache));
+            count = count.min(1 + cal(n, m - i, cache) + cal(n - i, i, cache));
+            let mut j = n - i + 1;
+            while j < m - i && j < n {
+                count = count.min(
+                    2 + cal(n - i, m - j, cache)
+                        + cal(n - j, m - i, cache)
+                        + cal(i + j - n, m - i - j, cache),
+                );
+                j += 1;
+            }
+        }
+        cache[n as usize][m as usize] = count;
+        count
+    }
+    cal(n, m, &mut vec![vec![0; m as usize + 1]; n as usize + 1])
+}
