@@ -818,3 +818,147 @@ pub fn is_good_array(nums: Vec<i32>) -> bool {
     }
     res == 1
 }
+
+/// 1252
+pub fn odd_cells(m: i32, n: i32, indices: Vec<Vec<i32>>) -> i32 {
+    let (m, n) = (m as usize, n as usize);
+    let mut matrix = vec![vec![0; n]; m];
+    indices.iter().for_each(|v| {
+        matrix[v[0] as usize].iter_mut().for_each(|n| *n = *n + 1);
+        matrix.iter_mut().for_each(|r| {
+            r[v[1] as usize] = r[v[1] as usize] + 1;
+        });
+    });
+    let mut odd = 0;
+    for i in 0..m {
+        for j in 0..n {
+            if matrix[i][j] % 2 == 1 {
+                odd = odd + 1;
+            }
+        }
+    }
+    odd
+}
+
+/// 1253
+pub fn reconstruct_matrix(upper: i32, lower: i32, colsum: Vec<i32>) -> Vec<Vec<i32>> {
+    let (row, col) = (2, colsum.len());
+    let (mut ans, mut upper, mut lower) = (vec![vec![0; col]; row], upper, lower);
+    colsum.iter().enumerate().for_each(|(i, s)| match s {
+        2 => {
+            ans[0][i] = 1;
+            ans[1][i] = 1;
+            upper = upper - 1;
+            lower = lower - 1;
+        }
+        1 => {
+            if upper >= lower {
+                ans[0][i] = 1;
+                ans[1][i] = 0;
+                upper = upper - 1;
+            } else {
+                ans[0][i] = 0;
+                ans[1][i] = 1;
+                lower = lower - 1;
+            }
+        }
+        _ => (),
+    });
+    if upper != 0 || lower != 0 {
+        return vec![];
+    }
+    ans
+}
+
+/// 1254
+pub fn closed_island(mut grid: Vec<Vec<i32>>) -> i32 {
+    let (height, width) = (grid.len(), grid[0].len());
+    let mut islands = vec![];
+    fn dfs(location: (usize, usize), island: &mut Vec<(usize, usize)>, grid: &mut Vec<Vec<i32>>) {
+        let (height, width) = (grid.len(), grid[0].len());
+        if grid[location.0][location.1] == 0 {
+            island.push(location);
+            grid[location.0][location.1] = 2;
+            for d in vec![(-1, 0), (1, 0), (0, -1), (0, 1)] {
+                let new_location = (location.0 + d.0 as usize, location.1 + d.1 as usize);
+                if new_location.0 < height && new_location.1 < width {
+                    dfs(new_location, island, grid);
+                }
+            }
+        }
+    }
+    for r in 0..height {
+        for c in 0..width {
+            if grid[r][c] == 0 {
+                let mut island = vec![];
+                dfs((r, c), &mut island, &mut grid);
+                islands.push(island)
+            }
+        }
+    }
+    islands
+        .iter()
+        .filter(|island| {
+            island.iter().all(|location| {
+                location.0 != 0
+                    && location.0 != height - 1
+                    && location.1 != 0
+                    && location.1 != width - 1
+            })
+        })
+        .collect::<Vec<_>>()
+        .len() as i32
+}
+
+/// 1255
+pub fn max_score_words(words: Vec<String>, letters: Vec<char>, score: Vec<i32>) -> i32 {
+    let letters = letters.into_iter().fold([0; 26], |mut t, c| {
+        t[c as usize - b'a' as usize] += 1;
+        t
+    });
+    let words: Vec<_> = words
+        .into_iter()
+        .map(|w| {
+            let mut w = w.into_bytes();
+            w.iter_mut().for_each(|c| *c -= b'a');
+            w
+        })
+        .collect();
+    let mut ans = 0;
+    for i in 1..1 << words.len() {
+        let mut tab = [0; 26];
+        let mut sum = 0;
+        for j in 0..words.len() {
+            if i & (1 << j) == 0 {
+                continue;
+            }
+            for &c in words[j].iter() {
+                let c = c as usize;
+                tab[c] += 1;
+                if tab[c] > letters[c] {
+                    sum = 0;
+                    break;
+                }
+                sum += score[c];
+            }
+            ans = ans.max(sum);
+        }
+    }
+    ans
+}
+
+/// 1260
+pub fn shift_grid(grid: Vec<Vec<i32>>, mut k: i32) -> Vec<Vec<i32>> {
+    let (m, n) = (grid.len(), grid[0].len());
+    let total = m * n;
+    k %= total as i32;
+    let mut ret = vec![vec![0; n]; m];
+    let (mut i, mut j) = (0, total - k as usize);
+    while i < total {
+        j = if j == total { 0 } else { j };
+        ret[i / n][i % n] = grid[j / n][j % n];
+        j += 1;
+        i += 1;
+    }
+    ret
+}
