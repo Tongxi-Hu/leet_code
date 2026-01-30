@@ -1221,3 +1221,35 @@ pub fn num_ways(steps: i32, arr_len: i32) -> i32 {
 
     dfs(0, steps, arr_len as usize, &mut HashMap::new())
 }
+
+/// 1275
+pub fn tictactoe(moves: Vec<Vec<i32>>) -> String {
+    let mut a = 0;
+    let mut b = 0;
+    let n = moves.len();
+
+    for i in 0..n {
+        if i % 2 == 0 {
+            a ^= 1 << (3 * moves[i][0] + moves[i][1]);
+        } else {
+            b ^= 1 << (3 * moves[i][0] + moves[i][1]);
+        }
+    }
+
+    let wins = [7, 56, 448, 73, 146, 292, 273, 84];
+
+    for win in wins {
+        if a & win == win {
+            return "A".into();
+        }
+        if b & win == win {
+            return "B".into();
+        }
+    }
+
+    if n == 9 {
+        "Draw".into()
+    } else {
+        "Pending".into()
+    }
+}
