@@ -1,4 +1,11 @@
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::{
+    cell::RefCell,
+    cmp::{Ordering, Reverse},
+    collections::{BinaryHeap, HashMap, HashSet, VecDeque},
+    rc::Rc,
+};
+
+use crate::common::TreeNode;
 
 /// 1201
 pub fn nth_ugly_number(n: i32, a: i32, b: i32, c: i32) -> i32 {
@@ -962,3 +969,118 @@ pub fn shift_grid(grid: Vec<Vec<i32>>, mut k: i32) -> Vec<Vec<i32>> {
     }
     ret
 }
+
+/// 1261
+struct FindElements {
+    root: Option<Rc<RefCell<TreeNode>>>,
+}
+
+impl FindElements {
+    fn dfs(root: Option<Rc<RefCell<TreeNode>>>, v: i32) {
+        if let Some(node) = root {
+            node.borrow_mut().val = v;
+            Self::dfs(node.borrow().left.clone(), v * 2 + 1);
+            Self::dfs(node.borrow().right.clone(), v * 2 + 2);
+        }
+    }
+    fn new(root: Option<Rc<RefCell<TreeNode>>>) -> Self {
+        Self::dfs(root.clone(), 0);
+        Self { root }
+    }
+
+    fn find_node(root: Option<Rc<RefCell<TreeNode>>>, target: i32) -> bool {
+        if let Some(node) = root {
+            match node.borrow().val.cmp(&target) {
+                Ordering::Equal => {
+                    return true;
+                }
+                Ordering::Less => {
+                    return Self::find_node(node.borrow().left.clone(), target)
+                        || Self::find_node(node.borrow().right.clone(), target);
+                }
+                Ordering::Greater => {
+                    return false;
+                }
+            }
+        }
+        false
+    }
+
+    fn find(&self, target: i32) -> bool {
+        let root = self.root.clone();
+        Self::find_node(root, target)
+    }
+}
+
+/// 1262
+pub fn min_push_box(grid: Vec<Vec<char>>) -> i32 {
+    fn get_pos(grid: &Vec<Vec<char>>, n: usize, m: usize, target: char) -> (usize, usize) {
+        for i in 0..n {
+            for j in 0..m {
+                if grid[i][j] == target {
+                    return (i, j);
+                }
+            }
+        }
+
+        unreachable!()
+    }
+
+    let n = grid.len();
+    let m = grid[0].len();
+    let dirs = [(-1, 0), (0, -1), (0, 1), (1, 0)];
+    let (pi, pj) = get_pos(&grid, n, m, 'S');
+    let (bi, bj) = get_pos(&grid, n, m, 'B');
+    let (ti, tj) = get_pos(&grid, n, m, 'T');
+    let mut vis = HashSet::new();
+    let mut pq = BinaryHeap::new();
+    pq.push((Reverse(0), bi, bj, pi, pj));
+    vis.insert((bi, bj, pi, pj));
+
+    while let Some((Reverse(cost), bi, bj, pi, pj)) = pq.pop() {
+        if (ti, tj) == (bi, bj) {
+            return cost;
+        }
+
+        for &(di, dj) in dirs.iter() {
+            let px = (pi as i32 + di) as usize;
+            let py = (pj as i32 + dj) as usize;
+
+            if px >= n || py >= m {
+                continue;
+            }
+
+            if grid[px][py] == '#' {
+                continue;
+            }
+
+            let mut c = cost;
+            let mut bx = bi;
+            let mut by = bj;
+
+            if (px, py) == (bx, by) {
+                bx = (bx as i32 + di) as usize;
+                by = (by as i32 + dj) as usize;
+
+                if bx >= n || by >= m {
+                    continue;
+                }
+
+                if grid[bx][by] == '#' {
+                    continue;
+                }
+
+                c += 1;
+            }
+
+            if !vis.insert((bx, by, px, py)) {
+                continue;
+            }
+
+            pq.push((Reverse(c), bx, by, px, py));
+        }
+    }
+
+    -1
+}
+
