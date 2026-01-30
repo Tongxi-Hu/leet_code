@@ -1084,3 +1084,140 @@ pub fn min_push_box(grid: Vec<Vec<char>>) -> i32 {
     -1
 }
 
+/// 1266
+pub fn min_time_to_visit_all_points(points: Vec<Vec<i32>>) -> i32 {
+    points.windows(2).fold(0, |acc, cur| {
+        let (pre, cur) = (&cur[0], &cur[1]);
+        acc + (pre[0] - cur[0]).abs().max((pre[1] - cur[1]).abs())
+    })
+}
+
+/// 1267
+pub fn count_servers(grid: Vec<Vec<i32>>) -> i32 {
+    let (height, width) = (grid.len(), grid[0].len());
+    let (mut r_cnt, mut c_cnt) = (HashMap::new(), HashMap::new());
+    for i in 0..height {
+        for j in 0..width {
+            if grid[i][j] == 1 {
+                let r_cnt = r_cnt.entry(i).or_insert(0);
+                *r_cnt = *r_cnt + 1;
+                let c_cnt = c_cnt.entry(j).or_insert(0);
+                *c_cnt = *c_cnt + 1;
+            }
+        }
+    }
+    let mut total = 0;
+    for i in 0..height {
+        for j in 0..width {
+            if grid[i][j] == 1 {
+                let r_cnt = r_cnt.get(&i).unwrap();
+                let c_cnt = c_cnt.get(&j).unwrap();
+                if *r_cnt > 1 || *c_cnt > 1 {
+                    total = total + 1;
+                }
+            }
+        }
+    }
+    total
+}
+
+/// 1268
+struct KTrie {
+    is_end: bool,
+    next: HashMap<char, Box<KTrie>>,
+
+    k: usize,
+    pub recommendations: BinaryHeap<String>,
+}
+
+impl KTrie {
+    pub fn new(k: usize) -> Self {
+        Self {
+            is_end: false,
+            next: HashMap::new(),
+            k,
+            recommendations: BinaryHeap::new(),
+        }
+    }
+
+    fn add_recommendation(&mut self, s: &str) {
+        self.recommendations.push(s.to_owned());
+        if self.recommendations.len() > self.k {
+            self.recommendations.pop();
+        }
+    }
+
+    pub fn insert(&mut self, s: &str) {
+        let k = self.k;
+        let mut cur = self;
+        cur.add_recommendation(s);
+        for c in s.chars() {
+            cur = &mut **cur.next.entry(c).or_insert_with(|| Box::new(KTrie::new(k)));
+            cur.add_recommendation(s);
+        }
+
+        cur.is_end = true;
+    }
+
+    pub fn walk<'a>(&'a self, s: &'a str) -> impl Iterator<Item = Option<&'a KTrie>> {
+        let mut cur = Some(self);
+        let path = s.chars();
+
+        path.map(move |c| {
+            if let Some(node) = cur {
+                cur = node.next.get(&c).map(|b| &**b);
+                cur
+            } else {
+                None
+            }
+        })
+    }
+}
+
+pub fn suggested_products(products: Vec<String>, search_word: String) -> Vec<Vec<String>> {
+    let mut root = KTrie::new(3);
+    for product in products {
+        root.insert(&product);
+    }
+
+    root.walk(&search_word)
+        .map(|node| {
+            node.map(|node| {
+                let mut v: Vec<_> = node.recommendations.iter().cloned().collect();
+                v.sort_unstable();
+                v
+            })
+            .unwrap_or_else(|| vec![])
+        })
+        .collect()
+}
+
+/// 1269
+pub fn num_ways(steps: i32, arr_len: i32) -> i32 {
+    use std::collections::HashMap;
+    fn dfs(pos: usize, steps: i32, arr_len: usize, memo: &mut HashMap<(usize, i32), i32>) -> i32 {
+        if steps == 0 {
+            if pos == 0 {
+                return 1;
+            }
+            return 0;
+        }
+
+        if let Some(&sum) = memo.get(&(pos, steps)) {
+            return sum;
+        }
+        let mut sum = dfs(pos, steps - 1, arr_len, memo);
+        if pos < arr_len - 1 {
+            sum += dfs(pos + 1, steps - 1, arr_len, memo);
+            sum = sum % 1000000007;
+        }
+        if pos > 0 {
+            sum += dfs(pos - 1, steps - 1, arr_len, memo);
+            sum = sum % 1000000007;
+        }
+        memo.insert((pos, steps), sum);
+        sum
+    }
+
+    dfs(0, steps, arr_len as usize, &mut HashMap::new())
+}
