@@ -2,6 +2,7 @@ use std::{
     cell::RefCell,
     cmp::{Ordering, Reverse},
     collections::{BinaryHeap, HashMap, HashSet, VecDeque},
+    i32,
     rc::Rc,
 };
 
@@ -1252,4 +1253,78 @@ pub fn tictactoe(moves: Vec<Vec<i32>>) -> String {
     } else {
         "Pending".into()
     }
+}
+
+/// 1276
+pub fn num_of_burgers(tomato_slices: i32, cheese_slices: i32) -> Vec<i32> {
+    if tomato_slices > cheese_slices * 4
+        || tomato_slices < cheese_slices * 2
+        || tomato_slices % 2 != 0
+    {
+        vec![]
+    } else {
+        let jumbo = (tomato_slices - cheese_slices * 2) / 4;
+        vec![jumbo, cheese_slices - jumbo]
+    }
+}
+
+/// 1277
+pub fn count_squares(matrix: Vec<Vec<i32>>) -> i32 {
+    let (height, width) = (matrix.len(), matrix[0].len());
+    let (mut dp, mut total) = (vec![vec![0; width]; height], 0);
+    for r in 0..height {
+        for c in 0..width {
+            dp[r][c] = if r == 0 || c == 0 {
+                matrix[r][c]
+            } else if matrix[r][c] == 0 {
+                0
+            } else {
+                dp[r - 1][c].min(dp[r][c - 1]).min(dp[r - 1][c - 1]) + 1
+            };
+            total = total + dp[r][c];
+        }
+    }
+    total
+}
+
+/// 1278
+pub fn palindrome_partition(s: String, k: i32) -> i32 {
+    fn cost(mut l: usize, mut r: usize, s: &String) -> i32 {
+        let mut ret = 0;
+        while l < r {
+            if s.as_bytes()[l] != s.as_bytes()[r] {
+                ret += 1;
+            }
+            l += 1;
+            r -= 1;
+        }
+        ret
+    }
+    let (length, k) = (s.len(), k as usize);
+    let mut f = vec![vec![i32::MAX; k + 1]; length + 1];
+    f[0][0] = 0;
+    for i in 1..=length {
+        for j in 1..=k.min(i) {
+            if j == 1 {
+                f[i][j] = cost(0, i - 1, &s);
+            } else {
+                for l in (j - 1)..i {
+                    f[i][j] = f[i][j].min(f[l][j - 1] + cost(l, i - 1, &s));
+                }
+            }
+        }
+    }
+    f[length][k as usize]
+}
+
+/// 1281
+pub fn subtract_product_and_sum(mut n: i32) -> i32 {
+    let (mut sum, mut product) = (0, 1);
+    while n > 0 {
+        let remain = n % 10;
+        sum = sum + remain;
+        product = product * remain;
+        n = n / 10;
+    }
+    product - sum
 }
