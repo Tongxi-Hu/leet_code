@@ -1328,3 +1328,92 @@ pub fn subtract_product_and_sum(mut n: i32) -> i32 {
     }
     product - sum
 }
+
+/// 1282
+pub fn group_the_people(group_sizes: Vec<i32>) -> Vec<Vec<i32>> {
+    group_sizes
+        .iter()
+        .enumerate()
+        .fold(HashMap::new(), |mut acc, (i, size)| {
+            let index = acc.entry(size).or_insert(Vec::new());
+            index.push(i as i32);
+            acc
+        })
+        .iter()
+        .fold(Vec::new(), |mut acc, (&&size, index)| {
+            index
+                .chunks(size as usize)
+                .for_each(|i| acc.push(i.to_vec()));
+            acc
+        })
+}
+
+/// 1283
+pub fn smallest_divisor(nums: Vec<i32>, threshold: i32) -> i32 {
+    fn up_divde(target: i32, divisor: i32) -> i32 {
+        if target % divisor == 0 {
+            target / divisor
+        } else {
+            target / divisor + 1
+        }
+    }
+    let (mut l, mut r, mut ans) = (1, nums.iter().max().unwrap().clone(), -1);
+    while l <= r {
+        let mid = (l + r) / 2;
+        let total = nums.iter().fold(0, |acc, &cur| acc + up_divde(cur, mid));
+        if total <= threshold {
+            ans = mid;
+            r = mid - 1;
+        } else {
+            l = mid + 1;
+        }
+    }
+    ans
+}
+
+/// 1284
+pub fn min_flips(mat: Vec<Vec<i32>>) -> i32 {
+    fn convert(mat: &mut Vec<Vec<i32>>, m: usize, n: usize, i: usize, j: usize) {
+        let dirs: [i32; 6] = [0, 1, 0, -1, 0, 0];
+        for k in 0..5 {
+            let x = i as i32 + dirs[k];
+            let y = j as i32 + dirs[k + 1];
+            if x >= 0 && x < (m as i32) && y >= 0 && y < (n as i32) {
+                mat[x as usize][y as usize] ^= 1;
+            }
+        }
+    }
+    let m = mat.len();
+    let n = mat[0].len();
+    let mut ans = i32::MAX;
+    for bin in 0..(1 << n) {
+        let mut mat_copy = mat.clone();
+        let mut filp_cnt = 0;
+        for j in 0..n {
+            if bin & (1 << j) != 0 {
+                filp_cnt += 1;
+                convert(&mut mat_copy, m, n, 0, j);
+            }
+        }
+
+        for i in 1..m {
+            for j in 0..n {
+                if mat_copy[i - 1][j] == 1 {
+                    filp_cnt += 1;
+                    convert(&mut mat_copy, m, n, i, j);
+                }
+            }
+        }
+        let mut flag = true;
+        for j in 0..n {
+            if mat_copy[m - 1][j] != 0 {
+                flag = false;
+                break;
+            }
+        }
+        if flag {
+            ans = std::cmp::min(ans, filp_cnt);
+        }
+    }
+    if ans != i32::MAX { ans } else { -1 }
+}
