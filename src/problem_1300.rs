@@ -6,7 +6,7 @@ use std::{
     rc::Rc,
 };
 
-use crate::common::TreeNode;
+use crate::common::{ListNode, TreeNode};
 
 /// 1201
 pub fn nth_ugly_number(n: i32, a: i32, b: i32, c: i32) -> i32 {
@@ -1416,4 +1416,128 @@ pub fn min_flips(mat: Vec<Vec<i32>>) -> i32 {
         }
     }
     if ans != i32::MAX { ans } else { -1 }
+}
+
+/// 1286
+struct CombinationIterator {
+    total: Vec<String>,
+}
+
+impl CombinationIterator {
+    fn new(characters: String, combination_length: i32) -> Self {
+        fn dfs(
+            chars: &Vec<char>,
+            total: &mut Vec<String>,
+            pointer: usize,
+            cur: &mut Vec<char>,
+            size: usize,
+        ) {
+            if cur.len() == size {
+                total.push(cur.iter().collect::<String>());
+                return;
+            }
+            for i in pointer..chars.len() {
+                cur.push(chars[i]);
+                dfs(&chars, total, i + 1, cur, size as usize);
+                cur.pop();
+            }
+        }
+        let chars = characters.chars().collect::<Vec<char>>();
+        let (mut cur, mut total) = (vec![], vec![]);
+
+        dfs(&chars, &mut total, 0, &mut cur, combination_length as usize);
+        Self { total }
+    }
+
+    fn next(&mut self) -> String {
+        if self.has_next() {
+            self.total.remove(0)
+        } else {
+            "".to_string()
+        }
+    }
+
+    fn has_next(&self) -> bool {
+        self.total.len() > 0
+    }
+}
+
+/// 1287
+pub fn find_special_integer(arr: Vec<i32>) -> i32 {
+    let n = arr.len();
+    let mut cur = arr[0];
+    let mut cnt = 0;
+    for &item in arr.iter() {
+        if item == cur {
+            cnt += 1;
+            if cnt * 4 > n {
+                return cur;
+            }
+        } else {
+            cur = item;
+            cnt = 1;
+        }
+    }
+    -1
+}
+
+/// 1288
+pub fn remove_covered_intervals(intervals: Vec<Vec<i32>>) -> i32 {
+    let mut vec_temp: Vec<Vec<i32>> = intervals.clone();
+
+    if intervals.len() == 0 {
+        return 0;
+    }
+
+    vec_temp.sort_by(|a, b| a[0].cmp(&b[0]).then_with(|| b[1].cmp(&a[1])));
+
+    let mut result = 1;
+    let mut right = vec_temp[0][1];
+
+    for i in 1..vec_temp.len() {
+        if vec_temp[i][1] > right {
+            result += 1;
+            right = vec_temp[i][1];
+        }
+    }
+
+    result
+}
+
+/// 1289
+pub fn min_falling_path_sum(grid: Vec<Vec<i32>>) -> i32 {
+    let mut state = grid[0].clone();
+    for i in 1..grid.len() {
+        let (min_idx, min) = match state.iter().enumerate().min_by_key(|(_, x)| **x) {
+            Some((min_idx, &min)) => (min_idx, min),
+            None => unreachable!(),
+        };
+        let (_, sub_min) = match state
+            .iter()
+            .enumerate()
+            .filter(|(idx, _)| *idx != min_idx)
+            .min_by_key(|(_, x)| **x)
+        {
+            Some((sub_min_idx, &sub_min)) => (sub_min_idx, sub_min),
+            None => unreachable!(),
+        };
+        grid[i]
+            .iter()
+            .enumerate()
+            .for_each(|(j, x)| match j == min_idx {
+                false => state[j] = min + *x,
+                true => state[j] = sub_min + *x,
+            });
+    }
+    *state.iter().min().unwrap()
+}
+
+/// 1290
+pub fn get_decimal_value(head: Option<Box<ListNode>>) -> i32 {
+    let (mut cur, mut res) = (&head, 0);
+    while let Some(node) = cur {
+        res = res * 2 + node.val;
+        cur = &node.next
+    }
+    res
 }
