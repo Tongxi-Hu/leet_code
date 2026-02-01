@@ -1808,3 +1808,25 @@ pub fn replace_elements(arr: Vec<i32>) -> Vec<i32> {
     }
     surfex_max
 }
+
+/// 1300
+pub fn find_best_value(arr: Vec<i32>, target: i32) -> i32 {
+    let sum = |mid: i32| -> i32 { arr.iter().map(|&x| x.min(mid)).sum() };
+    let mut hi = *arr.iter().max().unwrap();
+    let mut lo = 0;
+    while lo < hi {
+        let mid = lo + (hi - lo) / 2;
+        if sum(mid) == target {
+            return mid;
+        } else if sum(mid) > target {
+            hi = mid;
+        } else {
+            lo = mid + 1;
+        }
+    }
+    if (sum(lo) - target).abs() >= (sum(lo - 1) - target).abs() {
+        lo - 1
+    } else {
+        lo
+    }
+}
