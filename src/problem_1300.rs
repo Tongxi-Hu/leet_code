@@ -1541,3 +1541,270 @@ pub fn get_decimal_value(head: Option<Box<ListNode>>) -> i32 {
     }
     res
 }
+
+/// 1291
+pub fn sequential_digits(low: i32, high: i32) -> Vec<i32> {
+    let mut ret = vec![];
+
+    for i in 1..9 {
+        let mut x = i;
+        while x <= high && x % 10 != 0 {
+            if x >= low {
+                ret.push(x);
+            }
+            x = x * 10 + x % 10 + 1;
+        }
+    }
+
+    ret.sort_unstable();
+
+    ret
+}
+
+/// 1292
+pub fn max_side_length(mat: Vec<Vec<i32>>, threshold: i32) -> i32 {
+    let m = mat.len();
+    let n = mat[0].len();
+    let mut p = vec![vec![0; n + 1]; m + 1];
+
+    for i in 1..=m {
+        for j in 1..=n {
+            p[i][j] = p[i - 1][j] + p[i][j - 1] - p[i - 1][j - 1] + mat[i - 1][j - 1] as i32;
+        }
+    }
+
+    let mut l = 1;
+    let mut r = m.min(n);
+    let mut ans = 0;
+
+    while l <= r {
+        let mid = (l + r) / 2;
+        let mut find = false;
+
+        for i in 1..=(m - mid + 1) {
+            for j in 1..=(n - mid + 1) {
+                let sum =
+                    p[i + mid - 1][j + mid - 1] - p[i - 1][j + mid - 1] - p[i + mid - 1][j - 1]
+                        + p[i - 1][j - 1];
+                if sum <= threshold {
+                    find = true;
+                    break;
+                }
+            }
+            if find {
+                break;
+            }
+        }
+
+        if find {
+            ans = mid as i32;
+            l = mid + 1;
+        } else {
+            r = mid - 1;
+        }
+    }
+
+    ans
+}
+
+/// 1293
+fn move_on_grid<F, O>(coordinate: F, operator: &mut O, grid: &Vec<Vec<i32>>) -> Option<()>
+where
+    F: FnOnce() -> Option<(usize, usize, i32)>,
+    O: FnMut((usize, usize, i32)),
+{
+    coordinate()
+        .and_then(|(row, col, remain)| {
+            (grid[row][col] == 0)
+                .then(|| (row, col, remain))
+                .or_else(|| (remain >= 1).then(|| (row, col, remain - 1)))
+        })
+        .map(operator)
+}
+
+pub fn shortest_path(grid: Vec<Vec<i32>>, k: i32) -> i32 {
+    let m = grid.len() - 1;
+    let n = grid[0].len() - 1;
+    let k = std::cmp::min(k as u32, (m + n - 1) as u32) as i32;
+
+    let mut queue = VecDeque::new();
+    if grid[0][0] == 1 {
+        queue.push_front((0, 0, k - 1));
+    } else {
+        queue.push_front((0, 0, k));
+    }
+
+    let mut used = HashSet::new();
+
+    let mut ret = 0;
+    while !queue.is_empty() {
+        let len = queue.len();
+        for _ in 0..len {
+            let (row, col, reamin) = queue.pop_back().unwrap();
+            if (row, col) == (m, n) {
+                return ret;
+            }
+
+            let mut o = |s| {
+                if !used.contains(&s) {
+                    used.insert(s);
+                    queue.push_front(s);
+                }
+            };
+
+            move_on_grid(|| (row > 0).then(|| (row - 1, col, reamin)), &mut o, &grid);
+
+            move_on_grid(|| (col > 0).then(|| (row, col - 1, reamin)), &mut o, &grid);
+
+            move_on_grid(|| (row < m).then(|| (row + 1, col, reamin)), &mut o, &grid);
+
+            move_on_grid(|| (col < n).then(|| (row, col + 1, reamin)), &mut o, &grid);
+        }
+
+        ret += 1;
+    }
+
+    -1
+}
+
+/// 1295
+pub fn find_numbers(nums: Vec<i32>) -> i32 {
+    nums.iter().fold(0, |acc, cur| {
+        if cur.to_string().len() % 2 == 0 {
+            acc + 1
+        } else {
+            acc
+        }
+    })
+}
+
+/// 1296
+pub fn is_possible_divide(nums: Vec<i32>, k: i32) -> bool {
+    let k = k as usize;
+    if nums.len() % k > 0 {
+        return false;
+    }
+
+    let mut nums = nums;
+    nums.sort_unstable();
+
+    let mut map = HashMap::new();
+    nums.iter().for_each(|&x| {
+        *map.entry(x).or_insert(0) += 1;
+    });
+
+    for x in nums.into_iter() {
+        let v = map.get(&x).map_or(0, |v| v.clone());
+        if v == 0 {
+            continue;
+        }
+
+        for k in x..x + k as i32 {
+            if let Some(v) = map.get_mut(&k) {
+                *v -= 1;
+            } else {
+                return false;
+            }
+        }
+    }
+    true
+}
+
+/// 1297
+pub fn max_freq(s: String, max_letters: i32, min_size: i32, _: i32) -> i32 {
+    let s = s.as_bytes();
+    let min_size = min_size as usize;
+    let mut str_cnt = HashMap::new();
+    let mut char_cnt = [0; 26];
+    let mut kinds = 0;
+    let mut ans = 0;
+
+    for (i, &in_char) in s.iter().enumerate() {
+        let in_char = (in_char - b'a') as usize;
+        if char_cnt[in_char] == 0 {
+            kinds += 1;
+        }
+        char_cnt[in_char] += 1;
+
+        if i + 1 < min_size {
+            continue;
+        }
+        let left = i + 1 - min_size;
+
+        if kinds <= max_letters {
+            let e = str_cnt.entry(&s[left..left + min_size]).or_insert(0);
+            *e += 1;
+            ans = ans.max(*e);
+        }
+
+        let out_char = (s[left] - b'a') as usize;
+        char_cnt[out_char] -= 1;
+        if char_cnt[out_char] == 0 {
+            kinds -= 1;
+        }
+    }
+
+    ans
+}
+
+/// 1298
+pub fn max_candies(
+    status: Vec<i32>,
+    candies: Vec<i32>,
+    keys: Vec<Vec<i32>>,
+    contained_boxes: Vec<Vec<i32>>,
+    initial_boxes: Vec<i32>,
+) -> i32 {
+    let n = status.len();
+    let mut can_open = vec![false; n];
+    let mut has_box = vec![false; n];
+    let mut used = vec![false; n];
+
+    for i in 0..n {
+        can_open[i] = status[i] == 1;
+    }
+    let mut q = VecDeque::new();
+    let mut ans = 0;
+    for box_id in initial_boxes {
+        has_box[box_id as usize] = true;
+        if can_open[box_id as usize] {
+            q.push_back(box_id);
+            used[box_id as usize] = true;
+            ans += candies[box_id as usize];
+        }
+    }
+
+    while let Some(big_box) = q.pop_front() {
+        for &key in &keys[big_box as usize] {
+            can_open[key as usize] = true;
+            if !used[key as usize] && has_box[key as usize] {
+                q.push_back(key);
+                used[key as usize] = true;
+                ans += candies[key as usize];
+            }
+        }
+        for &box_id in &contained_boxes[big_box as usize] {
+            has_box[box_id as usize] = true;
+            if !used[box_id as usize] && can_open[box_id as usize] {
+                q.push_back(box_id);
+                used[box_id as usize] = true;
+                ans += candies[box_id as usize];
+            }
+        }
+    }
+
+    ans
+}
+
+/// 1299
+pub fn replace_elements(arr: Vec<i32>) -> Vec<i32> {
+    let (length, mut sur_max, mut surfex_max) =
+        (arr.len(), arr[arr.len() - 1], vec![-1; arr.len()]);
+    for i in (0..length - 1).rev() {
+        surfex_max[i] = sur_max;
+        if arr[i] > sur_max {
+            sur_max = arr[i];
+        }
+    }
+    surfex_max
+}
