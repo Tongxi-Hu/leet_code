@@ -121,7 +121,35 @@ pub fn get_all_elements(
 }
 
 /// 1306
-// pub fn can_reach(arr: Vec<i32>, start: i32) -> bool {}
+pub fn can_reach(arr: Vec<i32>, start: i32) -> bool {
+    let mut next = VecDeque::new();
+    next.push_back(start as usize);
+    let (mut reach, mut visited) = (false, vec![false; arr.len()]);
+    while next.len() != 0 {
+        let index = next.pop_front().unwrap() as usize;
+        if arr[index] == 0 {
+            reach = true;
+            break;
+        }
+        let dis = arr[index] as usize;
+        visited[index] = true;
+        if index + dis < arr.len() && visited[index + dis] != true {
+            if arr[index + dis] == 0 {
+                reach = true;
+                break;
+            }
+            next.push_back(index + dis);
+        }
+        if index - dis < arr.len() && visited[index - dis] != true {
+            if arr[index - dis] == 0 {
+                reach = true;
+                break;
+            }
+            next.push_back(index - dis);
+        }
+    }
+    reach
+}
 
 /// 1309
 pub fn freq_alphabets(s: String) -> String {
