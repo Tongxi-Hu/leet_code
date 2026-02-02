@@ -1,4 +1,8 @@
-use std::{cell::RefCell, collections::VecDeque, rc::Rc};
+use std::{
+    cell::RefCell,
+    collections::{HashMap, VecDeque},
+    rc::Rc,
+};
 
 use crate::common::TreeNode;
 
@@ -185,4 +189,54 @@ pub fn xor_queries(arr: Vec<i32>, queries: Vec<Vec<i32>>) -> Vec<i32> {
         .iter()
         .map(|v| prefix[v[0] as usize] ^ prefix[v[1] as usize + 1])
         .collect::<Vec<_>>()
+}
+
+/// 1311
+pub fn watched_videos_by_friends(
+    watched_videos: Vec<Vec<String>>,
+    friends: Vec<Vec<i32>>,
+    id: i32,
+    level: i32,
+) -> Vec<String> {
+    use std::collections::{HashMap, HashSet, VecDeque};
+
+    let mut q = VecDeque::new();
+    let mut state = HashSet::new();
+    let mut map = HashMap::new();
+    q.push_back((id as usize, 0));
+    while !q.is_empty() {
+        let (top_id, top_deep) = q.pop_front().unwrap();
+        if state.contains(&top_id) {
+            continue;
+        }
+        state.insert(top_id);
+        if top_deep == level {
+            let watched_vec = &watched_videos[top_id];
+            for s in watched_vec {
+                map.entry(s).and_modify(|cnt| *cnt += 1).or_insert(0);
+            }
+            continue;
+        }
+        let top_friends = &friends[top_id];
+        for f_id in top_friends {
+            if top_deep + 1 <= level {
+                q.push_back((*f_id as usize, top_deep + 1));
+            }
+        }
+    }
+    let mut vec = Vec::with_capacity(map.len());
+    for item in map {
+        vec.push(item);
+    }
+
+    vec.sort_by(|a, b| {
+        a.1.partial_cmp(&b.1)
+            .unwrap()
+            .then(a.0.partial_cmp(b.0).unwrap())
+    });
+    let mut ans = Vec::new();
+    for (s, _) in vec {
+        ans.push(String::from(s));
+    }
+    ans
 }
