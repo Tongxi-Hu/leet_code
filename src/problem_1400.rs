@@ -119,3 +119,42 @@ pub fn get_all_elements(
     }
     ans
 }
+
+/// 1306
+// pub fn can_reach(arr: Vec<i32>, start: i32) -> bool {}
+
+/// 1309
+pub fn freq_alphabets(s: String) -> String {
+    let chars = s.chars().collect::<Vec<char>>();
+    let mut s = "".to_string();
+    let mut i = 0;
+    while i < chars.len() {
+        if i + 2 < chars.len() && chars[i + 2] == '#' {
+            s.push(
+                ((chars[i].to_digit(10).unwrap() - 0) as u8 * 10
+                    + (chars[i + 1].to_digit(10).unwrap() - 1) as u8
+                    + b'a') as char,
+            );
+            i = i + 3;
+        } else {
+            s.push(((chars[i].to_digit(10).unwrap() - 1) as u8 + b'a') as char);
+            i = i + 1;
+        }
+    }
+    s
+}
+
+/// 1310
+pub fn xor_queries(arr: Vec<i32>, queries: Vec<Vec<i32>>) -> Vec<i32> {
+    let n = arr.len();
+    let mut prefix = vec![0; n + 1];
+
+    for i in 0..n {
+        prefix[i + 1] = prefix[i] ^ arr[i];
+    }
+
+    queries
+        .iter()
+        .map(|v| prefix[v[0] as usize] ^ prefix[v[1] as usize + 1])
+        .collect::<Vec<_>>()
+}
