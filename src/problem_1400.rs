@@ -1,0 +1,121 @@
+use std::{cell::RefCell, collections::VecDeque, rc::Rc};
+
+use crate::common::TreeNode;
+
+/// 1301
+pub fn paths_with_max_score(board: Vec<String>) -> Vec<i32> {
+    let board = board
+        .iter()
+        .map(|s| s.chars().collect::<Vec<char>>())
+        .collect::<Vec<Vec<char>>>();
+    let mut f = board
+        .iter()
+        .map(|s| {
+            s.iter()
+                .map(|&c| match c {
+                    'X' => (-1, -1),
+                    'E' => (0, 1),
+                    'S' => (0, 1),
+                    _ => (c.to_digit(10).unwrap() as i32, 0),
+                })
+                .collect::<Vec<(i32, i32)>>()
+        })
+        .collect::<Vec<Vec<(i32, i32)>>>();
+
+    for i in (0..board.len()).rev() {
+        for j in (0..board[i].len()).rev() {
+            if f[i][j].0 == -1 || (i == board.len() - 1 && j == board[i].len() - 1) {
+                continue;
+            } else if i == board.len() - 1 && j < board[i].len() - 1 {
+                f[i][j] = (f[i][j].0 + f[i][j + 1].0, f[i][j + 1].1);
+            } else if j == board[i].len() - 1 && i < board.len() - 1 {
+                f[i][j] = (f[i][j].0 + f[i + 1][j].0, f[i + 1][j].1);
+            } else {
+                let v = Vec::<(i32, i32)>::from([f[i + 1][j + 1], f[i + 1][j], f[i][j + 1]]);
+                let max = match v.iter().filter(|&&x| x.1 != -1).max() {
+                    Some(x) => x,
+                    None => &(-1, -1),
+                };
+                if max.0 == -1 {
+                    f[i][j] = (-1, -1);
+                } else {
+                    let max_count = v.iter().filter(|&x| x.0 == max.0).map(|x| x.1).sum::<i32>();
+                    f[i][j] = (max.0 + f[i][j].0, max_count % 1000000007);
+                }
+            }
+        }
+    }
+    match f[0][0].0 {
+        -1 => vec![0, 0],
+        _ => vec![f[0][0].0, f[0][0].1],
+    }
+}
+
+/// 1302
+pub fn deepest_leaves_sum(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    fn bfs(nodes: &mut Vec<Option<Rc<RefCell<TreeNode>>>>, sum: &mut i32) {
+        let size = nodes.len();
+        *sum = (0..size).into_iter().fold(0, |mut acc, _| {
+            if let Some(node) = nodes.remove(0) {
+                acc = acc + node.borrow().val;
+                if node.borrow().left.is_some() {
+                    nodes.push(node.borrow().left.clone());
+                }
+                if node.borrow().right.is_some() {
+                    nodes.push(node.borrow().right.clone());
+                }
+            }
+            acc
+        });
+    }
+    let (mut nodes, mut sum) = (vec![root], 0);
+    while nodes.len() != 0 {
+        bfs(&mut nodes, &mut sum);
+    }
+    sum
+}
+
+/// 1304
+pub fn sum_zero(n: i32) -> Vec<i32> {
+    (-n / 2..=n / 2)
+        .filter(|&i| if n % 2 == 0 { i != 0 } else { true })
+        .collect()
+}
+
+/// 1305
+pub fn get_all_elements(
+    root1: Option<Rc<RefCell<TreeNode>>>,
+    root2: Option<Rc<RefCell<TreeNode>>>,
+) -> Vec<i32> {
+    fn in_order(root: Option<Rc<RefCell<TreeNode>>>, vals: &mut VecDeque<i32>) {
+        if let Some(node) = root {
+            in_order(node.borrow().left.clone(), vals);
+            vals.push_back(node.borrow().val);
+            in_order(node.borrow().right.clone(), vals);
+        }
+    }
+    let (mut v1, mut v2) = (VecDeque::new(), VecDeque::new());
+    in_order(root1, &mut v1);
+    in_order(root2, &mut v2);
+    let mut ans = vec![];
+    while !v1.is_empty() || !v2.is_empty() {
+        let (num1, num2) = (
+            if v1.is_empty() {
+                i32::MAX
+            } else {
+                *v1.front().unwrap()
+            },
+            if v2.is_empty() {
+                i32::MAX
+            } else {
+                *v2.front().unwrap()
+            },
+        );
+        ans.push(if num1 < num2 {
+            v1.pop_front().unwrap()
+        } else {
+            v2.pop_front().unwrap()
+        })
+    }
+    ans
+}
