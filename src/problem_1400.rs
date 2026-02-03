@@ -746,3 +746,17 @@ pub fn min_difficulty(job_difficulty: Vec<i32>, d: i32) -> i32 {
     }
     dp[d][n]
 }
+
+/// 1337
+pub fn k_weakest_rows(mat: Vec<Vec<i32>>, k: i32) -> Vec<i32> {
+    let mut s = mat
+        .iter()
+        .enumerate()
+        .map(|(i, r)| (i, r.iter().sum()))
+        .collect::<Vec<(usize, i32)>>();
+    s.sort_by(|a, b| a.1.cmp(&b.1));
+    s.iter()
+        .map(|k| k.0 as i32)
+        .take(k as usize)
+        .collect::<Vec<i32>>()
+}
