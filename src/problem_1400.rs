@@ -685,3 +685,64 @@ pub fn filter_restaurants(
     });
     filter_res.into_iter().map(|a| a[0]).collect()
 }
+
+/// 1334
+pub fn find_the_city(n: i32, edges: Vec<Vec<i32>>, distance_threshold: i32) -> i32 {
+    let n = n as usize;
+    let (mut w, mut f) = (
+        vec![vec![i32::MAX / 2; n]; n],
+        vec![vec![vec![0; n]; n]; n + 1],
+    );
+    edges.iter().for_each(|e| {
+        let (x, y, wt) = (e[0] as usize, e[1] as usize, e[2]);
+        w[x][y] = wt;
+        w[y][x] = wt;
+    });
+    f[0] = w;
+    for k in 0..n {
+        for i in 0..n {
+            for j in 0..n {
+                f[k + 1][i][j] = f[k][i][j].min(f[k][i][k] + f[k][k][j]);
+            }
+        }
+    }
+
+    let (mut ans, mut min_cnt) = (0, n);
+    for i in 0..n {
+        let mut cnt = 0;
+        for j in 0..n {
+            if j != i && f[n][i][j] <= distance_threshold {
+                cnt += 1;
+            }
+        }
+        if cnt <= min_cnt {
+            min_cnt = cnt;
+            ans = i;
+        }
+    }
+    ans as _
+}
+
+/// 1335
+pub fn min_difficulty(job_difficulty: Vec<i32>, d: i32) -> i32 {
+    let d = d as usize;
+    if job_difficulty.len() < d {
+        return -1;
+    }
+    let n = job_difficulty.len();
+    let mut dp = vec![vec![i32::MAX; n + 1]; d + 1];
+
+    dp[0][0] = 0;
+    for i in 0..d {
+        for j in i..n {
+            let mut job = job_difficulty[j];
+            for k in j + 1..n + 1 {
+                dp[i + 1][k] = dp[i + 1][k].min(dp[i][j].saturating_add(job));
+                if k < n {
+                    job = job.max(job_difficulty[k]);
+                }
+            }
+        }
+    }
+    dp[d][n]
+}
