@@ -620,3 +620,68 @@ pub fn max_value_after_reverse(nums: Vec<i32>) -> i32 {
 
     value + i32::max(mx1, 2 * (mx2 - mn2))
 }
+
+/// 1331
+pub fn array_rank_transform(arr: Vec<i32>) -> Vec<i32> {
+    if arr.is_empty() {
+        return vec![];
+    }
+    let mut rank = arr
+        .iter()
+        .enumerate()
+        .map(|(i, v)| (*v, i))
+        .collect::<Vec<_>>();
+    rank.sort();
+    let mut ret = vec![0; arr.len()];
+    ret[rank[0].1] = 1;
+    rank.windows(2)
+        .for_each(|v| ret[v[1].1] = ret[v[0].1] + if v[0].0 == v[1].0 { 0 } else { 1 });
+    ret
+}
+
+/// 1332
+pub fn remove_palindrome_sub(s: String) -> i32 {
+    let chars = s.chars().collect::<Vec<char>>();
+    let (mut i, mut j) = (0, chars.len());
+    while i < j {
+        if chars[i] == chars[j] {
+            i = i + 1;
+            j = j - 1;
+        } else {
+            return 2;
+        }
+    }
+    1
+}
+
+/// 1333
+pub fn filter_restaurants(
+    restaurants: Vec<Vec<i32>>,
+    vegan_friendly: i32,
+    max_price: i32,
+    max_distance: i32,
+) -> Vec<i32> {
+    let mut filter_res: Vec<Vec<i32>> = restaurants
+        .iter()
+        .filter(|re| {
+            if vegan_friendly == 1 && re[2] != 1 {
+                return false;
+            }
+            if max_distance < re[4] || max_price < re[3] {
+                return false;
+            }
+            true
+        })
+        .map(|re| re.clone())
+        .collect();
+
+    filter_res.sort_by(|a, b| {
+        let cmp_result = b[1].cmp(&a[1]);
+        if cmp_result == std::cmp::Ordering::Equal {
+            b[0].cmp(&a[0])
+        } else {
+            cmp_result
+        }
+    });
+    filter_res.into_iter().map(|a| a[0]).collect()
+}
