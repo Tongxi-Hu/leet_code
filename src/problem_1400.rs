@@ -572,6 +572,27 @@ pub fn break_palindrome(palindrome: String) -> String {
     data.iter().collect()
 }
 
+/// 1329
+pub fn diagonal_sort(mut mat: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+    let n = mat.len();
+    let m = mat[0].len();
+    let mut diag = vec![vec![]; m + n];
+    for i in 0..n {
+        for j in 0..m {
+            diag[i - j + m].push(mat[i][j]);
+        }
+    }
+    for d in diag.iter_mut() {
+        d.sort_by(|a, b| b.cmp(a));
+    }
+    for i in 0..n {
+        for j in 0..m {
+            mat[i][j] = diag[i - j + m].pop().unwrap();
+        }
+    }
+    mat
+}
+
 /// 1330
 pub fn max_value_after_reverse(nums: Vec<i32>) -> i32 {
     let mut value = 0;
