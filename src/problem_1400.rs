@@ -5,6 +5,8 @@ use std::{
     rc::Rc,
 };
 
+use rand::rand_core::le;
+
 use crate::common::TreeNode;
 
 /// 1301
@@ -459,4 +461,96 @@ pub fn minimum_distance(word: String) -> i32 {
         }
     }
     return *dp.last().unwrap().iter().min().unwrap();
+}
+
+/// 1323
+pub fn maximum69_number(num: i32) -> i32 {
+    let chars = num.to_string().chars().collect::<Vec<char>>();
+    let mut changed = false;
+    let mut ans = 0;
+    for i in 0..chars.len() {
+        match chars[i] {
+            '6' => {
+                if !changed {
+                    ans = ans * 10 + 9;
+                    changed = true;
+                } else {
+                    ans = ans * 10 + 6;
+                }
+            }
+            '9' => {
+                ans = ans * 10 + 9;
+            }
+            _ => {}
+        }
+    }
+    ans
+}
+
+/// 1324
+pub fn print_vertically(s: String) -> Vec<String> {
+    let vec: Vec<&str> = s.split(" ").collect();
+    let max_len = vec.iter().map(|s| s.len()).max().unwrap();
+    let mut ans = vec![String::with_capacity(vec.len()); max_len];
+    let mut ids = vec![0; vec.len()];
+    for i in 0..vec.len() {
+        for j in 0..max_len {
+            let id = ids[i];
+            let s;
+            if id >= vec[i].len() {
+                s = " ";
+            } else {
+                s = &vec[i][id..id + 1];
+            }
+            ans[j].push_str(s);
+            ids[i] += 1;
+        }
+    }
+    let ans: Vec<String> = ans.iter().map(|s| String::from(s.trim_end())).collect();
+    ans
+}
+
+/// 1325
+pub fn remove_leaf_nodes(
+    root: Option<Rc<RefCell<TreeNode>>>,
+    target: i32,
+) -> Option<Rc<RefCell<TreeNode>>> {
+    if let Some(node) = root {
+        let left = remove_leaf_nodes(node.borrow_mut().left.take(), target);
+        let right = remove_leaf_nodes(node.borrow_mut().right.take(), target);
+        if left.is_none() && right.is_none() && node.borrow().val == target {
+            return None;
+        } else {
+            node.borrow_mut().left = left;
+            node.borrow_mut().right = right;
+            return Some(node);
+        }
+    }
+    None
+}
+
+/// 1326
+pub fn min_taps(n: i32, ranges: Vec<i32>) -> i32 {
+    let mut right_most = vec![0; n as usize + 1];
+    let mut ans = 0;
+
+    for (i, r) in ranges.iter().enumerate() {
+        let left = (i as i32 - r).max(0);
+        right_most[left as usize] = right_most[left as usize].max(i as i32 + r);
+    }
+
+    let mut curr_right = 0;
+    let mut next_right = 0;
+    for i in 0..n {
+        next_right = next_right.max(right_most[i as usize]);
+        if next_right <= i {
+            return -1;
+        }
+        if curr_right == i {
+            curr_right = next_right;
+            ans += 1;
+        }
+    }
+
+    ans
 }
