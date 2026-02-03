@@ -554,3 +554,48 @@ pub fn min_taps(n: i32, ranges: Vec<i32>) -> i32 {
 
     ans
 }
+
+/// 1327
+pub fn break_palindrome(palindrome: String) -> String {
+    let n = palindrome.len();
+    if n == 1 {
+        return "".to_string();
+    }
+    let mut data: Vec<char> = palindrome.chars().collect();
+    for i in 0..(n / 2) {
+        if data[i] != 'a' {
+            data[i] = 'a';
+            return data.iter().collect();
+        }
+    }
+    data[n - 1] = 'b';
+    data.iter().collect()
+}
+
+/// 1330
+pub fn max_value_after_reverse(nums: Vec<i32>) -> i32 {
+    let mut value = 0;
+    let n = nums.len();
+    for i in 0..n - 1 {
+        value += i32::abs(nums[i] - nums[i + 1]);
+    }
+    let mut mx1 = 0;
+    for i in 1..n - 1 {
+        mx1 = i32::max(
+            mx1,
+            i32::abs(nums[0] - nums[i + 1]) - i32::abs(nums[i] - nums[i + 1]),
+        );
+        mx1 = i32::max(
+            mx1,
+            i32::abs(nums[n - 1] - nums[i - 1]) - i32::abs(nums[i] - nums[i - 1]),
+        );
+    }
+    let mut mx2 = -100_000;
+    let mut mn2 = 1000_000;
+    for i in 0..n - 1 {
+        mx2 = i32::max(mx2, i32::min(nums[i], nums[i + 1]));
+        mn2 = i32::min(mn2, i32::max(nums[i], nums[i + 1]));
+    }
+
+    value + i32::max(mx1, 2 * (mx2 - mn2))
+}
