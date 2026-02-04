@@ -5,8 +5,6 @@ use std::{
     rc::Rc,
 };
 
-use rand::rand_core::le;
-
 use crate::common::TreeNode;
 
 /// 1301
@@ -894,11 +892,39 @@ pub fn angle_clock(h: i32, m: i32) -> f64 {
     if tmp > 180_f64 { 360_f64 - tmp } else { tmp }
 }
 
-/// 1345
-// pub fn min_jumps(arr: Vec<i32>) -> i32 {
-//     let mut dp = vec![i32::MAX; arr.len()];
-//     dp[0] = 0;
-// }
+/// 1345 timeout
+pub fn min_jumps(arr: Vec<i32>) -> i32 {
+    fn bfs(arr: &Vec<i32>, min_steps: &mut Vec<i32>, start: usize, next: &mut Vec<usize>) {
+        let height = arr[start];
+        let same_height = arr
+            .iter()
+            .enumerate()
+            .filter(|(i, h)| **h == height && *i != start && min_steps[*i] == i32::MAX)
+            .map(|v| v.0)
+            .collect::<Vec<usize>>();
+        same_height.iter().for_each(|&i| {
+            min_steps[i] = min_steps[start] + 1;
+            next.push(i);
+        });
+        if start - 1 < arr.len() && min_steps[start - 1] == i32::MAX {
+            min_steps[start - 1] = min_steps[start] + 1;
+            next.push(start - 1);
+        }
+        if start + 1 < arr.len() && min_steps[start + 1] == i32::MAX {
+            min_steps[start + 1] = min_steps[start] + 1;
+            next.push(start + 1);
+        }
+    }
+    let mut min_steps = vec![i32::MAX; arr.len()];
+    min_steps[0] = 0;
+    let mut next = vec![0];
+    while next.len() != 0 {
+        for _ in 0..next.len() {
+            bfs(&arr, &mut min_steps, next.remove(0), &mut next);
+        }
+    }
+    min_steps[arr.len() - 1]
+}
 
 /// 1346
 pub fn check_if_exist(arr: Vec<i32>) -> bool {
