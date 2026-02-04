@@ -1,6 +1,6 @@
 use std::{
     cell::RefCell,
-    collections::{HashSet, VecDeque},
+    collections::{HashMap, HashSet, VecDeque},
     hash::{DefaultHasher, Hasher},
     rc::Rc,
 };
@@ -759,4 +759,96 @@ pub fn k_weakest_rows(mat: Vec<Vec<i32>>, k: i32) -> Vec<i32> {
         .map(|k| k.0 as i32)
         .take(k as usize)
         .collect::<Vec<i32>>()
+}
+
+/// 1338
+pub fn min_set_size(arr: Vec<i32>) -> i32 {
+    let mut cnt = arr
+        .iter()
+        .fold(HashMap::new(), |mut acc, &cur| {
+            *acc.entry(cur).or_insert(0) += 1;
+            acc
+        })
+        .into_iter()
+        .collect::<Vec<(i32, usize)>>();
+    cnt.sort_by(|a, b| b.1.cmp(&a.1));
+    let (mut total, mut cur_size) = (0, 0);
+    for c in cnt {
+        total = total + 1;
+        cur_size = cur_size + c.1;
+        if cur_size * 2 >= arr.len() {
+            break;
+        }
+    }
+    total
+}
+
+/// 1339
+pub fn max_product(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    let mut res = 0;
+    if let Some(inner) = root {
+        let mut stack = vec![(inner.clone(), false)];
+        while let Some((node, flag)) = stack.pop() {
+            if flag {
+                let mut sum = 0;
+                if let Some(leaf) = node.borrow().right.clone() {
+                    sum += leaf.borrow().val;
+                }
+                if let Some(leaf) = node.borrow().left.clone() {
+                    sum += leaf.borrow().val;
+                }
+                node.borrow_mut().val += sum;
+            } else {
+                stack.push((node.clone(), true));
+                if let Some(leaf) = node.borrow().right.clone() {
+                    stack.push((leaf, false));
+                }
+                if let Some(leaf) = node.borrow().left.clone() {
+                    stack.push((leaf, false));
+                }
+            }
+        }
+        let sum = inner.clone().borrow().val;
+        let mut stack = vec![inner];
+        while let Some(node) = stack.pop() {
+            let val = node.borrow().val;
+            let diff = sum - 2 * val;
+            res = res.max(val as i64 * (sum - val) as i64);
+            if diff.abs() <= 1 {
+                break;
+            } else if diff < -1 {
+                if let Some(leaf) = node.borrow().right.clone() {
+                    stack.push(leaf);
+                }
+                if let Some(leaf) = node.borrow().left.clone() {
+                    stack.push(leaf);
+                }
+            }
+        }
+    }
+    (res % (10i64.pow(9) + 7)) as i32
+}
+
+/// 1340
+/// timeout
+pub fn max_jumps(arr: Vec<i32>, d: i32) -> i32 {
+    let mut pairs = arr.into_iter().enumerate().collect::<Vec<(usize, i32)>>();
+    pairs.sort_by(|a, b| a.1.cmp(&b.1));
+    let mut dp = vec![1; pairs.len()];
+    for i in 0..pairs.len() {
+        for j in 0..i {
+            let barrier = pairs.iter().find(|p| {
+                p.0 > pairs[i].0.min(pairs[j].0)
+                    && p.0 < pairs[i].0.max(pairs[j].0)
+                    && p.1 >= pairs[i].1
+            });
+            if barrier.is_none()
+                && (pairs[i].0 as i32 - pairs[j].0 as i32).abs() <= d
+                && pairs[i].1 > pairs[j].1
+            {
+                dp[i] = dp[i].max(dp[j] + 1);
+            }
+        }
+    }
+    dp.into_iter().max().unwrap()
 }
