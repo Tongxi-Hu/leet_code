@@ -911,3 +911,19 @@ pub fn check_if_exist(arr: Vec<i32>) -> bool {
     }
     return false;
 }
+
+/// 1347
+pub fn min_steps(s: String, t: String) -> i32 {
+    let mut cnt = s.chars().fold(HashMap::new(), |mut acc, cur| {
+        *acc.entry(cur).or_insert(0) += 1;
+        acc
+    });
+    t.chars().for_each(|c| {
+        cnt.entry(c).and_modify(|e| {
+            if *e > 0 {
+                *e = *e - 1
+            }
+        });
+    });
+    cnt.iter().fold(0, |acc, cur| acc + cur.1)
+}
