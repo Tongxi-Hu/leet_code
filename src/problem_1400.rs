@@ -953,3 +953,44 @@ pub fn min_steps(s: String, t: String) -> i32 {
     });
     cnt.iter().fold(0, |acc, cur| acc + cur.1)
 }
+
+/// 1349
+pub fn max_students(seats: Vec<Vec<char>>) -> i32 {
+    let m = seats.len();
+    let n = seats[0].len();
+    let mut a = vec![0; m];
+    for (i, row) in seats.iter().enumerate() {
+        for (j, &c) in row.iter().enumerate() {
+            if c == '.' {
+                a[i] |= 1 << j;
+            }
+        }
+    }
+
+    let mut memo = vec![vec![-1; 1 << n]; m];
+    fn dfs(i: usize, j: usize, memo: &mut Vec<Vec<i32>>, a: &Vec<usize>) -> i32 {
+        if memo[i][j] != -1 {
+            return memo[i][j];
+        }
+        if i == 0 {
+            if j == 0 {
+                return 0;
+            }
+            let lb = (j as i32 & -(j as i32)) as usize;
+            memo[i][j] = dfs(i, j & !(lb * 3), memo, a) + 1;
+            return memo[i][j];
+        }
+        let mut res = dfs(i - 1, a[i - 1], memo, a);
+        let mut s = j;
+        while s > 0 {
+            if (s & (s >> 1)) == 0 {
+                let t = a[i - 1] & !(s << 1 | s >> 1);
+                res = res.max(dfs(i - 1, t, memo, a) + s.count_ones() as i32);
+            }
+            s = (s - 1) & j;
+        }
+        memo[i][j] = res;
+        res
+    }
+    dfs(m - 1, a[m - 1], &mut memo, &a)
+}
