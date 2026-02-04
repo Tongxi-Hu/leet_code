@@ -852,3 +852,62 @@ pub fn max_jumps(arr: Vec<i32>, d: i32) -> i32 {
     }
     dp.into_iter().max().unwrap()
 }
+
+/// 1342
+pub fn number_of_steps(mut num: i32) -> i32 {
+    let mut step = 0;
+    while num != 0 {
+        if num % 2 == 0 {
+            num = num / 2;
+        } else {
+            num = num - 1;
+        }
+        step = step + 1;
+    }
+    step
+}
+
+/// 1343
+pub fn num_of_subarrays(arr: Vec<i32>, k: i32, threshold: i32) -> i32 {
+    let k = k as usize;
+    let total = k as i32 * threshold;
+    let (mut sum, mut cnt) = (0, 0);
+    for i in 0..k as usize {
+        sum = sum + arr[i]
+    }
+    if sum >= total {
+        cnt = cnt + 1;
+    }
+    for j in k..arr.len() {
+        sum = sum - arr[j - k];
+        sum = sum + arr[j];
+        if sum >= total {
+            cnt = cnt + 1;
+        }
+    }
+    cnt
+}
+
+/// 1344
+pub fn angle_clock(h: i32, m: i32) -> f64 {
+    let tmp: f64 = (30_f64 * h as f64 - 5.5_f64 * m as f64).abs();
+    if tmp > 180_f64 { 360_f64 - tmp } else { tmp }
+}
+
+/// 1345
+// pub fn min_jumps(arr: Vec<i32>) -> i32 {
+//     let mut dp = vec![i32::MAX; arr.len()];
+//     dp[0] = 0;
+// }
+
+/// 1346
+pub fn check_if_exist(arr: Vec<i32>) -> bool {
+    let mut record = HashSet::new();
+    for i in arr {
+        if record.contains(&(i * 2)) || (i % 2 == 0 && record.contains(&(i / 2))) {
+            return true;
+        }
+        record.insert(i);
+    }
+    return false;
+}
