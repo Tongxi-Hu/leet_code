@@ -4,7 +4,6 @@ use std::{
     collections::{BinaryHeap, HashMap, HashSet, VecDeque},
     hash::{DefaultHasher, Hasher},
     rc::Rc,
-    sync::atomic::Ordering,
 };
 
 use crate::common::TreeNode;
@@ -1123,4 +1122,43 @@ impl Cashier {
             pay as f64
         }
     }
+}
+
+/// 1358
+pub fn number_of_substrings(s: String) -> i32 {
+    let (chars, mut total, mut l) = (s.as_bytes(), 0, 0);
+    let mut cnt = vec![0; 3];
+    for r in 0..chars.len() {
+        cnt[(chars[r] - b'a') as usize] += 1;
+        while cnt[0] > 0 && cnt[1] > 0 && cnt[2] > 0 {
+            cnt[(chars[l] - b'a') as usize] -= 1;
+            l = l + 1;
+        }
+        total += l;
+    }
+    total as i32
+}
+
+/// 1360
+pub fn days_between_dates(date1: String, date2: String) -> i32 {
+    fn zeller_days(year: i32, month: i32, day: i32) -> i32 {
+        let mut y = year;
+        let mut m = month;
+        let d = day;
+        if m < 3 {
+            y -= 1;
+            m += 12;
+        }
+        (y - 1) * 365 + y / 4 - y / 100 + y / 400 + (m - 1) * 28 + 13 * (m + 1) / 5 - 7 + d
+    }
+
+    let dv1: Vec<i32> = date1
+        .split('-')
+        .map(|s| s.parse::<i32>().unwrap())
+        .collect();
+    let dv2: Vec<i32> = date2
+        .split('-')
+        .map(|s| s.parse::<i32>().unwrap())
+        .collect();
+    (zeller_days(dv2[0], dv2[1], dv2[2]) - zeller_days(dv1[0], dv1[1], dv1[2])).abs()
 }
