@@ -1,8 +1,10 @@
 use std::{
     cell::RefCell,
-    collections::{HashMap, HashSet, VecDeque},
+    cmp::Ordering,
+    collections::{BinaryHeap, HashMap, HashSet, VecDeque},
     hash::{DefaultHasher, Hasher},
     rc::Rc,
+    sync::atomic::Ordering,
 };
 
 use crate::common::TreeNode;
@@ -993,4 +995,132 @@ pub fn max_students(seats: Vec<Vec<char>>) -> i32 {
         res
     }
     dfs(m - 1, a[m - 1], &mut memo, &a)
+}
+
+/// 1351
+pub fn count_negatives(grid: Vec<Vec<i32>>) -> i32 {
+    let width = grid[0].len();
+    let mut ans = 0;
+    'a: for r in grid {
+        for (i, &c) in r.iter().enumerate() {
+            if c < 0 {
+                ans = ans + width - i;
+                continue 'a;
+            }
+        }
+    }
+    ans as i32
+}
+
+/// 1352
+struct ProductOfNumbers {
+    data: Vec<i32>,
+}
+
+impl ProductOfNumbers {
+    fn new() -> Self {
+        Self { data: vec![] }
+    }
+
+    fn add(&mut self, num: i32) {
+        self.data.push(self.data.last().unwrap_or(&1) * num);
+    }
+
+    fn get_product(&self, k: i32) -> i32 {
+        self.data.last().unwrap_or(&1) / self.data.get(self.data.len() - k as usize).unwrap_or(&1)
+    }
+}
+
+/// 1353
+pub fn max_events(events: Vec<Vec<i32>>) -> i32 {
+    let mut mx = 0;
+    for e in &events {
+        mx = mx.max(e[1]);
+    }
+
+    let mut groups = vec![vec![]; (mx + 1) as usize];
+    for e in events {
+        groups[e[0] as usize].push(e[1]);
+    }
+
+    let mut ans = 0;
+    let mut h = BinaryHeap::<i32>::new();
+    for (i, g) in groups.into_iter().enumerate() {
+        while let Some(end_day) = h.peek() {
+            if -end_day >= i as i32 {
+                break;
+            }
+            h.pop();
+        }
+        for end_day in g {
+            h.push(-end_day);
+        }
+        if let Some(_) = h.pop() {
+            ans += 1;
+        }
+    }
+    ans
+}
+
+/// 1354
+pub fn is_possible(target: Vec<i32>) -> bool {
+    let mut sum = target.iter().map(|&x| x as i64).sum();
+    let mut pq = BinaryHeap::from(target);
+
+    while *pq.peek().unwrap() > 1 {
+        let x = pq.pop().unwrap() as i64;
+        sum -= x;
+
+        if sum == 0 || x <= sum {
+            return false;
+        }
+        let x = (x - 1) % sum + 1;
+        sum += x;
+        pq.push(x as i32);
+    }
+
+    true
+}
+
+/// 1356
+pub fn sort_by_bits(mut arr: Vec<i32>) -> Vec<i32> {
+    arr.sort_by(|a, b| match a.count_ones().cmp(&b.count_ones()) {
+        Ordering::Equal => a.cmp(&b),
+        Ordering::Greater => Ordering::Greater,
+        Ordering::Less => Ordering::Less,
+    });
+    arr
+}
+
+/// 1357
+struct Cashier {
+    n: i32,
+    now_customer: i32,
+    discount: i32,
+    price: std::collections::HashMap<i32, i32>,
+}
+
+impl Cashier {
+    fn new(n: i32, discount: i32, products: Vec<i32>, prices: Vec<i32>) -> Self {
+        Self {
+            n,
+            now_customer: 0,
+            discount,
+            price: products.into_iter().zip(prices.into_iter()).collect(),
+        }
+    }
+    fn get_bill(&mut self, product: Vec<i32>, amount: Vec<i32>) -> f64 {
+        self.now_customer += 1;
+        let pay = product
+            .iter()
+            .zip(amount.iter())
+            .fold(0, |acc, (product_id, this_amo)| {
+                acc + self.price[&product_id] * this_amo
+            });
+        if self.now_customer % self.n == 0 {
+            (pay as f64) * (1.0 - self.discount as f64 / 100.0)
+        } else {
+            pay as f64
+        }
+    }
 }
