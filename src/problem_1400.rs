@@ -3,6 +3,7 @@ use std::{
     cmp::Ordering,
     collections::{BinaryHeap, HashMap, HashSet, VecDeque},
     hash::{DefaultHasher, Hasher},
+    i32,
     rc::Rc,
 };
 
@@ -1161,4 +1162,154 @@ pub fn days_between_dates(date1: String, date2: String) -> i32 {
         .map(|s| s.parse::<i32>().unwrap())
         .collect();
     (zeller_days(dv2[0], dv2[1], dv2[2]) - zeller_days(dv1[0], dv1[1], dv1[2])).abs()
+}
+
+/// 1361
+pub fn validate_binary_tree_nodes(n: i32, left_child: Vec<i32>, right_child: Vec<i32>) -> bool {
+    let n = n as usize;
+    let mut in_deg = vec![0; n];
+    left_child
+        .iter()
+        .zip(right_child.iter())
+        .for_each(|(&l, &r)| {
+            if l != -1 {
+                in_deg[l as usize] = in_deg[l as usize] + 1;
+            }
+            if r != -1 {
+                in_deg[r as usize] = in_deg[r as usize] + 1;
+            }
+        });
+    let root = in_deg.iter().enumerate().find(|(_, deg)| **deg == 0);
+    if let Some((node, _)) = root {
+        let mut visited = HashSet::new();
+        visited.insert(node);
+        let mut queue = VecDeque::new();
+        queue.push_back(node);
+        while !queue.is_empty() {
+            let last = queue.pop_front().unwrap();
+            if left_child[last] != -1 {
+                if visited.contains(&(left_child[last] as usize)) {
+                    return false;
+                } else {
+                    visited.insert(left_child[last] as usize);
+                    queue.push_back(left_child[last] as usize);
+                }
+            }
+            if right_child[last] != -1 {
+                if visited.contains(&(right_child[last] as usize)) {
+                    return false;
+                } else {
+                    visited.insert(right_child[last] as usize);
+                    queue.push_back(right_child[last] as usize);
+                }
+            }
+        }
+        return visited.len() == n;
+    } else {
+        false
+    }
+}
+
+/// 1362
+pub fn closest_divisors(num: i32) -> Vec<i32> {
+    [num + 1, num + 2]
+        .iter()
+        .fold(vec![], |mut acc, &target| {
+            for i in 1..target.isqrt() + 1 {
+                if target % i == 0 {
+                    acc.push([i, target / i]);
+                }
+            }
+            acc
+        })
+        .iter()
+        .fold(vec![0, i32::MAX], |acc, cur| {
+            if (cur[0] - cur[1]).abs() < (acc[0] - acc[1]).abs() {
+                vec![cur[0], cur[1]]
+            } else {
+                acc
+            }
+        })
+}
+
+/// 1363
+pub fn largest_multiple_of_three(digits: Vec<i32>) -> String {
+    let mut digits = digits;
+    digits.sort();
+    let tot: i32 = digits.iter().sum();
+    let mut modify_digits = |miss: i32| -> bool {
+        let c1 = miss + 1;
+        let c2 = (1 ^ miss) + 1;
+        let mut found = false;
+        for (index, num) in digits.iter_mut().enumerate() {
+            if (*num % 3 == c1) {
+                digits.remove(index);
+                return true;
+            }
+        }
+        let mut pos1 = -1;
+        let mut pos2 = -1;
+        for (index, num) in digits.iter_mut().enumerate() {
+            if *num % 3 == c2 {
+                if (pos1 >= 0) {
+                    pos2 = index as i32;
+                    found = true;
+                    break;
+                } else {
+                    pos1 = index as i32;
+                }
+            }
+        }
+        if (found) {
+            digits.remove(pos2 as usize);
+            digits.remove(pos1 as usize);
+            return true;
+        } else {
+            return false;
+        }
+    };
+    if (tot % 3 == 1) {
+        if !modify_digits(0) {
+            return "".to_string();
+        }
+    } else if (tot % 3 == 2) {
+        if !modify_digits(1) {
+            return "".to_string();
+        }
+    }
+    if digits.is_empty() {
+        return "".to_string();
+    }
+    while (*digits.last().unwrap() == 0 && digits.len() >= 2) {
+        digits.pop();
+    }
+    String::from_utf8(
+        digits
+            .iter_mut()
+            .map(|digit: &mut i32| -> u8 {
+                return *digit as u8 + b'0';
+            })
+            .rev()
+            .collect::<Vec<u8>>(),
+    )
+    .unwrap()
+}
+
+/// 1365
+pub fn smaller_numbers_than_current(nums: Vec<i32>) -> Vec<i32> {
+    let mut cnt = vec![0; 101];
+    nums.iter().for_each(|&n| {
+        cnt[n as usize] = cnt[n as usize] + 1;
+    });
+    for i in 1..cnt.len() {
+        cnt[i] = cnt[i - 1] + cnt[i];
+    }
+    nums.iter().fold(vec![], |mut acc, &cur| {
+        if cur == 0 {
+            acc.push(0);
+        } else {
+            acc.push(cnt[cur as usize - 1])
+        }
+        acc
+    })
 }
