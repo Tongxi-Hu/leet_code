@@ -7,7 +7,7 @@ use std::{
     rc::Rc,
 };
 
-use crate::common::TreeNode;
+use crate::common::{ListNode, TreeNode};
 
 /// 1301
 pub fn paths_with_max_score(board: Vec<String>) -> Vec<i32> {
@@ -1242,7 +1242,7 @@ pub fn largest_multiple_of_three(digits: Vec<i32>) -> String {
         let c2 = (1 ^ miss) + 1;
         let mut found = false;
         for (index, num) in digits.iter_mut().enumerate() {
-            if (*num % 3 == c1) {
+            if *num % 3 == c1 {
                 digits.remove(index);
                 return true;
             }
@@ -1251,7 +1251,7 @@ pub fn largest_multiple_of_three(digits: Vec<i32>) -> String {
         let mut pos2 = -1;
         for (index, num) in digits.iter_mut().enumerate() {
             if *num % 3 == c2 {
-                if (pos1 >= 0) {
+                if pos1 >= 0 {
                     pos2 = index as i32;
                     found = true;
                     break;
@@ -1260,7 +1260,7 @@ pub fn largest_multiple_of_three(digits: Vec<i32>) -> String {
                 }
             }
         }
-        if (found) {
+        if found {
             digits.remove(pos2 as usize);
             digits.remove(pos1 as usize);
             return true;
@@ -1268,11 +1268,11 @@ pub fn largest_multiple_of_three(digits: Vec<i32>) -> String {
             return false;
         }
     };
-    if (tot % 3 == 1) {
+    if tot % 3 == 1 {
         if !modify_digits(0) {
             return "".to_string();
         }
-    } else if (tot % 3 == 2) {
+    } else if tot % 3 == 2 {
         if !modify_digits(1) {
             return "".to_string();
         }
@@ -1280,7 +1280,7 @@ pub fn largest_multiple_of_three(digits: Vec<i32>) -> String {
     if digits.is_empty() {
         return "".to_string();
     }
-    while (*digits.last().unwrap() == 0 && digits.len() >= 2) {
+    while *digits.last().unwrap() == 0 && digits.len() >= 2 {
         digits.pop();
     }
     String::from_utf8(
@@ -1312,4 +1312,58 @@ pub fn smaller_numbers_than_current(nums: Vec<i32>) -> Vec<i32> {
         }
         acc
     })
+}
+
+/// 1366
+pub fn rank_teams(votes: Vec<String>) -> String {
+    let _ = votes.len();
+    let mut ranking: HashMap<char, Vec<i32>> = HashMap::new();
+    for vid in votes[0].chars() {
+        ranking.entry(vid).or_insert(vec![0; votes[0].len()]);
+    }
+    for vote in votes {
+        for (i, c) in vote.chars().enumerate() {
+            if let Some(rank) = ranking.get_mut(&c) {
+                rank[i] += 1;
+            }
+        }
+    }
+    let mut result: Vec<(char, Vec<i32>)> = ranking.into_iter().collect();
+    result.sort_by(|a, b| {
+        for i in 0..a.1.len() {
+            if a.1[i] != b.1[i] {
+                return b.1[i].cmp(&a.1[i]);
+            }
+        }
+        a.0.cmp(&b.0)
+    });
+
+    let mut ans = String::new();
+    for (vid, _) in result {
+        ans.push(vid);
+    }
+    ans
+}
+
+/// 1367
+pub fn is_sub_path(head: Option<Box<ListNode>>, root: Option<Rc<RefCell<TreeNode>>>) -> bool {
+    fn dfs(
+        head: &Option<Box<ListNode>>,
+        l: &Option<Box<ListNode>>,
+        t: &Option<Rc<RefCell<TreeNode>>>,
+    ) -> bool {
+        if l.is_none() {
+            return true;
+        }
+        if let Some(node) = t {
+            let node = node.borrow();
+            node.val == l.as_ref().unwrap().val
+                && (dfs(head, &l.as_ref().unwrap().next, &node.left)
+                    || dfs(head, &l.as_ref().unwrap().next, &node.right))
+                || l == head && (dfs(head, head, &node.left) || dfs(head, head, &node.right))
+        } else {
+            false
+        }
+    }
+    dfs(&head, &head, &root)
 }
