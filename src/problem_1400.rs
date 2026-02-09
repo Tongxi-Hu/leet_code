@@ -1564,6 +1564,31 @@ pub fn num_of_minutes(n: i32, head_id: i32, manager: Vec<i32>, inform_time: Vec<
     ans as i32
 }
 
+/// 1377
+pub fn frog_position(n: i32, edges: Vec<Vec<i32>>, t: i32, target: i32) -> f64 {
+    let (n, target) = (n as usize, target as usize);
+    let (mut graph, mut visited) = (vec![vec![]; n + 1], vec![false; n + 1]);
+    edges.iter().for_each(|e| {
+        graph[e[0] as usize].push(e[1] as usize);
+        graph[e[1] as usize].push(e[0] as usize);
+    });
+    fn dfs(g: &Vec<Vec<usize>>, v: &mut Vec<bool>, e: usize, t: i32, target: usize) -> f64 {
+        let next = if e == 1 { g[e].len() } else { g[e].len() - 1 };
+        if t == 0 || next == 0 {
+            return if e == target { 1.0 } else { 0.0 };
+        }
+        v[e] = true;
+        let mut ans = 0.0;
+        g[e].iter().for_each(|&i| {
+            if v[i] == false {
+                ans += dfs(g, v, i, t - 1, target);
+            }
+        });
+        return ans / next as f64;
+    }
+    dfs(&graph, &mut visited, 1, t, target)
+}
+
 /// 1380
 pub fn lucky_numbers(matrix: Vec<Vec<i32>>) -> Vec<i32> {
     let mut ret = Vec::new();
