@@ -1,6 +1,6 @@
 use std::{
     cell::RefCell,
-    cmp::Ordering,
+    cmp::{Ordering, Reverse},
     collections::{BinaryHeap, HashMap, HashSet, VecDeque},
     hash::{DefaultHasher, Hasher},
     i32,
@@ -1366,4 +1366,77 @@ pub fn is_sub_path(head: Option<Box<ListNode>>, root: Option<Rc<RefCell<TreeNode
         }
     }
     dfs(&head, &head, &root)
+}
+
+/// 1368
+pub fn min_cost(grid: Vec<Vec<i32>>) -> i32 {
+    let n = grid.len();
+    let m = grid[0].len();
+    let mut costs = vec![vec![i32::MAX; m]; n];
+    let mut seen = vec![vec![false; m]; n];
+    let mut queue = BinaryHeap::new();
+
+    costs[0][0] = 0;
+    queue.push(Reverse((0, 0, 0)));
+
+    while let Some(Reverse((cost, i, j))) = queue.pop() {
+        if seen[i][j] {
+            continue;
+        }
+        seen[i][j] = true;
+
+        if i == n - 1 && j == m - 1 {
+            return costs[i][j];
+        }
+
+        let cost1 = if grid[i][j] == 4 { 0 } else { 1 };
+        if i > 0 && cost + cost1 < costs[i - 1][j] {
+            costs[i - 1][j] = cost + cost1;
+            queue.push(Reverse((costs[i - 1][j], i - 1, j)));
+        }
+
+        let cost2 = if grid[i][j] == 3 { 0 } else { 1 };
+        if i < n - 1 && cost + cost2 < costs[i + 1][j] {
+            costs[i + 1][j] = cost + cost2;
+            queue.push(Reverse((costs[i + 1][j], i + 1, j)));
+        }
+
+        let cost3 = if grid[i][j] == 2 { 0 } else { 1 };
+        if j > 0 && cost + cost3 < costs[i][j - 1] {
+            costs[i][j - 1] = cost + cost3;
+            queue.push(Reverse((costs[i][j - 1], i, j - 1)));
+        }
+
+        let cost4 = if grid[i][j] == 1 { 0 } else { 1 };
+        if j < m - 1 && cost + cost4 < costs[i][j + 1] {
+            costs[i][j + 1] = cost + cost4;
+            queue.push(Reverse((costs[i][j + 1], i, j + 1)));
+        }
+    }
+
+    costs[n - 1][m - 1]
+}
+
+/// 1370
+pub fn sort_string(s: String) -> String {
+    let mut cnt = vec![0; 26];
+    s.chars().for_each(|c| {
+        cnt[(c as usize).abs_diff(b'a' as usize)] += 1;
+    });
+    let mut ans = "".to_string();
+    while ans.len() < s.len() {
+        (0..26).for_each(|i| {
+            if cnt[i] > 0 {
+                ans.push((i as u8 + b'a') as char);
+                cnt[i] -= 1;
+            }
+        });
+        (0..26).rev().for_each(|i| {
+            if cnt[i] > 0 {
+                ans.push((i as u8 + b'a') as char);
+                cnt[i] -= 1;
+            }
+        });
+    }
+    ans
 }
