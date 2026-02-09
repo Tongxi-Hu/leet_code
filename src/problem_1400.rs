@@ -1544,3 +1544,46 @@ pub fn num_times_all_blue(flips: Vec<i32>) -> i32 {
     });
     ans
 }
+
+/// 1376
+pub fn num_of_minutes(n: i32, head_id: i32, manager: Vec<i32>, inform_time: Vec<i32>) -> i32 {
+    let (n, head_id) = (n as usize, head_id as usize);
+    let (mut ans, mut queue, mut graph) = (0, vec![], vec![vec![]; n]);
+    manager.iter().enumerate().for_each(|(i, &m)| {
+        if m != -1 {
+            graph[m as usize].push(i);
+        }
+    });
+    queue.push((head_id, 0));
+    while let Some(cur) = queue.pop() {
+        ans = ans.max(cur.1 as usize);
+        graph[cur.0]
+            .iter()
+            .for_each(|&c| queue.push((c, cur.1 + inform_time[cur.0])));
+    }
+    ans as i32
+}
+
+/// 1380
+pub fn lucky_numbers(matrix: Vec<Vec<i32>>) -> Vec<i32> {
+    let mut ret = Vec::new();
+    let (m, n) = (matrix.len(), matrix[0].len());
+    for i in 0..m {
+        let mut min = matrix[i][0];
+        let mut min_idx = 0;
+        for j in 1..n {
+            if min > matrix[i][j] {
+                min = matrix[i][j];
+                min_idx = j;
+            }
+        }
+        let mut max = min;
+        for j in 0..m {
+            max = max.max(matrix[j][min_idx]);
+        }
+        if min == max {
+            ret.push(max);
+        }
+    }
+    ret
+}
