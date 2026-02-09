@@ -1612,3 +1612,114 @@ pub fn lucky_numbers(matrix: Vec<Vec<i32>>) -> Vec<i32> {
     }
     ret
 }
+
+/// 1381
+struct CustomStack {
+    data: Vec<i32>,
+    max_size: usize,
+    cur_size: usize,
+}
+
+impl CustomStack {
+    fn new(max_size: i32) -> Self {
+        Self {
+            data: vec![],
+            max_size: maxSize as usize,
+            cur_size: 0,
+        }
+    }
+
+    fn push(&mut self, x: i32) {
+        if self.cur_size < self.max_size {
+            self.data.push(x);
+            self.cur_size += 1;
+        }
+    }
+
+    fn pop(&mut self) -> i32 {
+        if self.cur_size > 0 {
+            self.cur_size -= 1;
+            self.data.pop().unwrap()
+        } else {
+            -1
+        }
+    }
+
+    fn increment(&mut self, k: i32, val: i32) {
+        let n = (k as usize).min(self.cur_size);
+        for i in 0..n {
+            self.data[i] += val;
+        }
+    }
+}
+
+/// 1382
+pub fn balance_bst(root: Option<Rc<RefCell<TreeNode>>>) -> Option<Rc<RefCell<TreeNode>>> {
+    let mut vals = vec![];
+    fn in_order(root: Option<Rc<RefCell<TreeNode>>>, vals: &mut Vec<i32>) {
+        if let Some(node) = root.as_ref() {
+            in_order(node.borrow().left.clone(), vals);
+            vals.push(node.borrow().val);
+            in_order(node.borrow().right.clone(), vals);
+        }
+    }
+    in_order(root, &mut vals);
+    fn build(l: usize, r: usize, vals: &Vec<i32>) -> Option<Rc<RefCell<TreeNode>>> {
+        if l <= r {
+            let mid = (l + r) / 2;
+            let node = Rc::new(RefCell::new(TreeNode::new(vals[mid])));
+            if mid != l {
+                node.borrow_mut().left = build(l, mid - 1, vals);
+            }
+            if mid != r {
+                node.borrow_mut().right = build(mid + 1, r, vals);
+            }
+            Some(node)
+        } else {
+            None
+        }
+    }
+    build(0, vals.len() - 1, &vals)
+}
+
+/// 1383
+pub fn max_performance(speed: Vec<i32>, efficiency: Vec<i32>, k: i32) -> i32 {
+    struct Engineer {
+        speed: i32,
+        efficiency: i32,
+    }
+    const M: u64 = 1e9 as u64 + 7;
+
+    let mut engineers: Vec<Engineer> = speed
+        .iter()
+        .zip(efficiency.iter())
+        .map(|(s, e)| Engineer {
+            speed: *s,
+            efficiency: *e,
+        })
+        .collect();
+    engineers.sort_by_key(|e| Reverse(e.efficiency));
+    let mut max_performance = 0;
+    let mut min_heap = BinaryHeap::new();
+    for engineer in engineers.iter() {
+        min_heap.push(Reverse(engineer.speed));
+        if min_heap.len() > k as usize {
+            min_heap.pop();
+        }
+        let speeds: u64 = min_heap.iter().map(|Reverse(i)| *i as u64).sum();
+        let perf: u64 = speeds as u64 * engineer.efficiency as u64;
+        max_performance = max_performance.max(perf)
+    }
+
+    (max_performance % M) as i32
+}
+
+/// 1385
+pub fn find_the_distance_value(arr1: Vec<i32>, arr2: Vec<i32>, d: i32) -> i32 {
+    arr1.iter().fold(0, |mut acc, c1| {
+        if arr2.iter().all(|&c2| c1.abs_diff(c2) > (d as u32)) {
+            acc = acc + 1
+        };
+        acc
+    })
+}
