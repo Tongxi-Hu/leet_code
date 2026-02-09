@@ -1440,3 +1440,107 @@ pub fn sort_string(s: String) -> String {
     }
     ans
 }
+
+/// 1371
+pub fn find_the_longest_substring(s: String) -> i32 {
+    let (mut ans, mut t, mut d) = (0, 0, [50001; 32]);
+    d[0] = -1;
+    for (i, c) in s.char_indices() {
+        match c {
+            'a' => t ^= 1,
+            'e' => t ^= 2,
+            'i' => t ^= 4,
+            'o' => t ^= 8,
+            'u' => t ^= 16,
+            _ => (),
+        }
+        match d[t] {
+            dt if dt != 50001 => ans = ans.max(i as i32 - dt),
+            _ => d[t] = i as i32,
+        }
+    }
+    ans
+}
+
+/// 1372
+pub fn longest_zig_zag(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    fn dfs(node: &Rc<RefCell<TreeNode>>, max_length: &mut i32) -> (i32, i32) {
+        let (mut left, mut right) = (0, 0);
+        if let Some(left_node) = node.borrow().left.as_ref() {
+            left = dfs(left_node, max_length).1 + 1;
+            *max_length = (*max_length).max(left);
+        }
+        if let Some(right_node) = node.borrow().right.as_ref() {
+            right = dfs(right_node, max_length).0 + 1;
+            *max_length = (*max_length).max(right);
+        }
+        (left, right)
+    }
+    if let Some(node) = root.as_ref() {
+        let mut max_length = 0;
+        dfs(node, &mut max_length);
+        max_length
+    } else {
+        0
+    }
+}
+
+/// 1373
+pub fn max_sum_bst(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    fn dfs(root: &Option<Rc<RefCell<TreeNode>>>) -> Vec<i32> {
+        if root.is_none() {
+            return vec![i32::MAX, i32::MIN, 0, i32::MIN];
+        };
+        let (left, right) = (
+            dfs(&root.as_ref().unwrap().borrow().left),
+            dfs(&root.as_ref().unwrap().borrow().right),
+        );
+        let val = root.as_ref().unwrap().borrow().val;
+        if val <= left[1] || val >= right[0] {
+            return vec![
+                i32::MIN,
+                i32::MAX,
+                left[2].max(right[2]),
+                left[3].max(right[3]),
+            ];
+        }
+        let (min, max) = (left[0].min(val), right[1].max(val));
+        let sum = left[2] + right[2] + val;
+        let max_sum = sum.max(left[3].max(right[3]));
+        vec![min, max, sum, max_sum]
+    }
+    let ret = dfs(&root);
+    ret[3].max(0)
+}
+
+/// 1374
+pub fn generate_the_string(n: i32) -> String {
+    let n = n as usize;
+    match n % 2 {
+        1 => (0..n).fold("".to_string(), |mut acc, _| {
+            acc.push('a');
+            acc
+        }),
+        0 => {
+            let mut s = (0..n - 1).fold("".to_string(), |mut acc, _| {
+                acc.push('a');
+                acc
+            });
+            s.push('b');
+            s
+        }
+        _ => "".to_string(),
+    }
+}
+
+/// 1375
+pub fn num_times_all_blue(flips: Vec<i32>) -> i32 {
+    let (mut ans, mut max_digit) = (0, 0);
+    flips.iter().enumerate().for_each(|(i, &f)| {
+        max_digit = max_digit.max(f as usize);
+        if max_digit == i + 1 {
+            ans += 1;
+        }
+    });
+    ans
+}
