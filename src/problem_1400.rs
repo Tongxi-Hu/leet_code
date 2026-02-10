@@ -1624,7 +1624,7 @@ impl CustomStack {
     fn new(max_size: i32) -> Self {
         Self {
             data: vec![],
-            max_size: maxSize as usize,
+            max_size: max_size as usize,
             cur_size: 0,
         }
     }
@@ -1722,4 +1722,90 @@ pub fn find_the_distance_value(arr1: Vec<i32>, arr2: Vec<i32>, d: i32) -> i32 {
         };
         acc
     })
+}
+
+/// 1386
+pub fn max_number_of_families(n: i32, reserved_seats: Vec<Vec<i32>>) -> i32 {
+    use std::collections::HashMap;
+    let mut hash = HashMap::<i32, i32>::new();
+
+    for seat in reserved_seats {
+        let x = seat[0];
+        let y = seat[1];
+        if y != 1 && y != 10 {
+            hash.entry(x)
+                .and_modify(|bits| *bits |= 1 << (y - 2))
+                .or_insert(1 << (y - 2));
+        }
+    }
+    let mut res = (n - hash.len() as i32) * 2;
+
+    let left = 0b11110000;
+    let right = 0b00001111;
+    let mid = 0b00111100;
+    for &s in hash.values() {
+        if !(s & left).is_positive() || !(s & mid).is_positive() || !(s & right).is_positive() {
+            res += 1;
+        }
+    }
+    res
+}
+
+/// 1387
+pub fn get_kth(lo: i32, hi: i32, k: i32) -> i32 {
+    let (lo, hi, k) = (lo as usize, hi as usize, k as usize);
+    let mut with_weight = (lo..=hi)
+        .map(|val| {
+            let (mut v, mut w) = (val, 0);
+            while v != 1 {
+                if v % 2 == 0 {
+                    v = v / 2;
+                } else {
+                    v = v * 3 + 1;
+                }
+                w = w + 1;
+            }
+            (val, w)
+        })
+        .collect::<Vec<(usize, usize)>>();
+    with_weight.sort_by(|a, b| a.1.cmp(&b.1));
+    with_weight[k - 1].0 as i32
+}
+
+/// 1388
+pub fn create_target_array(nums: Vec<i32>, index: Vec<i32>) -> Vec<i32> {
+    let mut target = vec![i32::MAX; nums.len()];
+    nums.iter().zip(index).for_each(|(&n, i)| {
+        let i = i as usize;
+        if target[i] == i32::MAX {
+            target[i] = n;
+        } else {
+            target.insert(i, n);
+        }
+    });
+    target[0..nums.len()].to_vec()
+}
+
+/// 1390
+pub fn sum_four_divisors(nums: Vec<i32>) -> i32 {
+    let mut ans = 0;
+    nums.iter().for_each(|&n| {
+        let (mut cnt, mut sum) = (0, 0);
+        let mut i = 1;
+        while i * i <= n {
+            if n % i == 0 {
+                cnt = cnt + 1;
+                sum = sum + i;
+                if i * i != n {
+                    cnt = cnt + 1;
+                    sum = sum + n / i;
+                }
+            }
+            i = i + 1;
+        }
+        if cnt == 4 {
+            ans = ans + sum;
+        }
+    });
+    ans
 }
