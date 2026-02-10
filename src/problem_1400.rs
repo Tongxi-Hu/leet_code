@@ -1877,6 +1877,23 @@ pub fn has_valid_path(grid: Vec<Vec<i32>>) -> bool {
     false
 }
 
+/// 1392
+pub fn longest_prefix(s: String) -> String {
+    let chars = s.chars().collect::<Vec<char>>();
+    let (mut left, mut right, mut ans) = (0, chars.len() - 1, 0);
+    while right > 0 {
+        if chars[0..=left] == chars[right..=chars.len() - 1] {
+            ans = left;
+        }
+        left = left + 1;
+        right = right - 1;
+    }
+    if ans == chars.len() - 1 || (ans == 0 && chars[0] != chars[chars.len() - 1]) {
+        return "".to_string();
+    }
+    chars[0..=ans].iter().collect::<String>()
+}
+
 /// 1394
 pub fn find_lucky(arr: Vec<i32>) -> i32 {
     arr.iter()
@@ -1891,4 +1908,46 @@ pub fn find_lucky(arr: Vec<i32>) -> i32 {
             }
             acc
         })
+}
+
+/// 1396
+struct UndergroundSystem {
+    times: HashMap<String, HashMap<String, (i32, i32)>>,
+    passengers: HashMap<i32, (String, i32)>,
+}
+
+impl UndergroundSystem {
+    fn new() -> Self {
+        Self {
+            times: HashMap::new(),
+            passengers: HashMap::new(),
+        }
+    }
+
+    fn check_in(&mut self, id: i32, start_station: String, start_t: i32) {
+        self.passengers.insert(id, (start_station, start_t));
+    }
+
+    fn check_out(&mut self, id: i32, end_station: String, end_t: i32) {
+        if let Some((start_station, start_t)) = self.passengers.remove(&id) {
+            let (sum, count) = self
+                .times
+                .entry(start_station)
+                .or_default()
+                .entry(end_station)
+                .or_default();
+            *sum += end_t - start_t;
+            *count += 1;
+        }
+    }
+
+    fn get_average_time(&mut self, start_station: String, end_station: String) -> f64 {
+        let (sum, count) = self
+            .times
+            .entry(start_station)
+            .or_default()
+            .entry(end_station)
+            .or_default();
+        *sum as f64 / *count as f64
+    }
 }
