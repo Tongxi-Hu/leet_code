@@ -1773,6 +1773,22 @@ pub fn get_kth(lo: i32, hi: i32, k: i32) -> i32 {
 }
 
 /// 1388
+pub fn max_size_slices(slices: Vec<i32>) -> i32 {
+    fn calc(s: &[i32]) -> i32 {
+        let mut pre = vec![0; s.len() + 2];
+        for _ in 0..s.len() / 3 + 1 {
+            let mut cur = vec![0; s.len() + 2];
+            for i in 2..pre.len() {
+                cur[i] = cur[i - 1].max(pre[i - 2] + s[i - 2]);
+            }
+            pre = cur;
+        }
+        pre[s.len() + 1]
+    }
+    calc(&slices[0..slices.len() - 1]).max(calc(&slices[1..]))
+}
+
+/// 1389
 pub fn create_target_array(nums: Vec<i32>, index: Vec<i32>) -> Vec<i32> {
     let mut target = vec![i32::MAX; nums.len()];
     nums.iter().zip(index).for_each(|(&n, i)| {
