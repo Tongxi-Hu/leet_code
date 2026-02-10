@@ -1951,3 +1951,45 @@ impl UndergroundSystem {
         *sum as f64 / *count as f64
     }
 }
+
+/// 1399
+pub fn count_largest_group(n: i32) -> i32 {
+    fn get_sum(mut n: i32) -> i32 {
+        let mut res = 0;
+        while n != 0 {
+            res = res + n % 10;
+            n = n / 10;
+        }
+        res
+    }
+    let mut vals = (1..=n)
+        .fold(HashMap::new(), |mut cnt, v| {
+            let sum = get_sum(v);
+            *cnt.entry(sum).or_insert(0) += 1;
+            cnt
+        })
+        .into_values()
+        .collect::<Vec<i32>>();
+    vals.sort();
+    let mut cnt = 1;
+    if n == 1 {
+        return cnt;
+    }
+    for i in (0..=vals.len() - 2).rev() {
+        if vals[i] != vals[i + 1] {
+            break;
+        }
+        cnt = cnt + 1;
+    }
+    cnt
+}
+
+/// 1400
+pub fn can_construct(s: String, k: i32) -> bool {
+    if s.len() < k as usize {
+        return false;
+    }
+    let mut chars = vec![0; 26];
+    s.bytes().for_each(|c| chars[(c - b'a') as usize] += 1);
+    chars.iter().fold(0, |acc, &n| acc + (n & 1)) <= k
+}
