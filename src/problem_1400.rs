@@ -1809,3 +1809,54 @@ pub fn sum_four_divisors(nums: Vec<i32>) -> i32 {
     });
     ans
 }
+
+/// 1391
+pub fn has_valid_path(grid: Vec<Vec<i32>>) -> bool {
+    let n = grid.len();
+    let m = grid[0].len();
+    let mut vis = vec![vec![false; m]; n];
+    let mut queue = std::collections::VecDeque::new();
+    queue.push_back((0, 0));
+
+    while let Some((i, j)) = queue.pop_front() {
+        vis[i][j] = true;
+
+        if vis[n - 1][m - 1] {
+            return true;
+        }
+
+        if i > 0
+            && !vis[i - 1][j]
+            && matches!(grid[i][j], 2 | 5 | 6)
+            && matches!(grid[i - 1][j], 2 | 3 | 4)
+        {
+            queue.push_back((i - 1, j));
+        }
+
+        if j > 0
+            && !vis[i][j - 1]
+            && matches!(grid[i][j], 1 | 3 | 5)
+            && matches!(grid[i][j - 1], 1 | 4 | 6)
+        {
+            queue.push_back((i, j - 1));
+        }
+
+        if i + 1 < n
+            && !vis[i + 1][j]
+            && matches!(grid[i][j], 2 | 3 | 4)
+            && matches!(grid[i + 1][j], 2 | 5 | 6)
+        {
+            queue.push_back((i + 1, j));
+        }
+
+        if j + 1 < m
+            && !vis[i][j + 1]
+            && matches!(grid[i][j], 1 | 4 | 6)
+            && matches!(grid[i][j + 1], 1 | 3 | 5)
+        {
+            queue.push_back((i, j + 1));
+        }
+    }
+
+    false
+}
