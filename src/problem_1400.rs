@@ -1876,3 +1876,19 @@ pub fn has_valid_path(grid: Vec<Vec<i32>>) -> bool {
 
     false
 }
+
+/// 1394
+pub fn find_lucky(arr: Vec<i32>) -> i32 {
+    arr.iter()
+        .fold(HashMap::new(), |mut acc, &cur| {
+            *acc.entry(cur).or_insert(0) += 1;
+            acc
+        })
+        .into_iter()
+        .fold(-1, |mut acc, (k, v)| {
+            if k == v {
+                acc = acc.max(k)
+            }
+            acc
+        })
+}
