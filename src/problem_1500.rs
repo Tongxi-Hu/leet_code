@@ -115,3 +115,125 @@ pub fn longest_diverse_string(mut a: i32, mut b: i32, mut c: i32) -> String {
     }
     list.into_iter().collect::<String>()
 }
+
+/// 06
+pub fn stone_game_iii(st: Vec<i32>) -> String {
+    let n = st.len();
+    let mut dp = vec![i32::MIN; n];
+    dp[n - 1] = st[n - 1];
+    if n >= 2 {
+        dp[n - 2] = st[n - 2] + dp[n - 1].abs();
+    }
+    if n >= 3 {
+        dp[n - 3] = st[n - 3] + dp[n - 2].abs();
+        for i in (0..(n - 3)).rev() {
+            dp[i] = (st[i] - dp[i + 1])
+                .max(st[i] + st[i + 1] - dp[i + 2])
+                .max(st[i] + st[i + 1] + st[i + 2] - dp[i + 3]);
+        }
+    }
+    if dp[0] > 0 {
+        "Alice"
+    } else if dp[0] == 0 {
+        "Tie"
+    } else {
+        "Bob"
+    }
+    .to_string()
+}
+
+/// 08
+pub fn string_matching(mut words: Vec<String>) -> Vec<String> {
+    words.sort_by(|a, b| a.len().cmp(&b.len()));
+    let mut ans = vec![];
+    for i in 0..words.len() - 1 {
+        for j in i + 1..words.len() {
+            if words[j].contains(&words[i]) {
+                ans.push(words[i].clone());
+                break;
+            }
+        }
+    }
+    ans
+}
+
+/// 09
+pub fn process_queries(queries: Vec<i32>, m: i32) -> Vec<i32> {
+    let (mut p, mut ans) = ((1..=m).collect::<Vec<i32>>(), vec![]);
+    queries.iter().for_each(|&q| {
+        let pos = p.iter().position(|&e| e == q).unwrap();
+        ans.push(pos as i32);
+        p.remove(pos);
+        p.insert(0, q);
+    });
+    ans
+}
+
+/// 10
+pub fn entity_parser(text: String) -> String {
+    let (text, mut ans) = (text.chars().collect::<Vec<char>>(), "".to_string());
+    let (mut i, n) = (0, text.len());
+    while i < n {
+        if i + 5 < n
+            && text[i] == '&'
+            && text[i + 1] == 'q'
+            && text[i + 2] == 'u'
+            && text[i + 3] == 'o'
+            && text[i + 4] == 't'
+            && text[i + 5] == ';'
+        {
+            ans += &'\"'.to_string();
+            i += 6;
+        } else if i + 5 < n
+            && text[i] == '&'
+            && text[i + 1] == 'a'
+            && text[i + 2] == 'p'
+            && text[i + 3] == 'o'
+            && text[i + 4] == 's'
+            && text[i + 5] == ';'
+        {
+            ans += &'\''.to_string();
+            i += 6;
+        } else if i + 4 < n
+            && text[i] == '&'
+            && text[i + 1] == 'a'
+            && text[i + 2] == 'm'
+            && text[i + 3] == 'p'
+            && text[i + 4] == ';'
+        {
+            ans += &'&'.to_string();
+            i += 5;
+        } else if i + 3 < n
+            && text[i] == '&'
+            && text[i + 1] == 'g'
+            && text[i + 2] == 't'
+            && text[i + 3] == ';'
+        {
+            ans += &'>'.to_string();
+            i += 4;
+        } else if i + 3 < n
+            && text[i] == '&'
+            && text[i + 1] == 'l'
+            && text[i + 2] == 't'
+            && text[i + 3] == ';'
+        {
+            ans += &'<'.to_string();
+            i += 4;
+        } else if i + 5 < n
+            && text[i] == '&'
+            && text[i + 1] == 'f'
+            && text[i + 2] == 'r'
+            && text[i + 3] == 'a'
+            && text[i + 4] == 's'
+            && text[i + 5] == 'l'
+            && text[i + 6] == ';'
+        {
+            ans += &'/'.to_string();
+            i += 7;
+        } else {
+            ans += &text[i].to_string();
+            i += 1;
+        }
+    }
+    return ans;
+}
