@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 /// 01
 pub fn check_overlap(
     radius: i32,
@@ -343,4 +345,42 @@ pub fn reformat(s: String) -> String {
         }
     }
     ans
+}
+
+/// 18
+pub fn display_table(orders: Vec<Vec<String>>) -> Vec<Vec<String>> {
+    use std::str::FromStr;
+
+    let mut food_map = BTreeMap::new();
+    orders.iter().for_each(|v| {
+        food_map.entry(&v[2]).or_insert(0);
+    });
+
+    food_map
+        .iter_mut()
+        .enumerate()
+        .for_each(|(i, (_, x))| *x = i);
+
+    let mut order_map = BTreeMap::new();
+    orders.iter().for_each(|v| {
+        order_map
+            .entry(i32::from_str(&v[1]).unwrap())
+            .or_insert_with(|| vec![0; food_map.len()])[food_map[&v[2]]] += 1;
+    });
+
+    let mut title = vec!["Table".to_string()];
+    title.append(
+        &mut food_map
+            .iter()
+            .map(|(&name, _)| name.to_string())
+            .collect::<Vec<String>>(),
+    );
+
+    let mut result = vec![title];
+    order_map.iter().for_each(|(id, v)| {
+        let mut order = vec![id.to_string()];
+        order.append(&mut v.iter().map(|x| x.to_string()).collect::<Vec<String>>());
+        result.push(order);
+    });
+    result
 }
