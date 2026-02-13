@@ -237,3 +237,73 @@ pub fn entity_parser(text: String) -> String {
     }
     return ans;
 }
+
+/// 11
+pub fn num_of_ways(n: i32) -> i32 {
+    let mod_val: i64 = 1000000007;
+    let mut fi0: i64 = 6;
+    let mut fi1: i64 = 6;
+
+    for _ in 2..=n {
+        let new_fi0 = (2 * fi0 + 2 * fi1) % mod_val;
+        let new_fi1 = (2 * fi0 + 3 * fi1) % mod_val;
+        fi0 = new_fi0;
+        fi1 = new_fi1;
+    }
+
+    ((fi0 + fi1) % mod_val) as i32
+}
+
+/// 13
+pub fn min_start_value(nums: Vec<i32>) -> i32 {
+    1 - nums
+        .iter()
+        .fold((0, 0), |acc, cur| {
+            let sum = acc.0 + cur;
+            let min = acc.1.min(sum);
+            (sum, min)
+        })
+        .1
+}
+
+/// 14
+pub fn find_min_fibonacci_numbers(k: i32) -> i32 {
+    let mut fibo = vec![1, 1];
+    while *fibo.last().unwrap() < k {
+        fibo.push(fibo[fibo.len() - 1] + fibo[fibo.len() - 2]);
+    }
+    let (mut remain, mut pointer, mut cnt) = (k, fibo.len() - 1, 0);
+    while remain > 0 {
+        if remain >= fibo[pointer] {
+            remain = remain - fibo[pointer];
+            cnt = cnt + 1;
+        }
+        pointer = pointer - 1;
+    }
+    cnt
+}
+
+/// 15
+pub fn get_happy_string(n: i32, k: i32) -> String {
+    let (chars, mut cur, mut total) = (vec!['a', 'b', 'c'], vec![], vec![]);
+    fn dfs(chars: &Vec<char>, cur: &mut Vec<char>, total: &mut Vec<String>, n: usize) {
+        let last_char = *cur.last().unwrap_or(&'_');
+        chars.iter().filter(|c| **c != last_char).for_each(|&c| {
+            cur.push(c);
+            if cur.len() == n {
+                total.push(cur.iter().fold("".to_string(), |mut acc, &cur| {
+                    acc.push(cur);
+                    acc
+                }));
+            } else {
+                dfs(chars, cur, total, n);
+            }
+            cur.pop();
+        });
+    }
+    dfs(&chars, &mut cur, &mut total, n as usize);
+    total
+        .get((k - 1) as usize)
+        .unwrap_or(&"".to_string())
+        .to_string()
+}
