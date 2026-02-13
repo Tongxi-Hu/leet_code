@@ -307,3 +307,40 @@ pub fn get_happy_string(n: i32, k: i32) -> String {
         .unwrap_or(&"".to_string())
         .to_string()
 }
+
+/// 17
+pub fn reformat(s: String) -> String {
+    let mut chars = s
+        .chars()
+        .into_iter()
+        .fold((vec![], vec![]), |mut acc, cur| {
+            match cur {
+                'a'..='z' => acc.0.push(cur),
+                '0'..='9' => acc.1.push(cur),
+                _ => (),
+            }
+            (acc.0, acc.1)
+        });
+    let mut ans = "".to_string();
+    if chars.0.len().abs_diff(chars.1.len()) > 1 {
+        return ans;
+    } else if chars.0.len() > chars.1.len() {
+        ans.push(chars.0.pop().unwrap());
+        while chars.0.len() > 0 {
+            ans.push(chars.1.pop().unwrap());
+            ans.push(chars.0.pop().unwrap());
+        }
+    } else if chars.0.len() < chars.1.len() {
+        ans.push(chars.1.pop().unwrap());
+        while chars.1.len() > 0 {
+            ans.push(chars.0.pop().unwrap());
+            ans.push(chars.1.pop().unwrap());
+        }
+    } else {
+        while chars.1.len() > 0 {
+            ans.push(chars.0.pop().unwrap());
+            ans.push(chars.1.pop().unwrap());
+        }
+    }
+    ans
+}
