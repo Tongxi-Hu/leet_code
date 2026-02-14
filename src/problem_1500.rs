@@ -460,3 +460,19 @@ pub fn num_of_arrays(n: i32, m: i32, k: i32) -> i32 {
     }
     result
 }
+
+/// 22
+pub fn max_score(s: String) -> i32 {
+    let chars = s.chars().collect::<Vec<char>>();
+    let (mut score, mut ans) = (chars.iter().filter(|&&c| c == '1').count(), 0);
+
+    chars[0..chars.len() - 1].iter().for_each(|&c| {
+        if c == '0' {
+            score = score + 1;
+        } else {
+            score = score - 1;
+        }
+        ans = ans.max(score);
+    });
+    ans as i32
+}
