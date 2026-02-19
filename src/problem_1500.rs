@@ -476,3 +476,49 @@ pub fn max_score(s: String) -> i32 {
     });
     ans as i32
 }
+
+/// 23
+pub fn max_score_2(card_points: Vec<i32>, k: i32) -> i32 {
+    let (k, size) = (k as usize, card_points.len());
+    let mut sum = card_points[0..k].iter().sum::<i32>();
+    let mut max = sum;
+    for i in (0..=k - 1).rev() {
+        sum = sum - card_points[i];
+        sum = sum + card_points[size - k + i];
+        max = max.max(sum);
+    }
+    max
+}
+
+/// 24
+pub fn find_diagonal_order(nums: Vec<Vec<i32>>) -> Vec<i32> {
+    let mut intermediate_len = 0;
+    for row in 0..nums.len() {
+        intermediate_len = intermediate_len.max(row + nums[row].len());
+    }
+    let mut intermediate_nums = vec![vec![]; intermediate_len];
+    for (row, line) in nums.iter().enumerate() {
+        for (col, &item) in line.iter().enumerate() {
+            intermediate_nums[row + col].push(item);
+        }
+    }
+    intermediate_nums
+        .into_iter()
+        .flat_map(|row| row.into_iter().rev())
+        .collect()
+}
+
+/// 31
+pub fn kids_with_candies(candies: Vec<i32>, extra_candies: i32) -> Vec<bool> {
+    let max = candies.iter().max().unwrap();
+    candies
+        .iter()
+        .map(|c| {
+            if c + extra_candies >= *max {
+                true
+            } else {
+                false
+            }
+        })
+        .collect()
+}
