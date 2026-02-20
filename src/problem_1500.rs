@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 
 /// 01
 pub fn check_overlap(
@@ -521,4 +521,80 @@ pub fn kids_with_candies(candies: Vec<i32>, extra_candies: i32) -> Vec<bool> {
             }
         })
         .collect()
+}
+
+/// 32
+pub fn max_diff(num: i32) -> i32 {
+    fn replace(s: &str, x: char, y: char) -> String {
+        s.chars().map(|c| if c == x { y } else { c }).collect()
+    }
+    let mut min_num = num.to_string();
+    let mut max_num = num.to_string();
+    for digit in max_num.chars() {
+        if digit != '9' {
+            max_num = replace(&max_num, digit, '9');
+            break;
+        }
+    }
+    for (i, digit) in min_num.chars().enumerate() {
+        if i == 0 {
+            if digit != '1' {
+                min_num = replace(&min_num, digit, '1');
+                break;
+            }
+        } else {
+            if digit != '0' && digit != min_num.chars().nth(0).unwrap() {
+                min_num = replace(&min_num, digit, '0');
+                break;
+            }
+        }
+    }
+
+    max_num.parse::<i32>().unwrap() - min_num.parse::<i32>().unwrap()
+}
+
+/// 33
+pub fn check_if_can_break(s1: String, s2: String) -> bool {
+    let (mut s1_c, mut s2_c) = (
+        s1.chars().collect::<Vec<char>>(),
+        s2.chars().collect::<Vec<char>>(),
+    );
+    s1_c.sort();
+    s2_c.sort();
+    s1_c.iter().zip(s2_c.iter()).all(|(a, b)| a >= b)
+        || s2_c.iter().zip(s1_c.iter()).all(|(a, b)| a >= b)
+}
+
+/// 36
+pub fn dest_city(paths: Vec<Vec<String>>) -> String {
+    let (mut starts, mut ends) = (HashSet::new(), HashSet::new());
+    paths.iter().for_each(|p| {
+        let (start, end) = (p[0].clone(), p[1].clone());
+        if !ends.remove(&start) {
+            starts.insert(start);
+        }
+        if !starts.remove(&end) {
+            ends.insert(end);
+        }
+    });
+    ends.into_iter().collect::<Vec<String>>().pop().unwrap()
+}
+
+/// 37
+pub fn k_length_apart(nums: Vec<i32>, k: i32) -> bool {
+    nums.iter()
+        .enumerate()
+        .filter(|n| *n.1 == 1)
+        .fold((i32::MAX, i32::MIN), |mut acc, cur| {
+            if acc.1 == i32::MIN {
+                acc.1 = cur.0 as i32;
+            } else {
+                let gap = cur.0 as i32 - acc.1;
+                acc.0 = acc.0.min(gap);
+                acc.1 = cur.0 as i32;
+            }
+            (acc.0, acc.1)
+        })
+        .0
+        > k
 }
