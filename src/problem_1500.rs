@@ -1,4 +1,7 @@
-use std::collections::{BTreeMap, HashSet};
+use std::{
+    collections::{BTreeMap, HashSet, VecDeque},
+    i32,
+};
 
 /// 01
 pub fn check_overlap(
@@ -597,4 +600,51 @@ pub fn k_length_apart(nums: Vec<i32>, k: i32) -> bool {
         })
         .0
         > k
+}
+
+/// 38
+pub fn longest_subarray(nums: Vec<i32>, limit: i32) -> i32 {
+    let mut l = 0;
+    let mut min_q = VecDeque::new();
+    let mut max_q = VecDeque::new();
+    for num in &nums {
+        while max_q.back().map_or(false, |x| x < num) {
+            max_q.pop_back();
+        }
+        while min_q.back().map_or(false, |x| x > num) {
+            min_q.pop_back();
+        }
+        max_q.push_back(*num);
+        min_q.push_back(*num);
+        if max_q[0] - min_q[0] > limit {
+            if nums[l] == max_q[0] {
+                max_q.pop_front();
+            }
+            if nums[l] == min_q[0] {
+                min_q.pop_front();
+            }
+            l += 1
+        }
+    }
+    (nums.len() - l) as i32
+}
+
+/// 39
+pub fn kth_smallest(mat: Vec<Vec<i32>>, k: i32) -> i32 {
+    use std::collections::BinaryHeap;
+    let mut queue = BinaryHeap::new();
+    queue.push(0);
+    for row in mat {
+        let mut next = BinaryHeap::new();
+        for prev in queue {
+            for curr in &row {
+                next.push(prev + curr);
+            }
+        }
+        while next.len() > k as usize {
+            next.pop();
+        }
+        queue = next;
+    }
+    queue.pop().unwrap()
 }
