@@ -1,6 +1,6 @@
 use std::{
     cell::RefCell,
-    collections::{BTreeMap, HashSet, VecDeque},
+    collections::{BTreeMap, HashMap, HashSet, VecDeque},
     i32,
     rc::Rc,
 };
@@ -830,7 +830,7 @@ pub fn largest_number(cost: Vec<i32>, target: i32) -> String {
     for c in &cost {
         let c = *c as usize;
         for j in c..=target {
-            dp[j] = dp[j].max(dp[(j - c)] + 1);
+            dp[j] = dp[j].max(dp[j - c] + 1);
         }
     }
 
@@ -896,6 +896,109 @@ pub fn is_prefix_of_word(sentence: String, search_word: String) -> i32 {
             acc
         });
     if pos == -1 { pos } else { pos + 1 }
+}
+
+/// 56
+pub fn max_vowels(s: String, k: i32) -> i32 {
+    let (k, chars, mut cnt) = (k as usize, s.chars().collect::<Vec<char>>(), vec![0; 5]);
+    for i in 0..k {
+        match chars[i] {
+            'a' => cnt[0] = cnt[0] + 1,
+            'e' => cnt[1] = cnt[1] + 1,
+            'i' => cnt[2] = cnt[2] + 1,
+            'o' => cnt[3] = cnt[3] + 1,
+            'u' => cnt[4] = cnt[4] + 1,
+            _ => (),
+        }
+    }
+    let mut max: i32 = cnt.iter().sum();
+    for i in k..chars.len() {
+        match chars[i - k] {
+            'a' => cnt[0] = cnt[0] - 1,
+            'e' => cnt[1] = cnt[1] - 1,
+            'i' => cnt[2] = cnt[2] - 1,
+            'o' => cnt[3] = cnt[3] - 1,
+            'u' => cnt[4] = cnt[4] - 1,
+            _ => (),
+        };
+        match chars[i] {
+            'a' => cnt[0] = cnt[0] + 1,
+            'e' => cnt[1] = cnt[1] + 1,
+            'i' => cnt[2] = cnt[2] + 1,
+            'o' => cnt[3] = cnt[3] + 1,
+            'u' => cnt[4] = cnt[4] + 1,
+            _ => (),
+        }
+        max = max.max(cnt.iter().sum());
+    }
+    max
+}
+
+/// 57
+pub fn pseudo_palindromic_paths(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    let (mut all_path, mut cur_path) = (vec![], vec![0; 10]);
+    fn dfs(
+        root: Option<Rc<RefCell<TreeNode>>>,
+        all_path: &mut Vec<Vec<i32>>,
+        cur_path: &mut Vec<i32>,
+    ) {
+        if let Some(node) = root {
+            let left = node.borrow().left.clone();
+            let right = node.borrow().right.clone();
+            cur_path[node.borrow().val as usize - 1] += 1;
+            if left.is_none() && right.is_none() {
+                all_path.push(cur_path.clone())
+            }
+            if left.is_some() {
+                dfs(left, all_path, cur_path);
+            }
+            if right.is_some() {
+                dfs(right, all_path, cur_path);
+            }
+            cur_path[node.borrow().val as usize - 1] -= 1;
+        }
+    }
+    dfs(root.clone(), &mut all_path, &mut cur_path);
+    all_path
+        .into_iter()
+        .filter(|p| {
+            p.iter().fold(0, |mut acc, cur| {
+                if cur % 2 != 0 {
+                    acc = acc + 1;
+                }
+                acc
+            }) <= 1
+        })
+        .collect::<Vec<Vec<i32>>>()
+        .len() as i32
+}
+
+/// 58
+pub fn max_dot_product(nums1: Vec<i32>, nums2: Vec<i32>) -> i32 {
+    let mut dp = vec![vec![0; nums2.len()]; nums1.len()];
+    for i in 0..nums1.len() {
+        for j in 0..nums2.len() {
+            let v = nums1[i] * nums2[j];
+            dp[i][j] = v;
+            if i > 0 {
+                dp[i][j] = dp[i][j].max(dp[i - 1][j]);
+            }
+            if j > 0 {
+                dp[i][j] = dp[i][j].max(dp[i][j - 1]);
+            }
+            if i > 0 && j > 0 {
+                dp[i][j] = dp[i][j].max(dp[i - 1][j - 1] + v);
+            }
+        }
+    }
+    dp[nums1.len() - 1][nums2.len() - 1]
+}
+
+/// 60
+pub fn can_be_equal(mut target: Vec<i32>, mut arr: Vec<i32>) -> bool {
+    target.sort();
+    arr.sort();
+    target == arr
 }
 
 #[test]
