@@ -1,7 +1,11 @@
 use std::{
+    cell::RefCell,
     collections::{BTreeMap, HashSet, VecDeque},
     i32,
+    rc::Rc,
 };
+
+use crate::common::TreeNode;
 
 /// 01
 pub fn check_overlap(
@@ -755,6 +759,114 @@ pub fn ways(pizza: Vec<String>, k: i32) -> i32 {
     }
 
     (dp[m][n] % MOD) as i32
+}
+
+/// 46
+pub fn max_power(s: String) -> i32 {
+    let (mut dp, mut ans) = (vec![], 1);
+    dp.push(1);
+    let chars = s.chars().collect::<Vec<char>>();
+    for i in 1..chars.len() {
+        if chars[i] == chars[i - 1] {
+            dp.push(dp[i - 1] + 1);
+            ans = ans.max(dp[i]);
+        } else {
+            dp.push(1);
+        }
+    }
+    ans
+}
+
+/// 47
+pub fn simplified_fractions(n: i32) -> Vec<String> {
+    let mut ans = vec![];
+    fn gcd(mut a: i32, mut b: i32) -> i32 {
+        while a % b != 0 {
+            let temp = b;
+            b = a % b;
+            a = temp;
+        }
+        b
+    }
+    for i in 2..=n {
+        for j in 1..=i - 1 {
+            if gcd(i, j) == 1 {
+                ans.push(j.to_string() + "/" + &i.to_string());
+            }
+        }
+    }
+    ans
+}
+
+/// 48
+pub fn good_nodes(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    fn dfs(root: Option<Rc<RefCell<TreeNode>>>, max: i32) -> i32 {
+        if let Some(node) = root.as_ref() {
+            let new_max = node.borrow().val.max(max);
+            let left_cnt = dfs(node.borrow().left.clone(), new_max);
+            let right_cnt = dfs(node.borrow().right.clone(), new_max);
+            if node.borrow().val == new_max {
+                return left_cnt + right_cnt + 1;
+            } else {
+                return left_cnt + right_cnt;
+            }
+        } else {
+            0
+        }
+    }
+    if let Some(node) = root.as_ref() {
+        return dfs(root.clone(), node.borrow().val);
+    } else {
+        0
+    }
+}
+
+/// 49
+pub fn largest_number(cost: Vec<i32>, target: i32) -> String {
+    let target = target as usize;
+    let mut dp = vec![i32::MIN; target + 1];
+    dp[0] = 0;
+
+    for c in &cost {
+        let c = *c as usize;
+        for j in c..=target {
+            dp[j] = dp[j].max(dp[(j - c)] + 1);
+        }
+    }
+
+    if dp[target] < 0 {
+        return "0".to_string();
+    }
+
+    let mut ans = String::new();
+    let mut j = target;
+    for i in (0..=8).rev() {
+        let c = cost[i] as usize;
+        while j >= c && dp[j] == dp[j - c] + 1 {
+            ans.push_str(&((1 + i).to_string()));
+            j -= c;
+        }
+    }
+    ans
+}
+
+/// 50
+pub fn busy_student(start_time: Vec<i32>, end_time: Vec<i32>, query_time: i32) -> i32 {
+    let mut start_before = start_time
+        .iter()
+        .enumerate()
+        .fold(HashSet::new(), |mut acc, cur| {
+            if *cur.1 <= query_time {
+                acc.insert(cur.0);
+            }
+            acc
+        });
+    end_time.iter().enumerate().for_each(|t| {
+        if *t.1 < query_time {
+            start_before.remove(&t.0);
+        }
+    });
+    start_before.len() as i32
 }
 
 #[test]
