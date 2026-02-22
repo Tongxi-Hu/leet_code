@@ -869,6 +869,35 @@ pub fn busy_student(start_time: Vec<i32>, end_time: Vec<i32>, query_time: i32) -
     start_before.len() as i32
 }
 
+/// 51
+pub fn arrange_words(text: String) -> String {
+    let mut text = text.into_bytes();
+    text[0] = text[0].to_ascii_lowercase();
+    let text = unsafe { String::from_utf8_unchecked(text) };
+    let mut text: Vec<_> = text.split_ascii_whitespace().collect();
+    text.sort_by_key(|s| s.len());
+    let text = text.join(" ");
+    let mut text = text.into_bytes();
+    text[0] = text[0].to_ascii_uppercase();
+    unsafe { String::from_utf8_unchecked(text) }
+}
+
+/// 55
+pub fn is_prefix_of_word(sentence: String, search_word: String) -> i32 {
+    let pos = sentence
+        .split(' ')
+        .collect::<Vec<&str>>()
+        .iter()
+        .enumerate()
+        .fold(-1, |mut acc, cur| {
+            if acc == -1 && cur.1.starts_with(&search_word) {
+                acc = cur.0 as i32
+            }
+            acc
+        });
+    if pos == -1 { pos } else { pos + 1 }
+}
+
 #[test]
 pub fn test_stack() {
     build_array(vec![1, 3], 3);
