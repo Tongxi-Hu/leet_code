@@ -648,3 +648,116 @@ pub fn kth_smallest(mat: Vec<Vec<i32>>, k: i32) -> i32 {
     }
     queue.pop().unwrap()
 }
+
+/// 41
+pub fn build_array(target: Vec<i32>, n: i32) -> Vec<String> {
+    let (mut ans, mut stack, mut cur_target) = (vec![], VecDeque::new(), 0);
+    'a: for i in 1..=n {
+        if cur_target == target.len() {
+            break;
+        }
+        while i != target[cur_target] {
+            stack.push_back(i);
+            ans.push("Push".to_string());
+            continue 'a;
+        }
+        while stack.len() != 0
+            && (cur_target == 0 || *stack.back().unwrap() != target[cur_target - 1])
+        {
+            stack.pop_back();
+            ans.push("Pop".to_string());
+        }
+        stack.push_back(i);
+        cur_target = cur_target + 1;
+        ans.push("Push".to_string());
+    }
+    ans
+}
+
+/// 42
+pub fn count_triplets(arr: Vec<i32>) -> i32 {
+    let mut ans = 0;
+    let mut s: Vec<i32> = vec![0];
+    for i in 0..arr.len() {
+        s.push(s[i] ^ arr[i]);
+    }
+    let s = s;
+    for i in 0..arr.len() {
+        for j in (i + 1)..arr.len() {
+            for k in j..arr.len() {
+                if s[i] == s[k + 1] {
+                    ans += 1;
+                }
+            }
+        }
+    }
+    ans
+}
+
+/// 44
+pub fn ways(pizza: Vec<String>, k: i32) -> i32 {
+    const MOD: i64 = 1_000_000_007;
+
+    let mut pizza: Vec<Vec<char>> = pizza
+        .into_iter()
+        .map(|s| s.chars().rev().collect())
+        .collect();
+    pizza.reverse();
+
+    let (m, n) = (pizza.len(), pizza[0].len());
+    let mut pre_sum: Vec<Vec<i64>> = vec![vec![0; n + 1]; m + 1];
+
+    for i in 1..=m {
+        for j in 1..=n {
+            let cnt = if pizza[i - 1][j - 1] == 'A' { 1 } else { 0 };
+            pre_sum[i][j] = cnt + pre_sum[i - 1][j] + pre_sum[i][j - 1] - pre_sum[i - 1][j - 1];
+        }
+    }
+
+    let any_apple = |(lm, ln), (sm, sn)| {
+        let vec: &Vec<i64> = &pre_sum[lm];
+        let vec1: &Vec<i64> = &pre_sum[sm];
+        let vec2: &Vec<i64> = &pre_sum[lm];
+        let vec3: &Vec<i64> = &pre_sum[sm];
+
+        let (a, b, c, d) = (vec[ln], vec1[ln], vec2[sn], vec3[sn]);
+        let cnt: i64 = a - b - c + d;
+        cnt >= 1
+    };
+
+    let mut dp = vec![vec![0; n + 1]; m + 1];
+    for i in 1..=m {
+        for j in 1..=n {
+            dp[i][j] = if any_apple((i, j), (0, 0)) { 1 } else { 0 };
+        }
+    }
+
+    for _ in 1..k {
+        let mut tmp = vec![vec![0; n + 1]; m + 1];
+
+        for lm in 1..=m {
+            for ln in 1..=n {
+                for i in 0..lm {
+                    if any_apple((lm, ln), (i, 0)) {
+                        tmp[lm][ln] = (tmp[lm][ln] + dp[i][ln]) % MOD;
+                    }
+                }
+
+                for j in 0..ln {
+                    if any_apple((lm, ln), (0, j)) {
+                        tmp[lm][ln] = (tmp[lm][ln] + dp[lm][j]) % MOD;
+                    }
+                }
+            }
+        }
+
+        dp = tmp;
+    }
+
+    (dp[m][n] % MOD) as i32
+}
+
+#[test]
+pub fn test_stack() {
+    build_array(vec![1, 3], 3);
+}
