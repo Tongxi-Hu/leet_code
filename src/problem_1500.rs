@@ -1001,6 +1001,145 @@ pub fn can_be_equal(mut target: Vec<i32>, mut arr: Vec<i32>) -> bool {
     target == arr
 }
 
+/// 61
+pub fn has_all_codes(s: String, k: i32) -> bool {
+    let (k, chars, mut cnt) = (k as usize, s.chars().collect::<Vec<char>>(), HashSet::new());
+    for i in k - 1..chars.len() {
+        cnt.insert(chars[i - k + 1..=i].iter().collect::<String>());
+    }
+    cnt.len() == 2_usize.pow(k as u32)
+}
+
+/// 62
+pub fn check_if_prerequisite(
+    num_courses: i32,
+    prerequisites: Vec<Vec<i32>>,
+    queries: Vec<Vec<i32>>,
+) -> Vec<bool> {
+    let num_courses = num_courses as usize;
+    let mut grid = vec![vec![false; num_courses]; num_courses];
+    prerequisites.iter().for_each(|pair| {
+        grid[pair[0] as usize][pair[1] as usize] = true;
+    });
+    for k in 0..num_courses {
+        for i in 0..num_courses {
+            for j in 0..num_courses {
+                grid[i][j] = grid[i][j] || grid[i][k] && grid[k][j];
+            }
+        }
+    }
+    let mut ans = vec![];
+    queries
+        .iter()
+        .for_each(|q| ans.push(grid[q[0] as usize][q[1] as usize]));
+    ans
+}
+
+/// 63
+pub fn cherry_pickup(grid: Vec<Vec<i32>>) -> i32 {
+    let m = grid.len();
+    let n = grid[0].len();
+    let mut f = vec![vec![-1; n]; n];
+    let mut g = vec![vec![-1; n]; n];
+
+    f[0][n - 1] = grid[0][0] + grid[0][n - 1];
+    for i in 1..m {
+        for j1 in 0..n {
+            for j2 in 0..n {
+                let mut best = -1;
+                for dj1 in -1..=1 {
+                    for dj2 in -1..=1 {
+                        let dj1 = j1 as i32 + dj1;
+                        let dj2 = j2 as i32 + dj2;
+                        if dj1 >= 0
+                            && dj1 < n as i32
+                            && dj2 >= 0
+                            && dj2 < n as i32
+                            && f[dj1 as usize][dj2 as usize] != -1
+                        {
+                            best = best.max(
+                                f[dj1 as usize][dj2 as usize]
+                                    + if j1 == j2 {
+                                        grid[i][j1]
+                                    } else {
+                                        grid[i][j1] + grid[i][j2]
+                                    },
+                            );
+                        }
+                    }
+                }
+                g[j1][j2] = best;
+            }
+        }
+        std::mem::swap(&mut f, &mut g);
+    }
+
+    let mut ans = 0;
+    for j1 in 0..n {
+        ans = ans.max(*f[j1].iter().max().unwrap_or(&0));
+    }
+    ans
+}
+
+/// 64
+pub fn max_product(nums: Vec<i32>) -> i32 {
+    let mut max = i32::MIN;
+    for i in 1..nums.len() {
+        for j in 0..i {
+            max = max.max((nums[i] - 1) * (nums[j] - 1));
+        }
+    }
+    max
+}
+
+/// 65
+pub fn max_area(h: i32, w: i32, mut horizontal_cuts: Vec<i32>, mut vertical_cuts: Vec<i32>) -> i32 {
+    horizontal_cuts.push(0);
+    horizontal_cuts.push(h);
+    vertical_cuts.push(0);
+    vertical_cuts.push(w);
+    horizontal_cuts.sort();
+    vertical_cuts.sort();
+    let max_h = horizontal_cuts
+        .windows(2)
+        .fold(0, |acc, cur| acc.max(cur[1] - cur[0]));
+    let max_v = vertical_cuts
+        .windows(2)
+        .fold(0, |acc, cur| acc.max(cur[1] - cur[0]));
+    (max_h as i64 * max_v as i64 % 1000000007) as i32
+}
+
+/// 66
+pub fn min_reorder(n: i32, connections: Vec<Vec<i32>>) -> i32 {
+    let mut g: Vec<Vec<(i32, i32)>> = vec![vec![]; n as usize];
+    for e in connections.iter() {
+        let a = e[0] as usize;
+        let b = e[1] as usize;
+        g[a].push((b as i32, 1));
+        g[b].push((a as i32, 0));
+    }
+    fn dfs(a: usize, fa: i32, g: &Vec<Vec<(i32, i32)>>) -> i32 {
+        let mut ans = 0;
+        for &(b, c) in g[a].iter() {
+            if b != fa {
+                ans += c + dfs(b as usize, a as i32, g);
+            }
+        }
+        ans
+    }
+    dfs(0, -1, &g)
+}
+
+/// 70
+pub fn shuffle(mut nums: Vec<i32>, n: i32) -> Vec<i32> {
+    let n = n as usize;
+    for i in 0..n {
+        let k = nums.remove(i + n);
+        nums.insert(i * 2 + 1, k);
+    }
+    nums
+}
+
 #[test]
 pub fn test_stack() {
     build_array(vec![1, 3], 3);
