@@ -1230,3 +1230,57 @@ pub fn min_cost(houses: Vec<i32>, cost: Vec<Vec<i32>>, m: i32, n: i32, target: i
     }
     if res == i32::MAX { -1 } else { res }
 }
+
+/// 75
+pub fn final_prices(mut prices: Vec<i32>) -> Vec<i32> {
+    let mut stack = VecDeque::new();
+    for i in 0..prices.len() {
+        while !stack.is_empty() && prices[*stack.back().unwrap()] >= prices[i] {
+            prices[stack.pop_back().unwrap()] -= prices[i];
+        }
+        stack.push_back(i);
+    }
+    prices
+}
+
+/// 76
+struct SubrectangleQueries {
+    rectangle: Vec<Vec<i32>>,
+}
+
+impl SubrectangleQueries {
+    fn new(rectangle: Vec<Vec<i32>>) -> Self {
+        Self { rectangle }
+    }
+
+    fn update_subrectangle(&mut self, row1: i32, col1: i32, row2: i32, col2: i32, new_value: i32) {
+        let (row1, col1, row2, col2) = (row1 as usize, col1 as usize, row2 as usize, col2 as usize);
+        for i in row1..=row2 {
+            for j in col1..=col2 {
+                self.rectangle[i][j] = new_value;
+            }
+        }
+    }
+
+    fn get_value(&self, row: i32, col: i32) -> i32 {
+        self.rectangle[row as usize][col as usize]
+    }
+}
+
+/// 77
+// pub fn min_sum_of_lengths(arr: Vec<i32>, target: i32) -> i32 {
+
+// }
+
+/// 80
+pub fn running_sum(nums: Vec<i32>) -> Vec<i32> {
+    let mut prefix = vec![];
+    for i in 0..nums.len() {
+        if i == 0 {
+            prefix.push(nums[i]);
+        } else {
+            prefix.push(nums[i] + prefix[i - 1]);
+        }
+    }
+    prefix
+}
