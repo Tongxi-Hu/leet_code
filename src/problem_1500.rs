@@ -1,6 +1,7 @@
 use std::{
     cell::RefCell,
-    collections::{BTreeMap, HashMap, HashSet, VecDeque},
+    cmp::Reverse,
+    collections::{BTreeMap, HashSet, VecDeque},
     i32,
     rc::Rc,
 };
@@ -1140,7 +1141,92 @@ pub fn shuffle(mut nums: Vec<i32>, n: i32) -> Vec<i32> {
     nums
 }
 
-#[test]
-pub fn test_stack() {
-    build_array(vec![1, 3], 3);
+/// 71
+pub fn get_strongest(mut arr: Vec<i32>, k: i32) -> Vec<i32> {
+    let middle = (arr.len() - 1) / 2;
+    arr.select_nth_unstable(middle);
+    let m = arr[middle];
+
+    let k = k as usize;
+    arr.select_nth_unstable_by_key(k - 1, |item| Reverse((item.abs_diff(m), *item)));
+    arr.resize(k, 0);
+    arr
+}
+
+/// 72
+struct BrowserHistory {
+    urls: Vec<String>,
+    curr_index: usize,
+}
+
+impl BrowserHistory {
+    fn new(homepage: String) -> Self {
+        BrowserHistory {
+            urls: vec![homepage],
+            curr_index: 0,
+        }
+    }
+
+    fn visit(&mut self, url: String) {
+        self.urls.truncate(self.curr_index + 1);
+        self.urls.push(url);
+        self.curr_index += 1;
+    }
+
+    fn back(&mut self, steps: i32) -> String {
+        self.curr_index = (self.curr_index as i32 - steps).max(0) as usize;
+        return self.urls[self.curr_index].clone();
+    }
+
+    fn forward(&mut self, steps: i32) -> String {
+        self.curr_index = std::cmp::min(self.curr_index + steps as usize, self.urls.len() - 1);
+        return self.urls[self.curr_index].clone();
+    }
+}
+
+/// 73
+pub fn min_cost(houses: Vec<i32>, cost: Vec<Vec<i32>>, m: i32, n: i32, target: i32) -> i32 {
+    let m = m as usize;
+    let n = n as usize;
+    let target = target as usize;
+    let mut dp = vec![vec![vec![i32::MAX; target]; n]; m];
+    if houses[0] != 0 {
+        dp[0][houses[0] as usize - 1][0] = 0;
+    } else {
+        for color in 0..n {
+            dp[0][color][0] = cost[0][color];
+        }
+    }
+    for i in 0..(m - 1) {
+        for j in 0..n {
+            for k in 0..target {
+                if dp[i][j][k] != i32::MAX {
+                    if houses[i + 1] == 0 {
+                        if k != target - 1 {
+                            for jt in 0..n {
+                                if jt != j {
+                                    dp[i + 1][jt][k + 1] =
+                                        dp[i + 1][jt][k + 1].min(dp[i][j][k] + cost[i + 1][jt]);
+                                }
+                            }
+                        }
+                        dp[i + 1][j][k] = dp[i + 1][j][k].min(dp[i][j][k] + cost[i + 1][j]);
+                    } else {
+                        let jt = (houses[i + 1] - 1) as usize;
+                        if jt != j && k != target - 1 {
+                            dp[i + 1][jt][k + 1] = dp[i + 1][jt][k + 1].min(dp[i][j][k]);
+                        }
+                        if jt == j {
+                            dp[i + 1][jt][k] = dp[i + 1][jt][k].min(dp[i][j][k]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    let mut res = i32::MAX;
+    for j in 0..n {
+        res = res.min(dp[m - 1][j][target - 1]);
+    }
+    if res == i32::MAX { -1 } else { res }
 }
