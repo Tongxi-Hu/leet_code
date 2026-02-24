@@ -1,7 +1,7 @@
 use std::{
     cell::RefCell,
     cmp::Reverse,
-    collections::{BTreeMap, HashSet, VecDeque},
+    collections::{BTreeMap, HashMap, HashSet, VecDeque},
     i32,
     rc::Rc,
 };
@@ -1283,4 +1283,118 @@ pub fn running_sum(nums: Vec<i32>) -> Vec<i32> {
         }
     }
     prefix
+}
+
+/// 81
+pub fn find_least_num_of_unique_ints(arr: Vec<i32>, k: i32) -> i32 {
+    let mut k = k as usize;
+    let mut map = HashMap::new();
+    arr.into_iter().for_each(|x| {
+        *map.entry(x).or_default() += 1;
+    });
+    let mut v = map.into_values().collect::<Vec<usize>>();
+    v.sort_unstable();
+    let mut l = v.len();
+    for b in v {
+        if b > k {
+            return l as i32;
+        } else if b == k {
+            return l as i32 - 1;
+        } else {
+            k -= b;
+            l -= 1;
+        }
+    }
+    l as i32
+}
+
+/// 82
+pub fn min_days(bloom_day: Vec<i32>, m: i32, k: i32) -> i32 {
+    if (m * k) as usize > bloom_day.len() {
+        return -1;
+    }
+    use std::cmp::min;
+    let mut ans = i32::MAX;
+    let mut left = *(bloom_day.iter().min().unwrap());
+    let mut right = *(bloom_day.iter().max().unwrap());
+
+    let is_can_solve = |bloom_day: &Vec<i32>, d: i32, mut m: i32, k: i32| {
+        let mut cnt = 0;
+
+        for &day in bloom_day.iter() {
+            if m <= 0 {
+                return true;
+            }
+            if day <= d {
+                cnt += 1;
+                if cnt == k {
+                    m -= 1;
+                    cnt = 0;
+                }
+            } else {
+                cnt = 0;
+            }
+        }
+        m <= 0
+    };
+
+    while left <= right {
+        let mid = (left + right) >> 1;
+        if is_can_solve(&bloom_day, mid, m, k) {
+            ans = min(ans, mid);
+            right = mid - 1;
+        } else {
+            left = mid + 1;
+        }
+    }
+    return if ans == i32::MAX { -1 } else { ans };
+}
+
+/// 83
+struct TreeAncestor {
+    dp: Vec<Vec<Option<i32>>>,
+}
+
+impl TreeAncestor {
+    fn new(n: i32, parent: Vec<i32>) -> Self {
+        let mut max_pow = 0;
+        while (1 << max_pow) <= n {
+            max_pow += 1;
+        }
+
+        let mut dp = vec![vec![None; max_pow]; n as usize];
+        for i in 0..n as usize {
+            dp[i][0] = if parent[i] == -1 {
+                None
+            } else {
+                Some(parent[i])
+            };
+        }
+
+        for j in 1..max_pow {
+            for i in 0..n as usize {
+                if let Some(prev_ancestor) = dp[i][j - 1] {
+                    dp[i][j] = dp[prev_ancestor as usize][j - 1];
+                }
+            }
+        }
+
+        TreeAncestor { dp }
+    }
+
+    fn get_kth_ancestor(&self, mut node: i32, mut k: i32) -> i32 {
+        for i in 0..self.dp[0].len() {
+            if k == 0 {
+                break;
+            }
+            if (k & 1) == 1 {
+                match self.dp[node as usize][i] {
+                    Some(ancestor) => node = ancestor,
+                    None => return -1,
+                }
+            }
+            k >>= 1;
+        }
+        node
+    }
 }
