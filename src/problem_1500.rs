@@ -1268,9 +1268,70 @@ impl SubrectangleQueries {
 }
 
 /// 77
-// pub fn min_sum_of_lengths(arr: Vec<i32>, target: i32) -> i32 {
-
-// }
+/// out of time
+pub fn min_sum_of_lengths(arr: Vec<i32>, target: i32) -> i32 {
+    let (mut prefix, mut sub_arr) = (vec![], vec![]);
+    for i in 0..arr.len() {
+        if i == 0 {
+            prefix.push(arr[i]);
+            if prefix[i] == target {
+                sub_arr.push(vec![i]);
+            }
+        } else {
+            prefix.push(arr[i] + prefix[i - 1]);
+            if prefix[i] == target {
+                sub_arr.push(vec![0, i])
+            }
+            for j in 0..i {
+                if prefix[i] - prefix[j] == target {
+                    if j + 1 != i {
+                        sub_arr.push(vec![j + 1, i]);
+                    } else {
+                        sub_arr.push(vec![i]);
+                    }
+                }
+            }
+        }
+    }
+    fn get_len(arr: &Vec<usize>) -> usize {
+        if arr.len() == 1 {
+            return 1;
+        } else {
+            arr[1] - arr[0] + 1
+        }
+    }
+    sub_arr.sort_by(|a, b| get_len(a).cmp(&get_len(b)));
+    let mut min = i32::MAX;
+    if sub_arr.len() < 2 {
+        return -1;
+    }
+    for i in 0..sub_arr.len() - 1 {
+        for j in i + 1..sub_arr.len() {
+            match (sub_arr[i].len(), sub_arr[j].len()) {
+                (1, 1) => {
+                    min = min.min(2);
+                }
+                (1, 2) => {
+                    if sub_arr[i][0] < sub_arr[j][0] || sub_arr[i][0] > sub_arr[j][1] {
+                        min = min.min(1 + get_len(&sub_arr[j]) as i32);
+                    }
+                }
+                (2, 1) => {
+                    if sub_arr[j][0] < sub_arr[i][0] || sub_arr[j][0] > sub_arr[i][1] {
+                        min = min.min(1 + get_len(&sub_arr[i]) as i32);
+                    }
+                }
+                (2, 2) => {
+                    if sub_arr[i][1] < sub_arr[j][0] || sub_arr[j][1] < sub_arr[i][0] {
+                        min = min.min(get_len(&sub_arr[i]) as i32 + get_len(&sub_arr[j]) as i32);
+                    }
+                }
+                _ => (),
+            }
+        }
+    }
+    return if min == i32::MAX { -1 } else { min };
+}
 
 /// 80
 pub fn running_sum(nums: Vec<i32>) -> Vec<i32> {
