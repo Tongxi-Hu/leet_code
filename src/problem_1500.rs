@@ -1684,3 +1684,114 @@ impl DSU {
             .count()
     }
 }
+
+/// 91
+pub fn average(salary: Vec<i32>) -> f64 {
+    let (total, max, min) = salary.iter().fold((0, i32::MIN, i32::MAX), |acc, &cur| {
+        (acc.0 + cur, acc.1.max(cur), acc.2.min(cur))
+    });
+    (total - max - min) as f64 / (salary.len() - 2) as f64
+}
+
+/// 92
+pub fn kth_factor(n: i32, k: i32) -> i32 {
+    let mut factors = vec![];
+    for i in 1..=n {
+        if n % i == 0 {
+            factors.push(i);
+        }
+        if factors.len() == k as usize {
+            break;
+        }
+    }
+    if factors.len() < k as usize {
+        return -1;
+    }
+    *factors.last().unwrap()
+}
+
+/// 93
+pub fn longest_subarray_2(nums: Vec<i32>) -> i32 {
+    let (mut ans, mut cnt, mut left) = (0, 0, 0);
+    for (right, &v) in nums.iter().enumerate() {
+        if v == 0 {
+            cnt = cnt + 1;
+        }
+        while cnt > 1 {
+            if nums[left] == 0 {
+                cnt = cnt - 1;
+            }
+            left = left + 1;
+        }
+        ans = ans.max(right - left);
+    }
+    ans as i32
+}
+
+/// 94
+pub fn min_number_of_semesters(n: i32, relations: Vec<Vec<i32>>, k: i32) -> i32 {
+    let mut reqs = vec![0; n as usize];
+    for req in relations {
+        reqs[(req[1] - 1) as usize] |= 1 << ((req[0] - 1) as usize);
+    }
+    let (mut mask_req, mut is_valid, mut dp) = (
+        vec![0 as u16; 1 << n],
+        vec![0 as u16; 1 << n],
+        vec![i32::MAX / 2; 1 << n],
+    );
+    dp[0] = 0;
+    for mask in 0..1 << n {
+        let mask = mask as u16;
+        if mask.count_ones() <= k as u32 {
+            for i in 0..n as usize {
+                if (mask & (1 << i)) != 0 {
+                    mask_req[mask as usize] |= reqs[i];
+                }
+            }
+            is_valid[mask as usize] = match mask_req[mask as usize] & mask == 0 {
+                true => 1,
+                false => 0,
+            };
+        }
+        let mut subset = mask as u16;
+        while subset != 0 {
+            if is_valid[subset as usize] == 1
+                && (mask & mask_req[subset as usize]) == mask_req[subset as usize]
+            {
+                dp[mask as usize] = dp[mask as usize].min(dp[(mask ^ subset) as usize] + 1);
+            }
+            subset = (subset - 1) & mask;
+        }
+    }
+    dp[(1 << n) - 1]
+}
+
+/// 96
+pub fn is_path_crossing(path: String) -> bool {
+    let mut locations = vec![(0, 0)];
+    for d in path.chars() {
+        let last = locations.last().unwrap();
+        let mut new = (0, 0);
+        match d {
+            'E' => {
+                new = (last.0 + 1, last.1);
+            }
+            'W' => {
+                new = (last.0 - 1, last.1);
+            }
+            'N' => {
+                new = (last.0, last.1 + 1);
+            }
+            'S' => {
+                new = (last.0, last.1 - 1);
+            }
+            _ => (),
+        }
+        if locations.contains(&new) {
+            return true;
+        } else {
+            locations.push(new);
+        }
+    }
+    false
+}
