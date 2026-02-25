@@ -1795,3 +1795,97 @@ pub fn is_path_crossing(path: String) -> bool {
     }
     false
 }
+
+/// 97
+pub fn can_arrange(arr: Vec<i32>, k: i32) -> bool {
+    use std::collections::HashMap;
+    let mut map: HashMap<i32, i32> = HashMap::new();
+    for num in arr {
+        let mut rem = num % k;
+        if rem < 0 {
+            rem += k;
+        }
+
+        if let Some(val) = map.get_mut(&rem) {
+            *val += 1;
+        } else {
+            map.insert(rem, 1);
+        }
+    }
+    for i in 1..(k + 1) / 2 {
+        let left = map.get(&i).unwrap_or(&0);
+        let right = map.get(&(k - i)).unwrap_or(&0);
+        if 2 * i == k {
+            if left & 1 == 1 {
+                return false;
+            }
+        } else {
+            if left != right {
+                return false;
+            }
+        }
+    }
+
+    return map.get(&0).unwrap_or(&0) & 1 == 0;
+}
+
+/// 98
+pub fn num_subseq(nums: Vec<i32>, target: i32) -> i32 {
+    fn binary_search(nums: &Vec<i32>, target: i32) -> usize {
+        let mut low = 0;
+        let mut high = nums.len();
+        while low < high {
+            let mid = (high - low) / 2 + low;
+            if mid == nums.len() {
+                return mid;
+            }
+            let num = nums[mid];
+            if num <= target {
+                low = mid + 1;
+            } else {
+                high = mid;
+            }
+        }
+        low
+    }
+    const P: i32 = 1_000_000_007;
+    const MAX_N: usize = 100_005;
+    let mut f = vec![0; MAX_N];
+    f[0] = 1;
+    for i in 1..MAX_N {
+        f[i] = (f[i - 1] << 1) % P;
+    }
+    let mut nums = nums;
+    nums.sort();
+
+    let mut ans = 0;
+    for i in 0..nums.len() {
+        if nums[i] * 2 > target {
+            break;
+        }
+        let max_value = target - nums[i];
+        let pos = binary_search(&nums, max_value) - 1;
+        let contribute = if pos >= i { f[pos - i] } else { 0 };
+        ans = (ans + contribute) % P;
+    }
+
+    ans
+}
+
+/// 99
+pub fn find_max_value_of_equation(points: Vec<Vec<i32>>, k: i32) -> i32 {
+    let (mut queue, mut ret): (VecDeque<(i32, i32)>, i32) = (VecDeque::new(), i32::MIN);
+    for point in points {
+        while !queue.is_empty() && point[0] - queue[0].1 > k {
+            queue.pop_front();
+        }
+        if !queue.is_empty() {
+            ret = ret.max(queue[0].0 + point[0] + point[1]);
+        }
+        while !queue.is_empty() && point[1] - point[0] >= queue.back().unwrap().0 {
+            queue.pop_back();
+        }
+        queue.push_back((point[1] - point[0], point[0]));
+    }
+    ret
+}
