@@ -1,4 +1,9 @@
-use std::{cell::RefCell, i32, str::FromStr};
+use std::{
+    cell::RefCell,
+    collections::{HashMap, HashSet},
+    i32,
+    str::FromStr,
+};
 
 /// 02
 pub fn can_make_arithmetic_progression(mut arr: Vec<i32>) -> bool {
@@ -160,3 +165,83 @@ pub fn reformat_date(date: String) -> String {
     res
 }
 
+/// 08
+pub fn range_sum(nums: Vec<i32>, n: i32, left: i32, right: i32) -> i32 {
+    let mut dp = vec![];
+    for i in 0..nums.len() {
+        dp.push(vec![nums[i] as i64]);
+        if i != 0 {
+            dp[i - 1].clone().iter().for_each(|s| {
+                dp[i].push(*s as i64 + nums[i] as i64);
+            });
+        }
+    }
+    let mut total = dp.into_iter().flatten().collect::<Vec<i64>>();
+    total.sort();
+    (total[(left - 1) as usize..right as usize]
+        .iter()
+        .sum::<i64>()
+        % 1000000007) as i32
+}
+
+/// 09
+pub fn min_difference(nums: Vec<i32>) -> i32 {
+    let mut max = vec![i32::MIN; 4];
+    let mut min = vec![i32::MAX; 4];
+    if nums.len() <= 4 {
+        return 0;
+    }
+    for x in nums.into_iter() {
+        for i in 0..4 {
+            if x >= max[i] {
+                for j in (i + 1..4).rev() {
+                    max[j] = max[j - 1];
+                }
+                max[i] = x;
+                break;
+            }
+        }
+        for i in 0..4 {
+            if x <= min[i] {
+                for j in (i + 1..4).rev() {
+                    min[j] = min[j - 1];
+                }
+                min[i] = x;
+                break;
+            }
+        }
+    }
+    max.into_iter()
+        .zip(min.into_iter().rev())
+        .fold(i32::MAX, |ans, (x, y)| ans.min(x - y))
+}
+
+/// 10
+pub fn winner_square_game(n: i32) -> bool {
+    let n = n as usize;
+    let mut dp = vec![false; n + 1];
+    for i in 1..=n {
+        for j in 1..=i {
+            if j * j <= i && dp[i - j * j] == false {
+                dp[i] = true;
+                break;
+            }
+        }
+    }
+    dp[n]
+}
+
+/// 12
+pub fn num_identical_pairs(nums: Vec<i32>) -> i32 {
+    let mut cnt = HashMap::new();
+    nums.iter().for_each(|n| {
+        *cnt.entry(n).or_insert(0) += 1;
+    });
+    cnt.iter().fold(0, |acc, c| {
+        if *c.1 > 1 {
+            acc + c.1 * (c.1 - 1) / 2
+        } else {
+            acc
+        }
+    })
+}
