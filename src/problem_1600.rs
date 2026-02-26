@@ -1,6 +1,7 @@
 use std::{
     cell::RefCell,
-    collections::{HashMap, HashSet},
+    cmp::Ordering,
+    collections::{BinaryHeap, HashMap},
     i32,
     str::FromStr,
 };
@@ -166,7 +167,7 @@ pub fn reformat_date(date: String) -> String {
 }
 
 /// 08
-pub fn range_sum(nums: Vec<i32>, n: i32, left: i32, right: i32) -> i32 {
+pub fn range_sum(nums: Vec<i32>, _: i32, left: i32, right: i32) -> i32 {
     let mut dp = vec![];
     for i in 0..nums.len() {
         dp.push(vec![nums[i] as i64]);
@@ -244,4 +245,72 @@ pub fn num_identical_pairs(nums: Vec<i32>) -> i32 {
             acc
         }
     })
+}
+
+/// 13
+pub fn num_sub(s: String) -> i32 {
+    let chars = s.chars().collect::<Vec<char>>();
+    let (mut dp, mut ans) = (vec![0; chars.len()], 0);
+    for i in 0..chars.len() {
+        if chars[i] == '0' {
+            dp[i] = 0 as i64;
+        } else {
+            if i == 0 {
+                dp[i] = 1;
+            } else {
+                dp[i] = dp[i - 1] + 1;
+            }
+            ans = ans + dp[i]
+        }
+    }
+    (ans % 1000000007) as i32
+}
+
+/// 14
+#[derive(Clone, Copy, PartialEq, PartialOrd)]
+struct MyF64(f64);
+
+impl Eq for MyF64 {}
+impl Ord for MyF64 {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
+
+pub fn max_probability(
+    n: i32,
+    edges: Vec<Vec<i32>>,
+    succ_prob: Vec<f64>,
+    start_node: i32,
+    end_node: i32,
+) -> f64 {
+    let n = n as usize;
+
+    // 1.
+    let mut graph = vec![vec![]; n];
+    for (i, edge) in edges.iter().enumerate() {
+        let (node1, node2) = (edge[0] as usize, edge[1] as usize);
+        graph[node1].push((node2, succ_prob[i]));
+        graph[node2].push((node1, succ_prob[i]));
+    }
+    let mut records = vec![0.0; n];
+    let mut max_heap = BinaryHeap::new();
+    records[start_node as usize] = 1.0;
+    max_heap.push((MyF64(1.0), start_node as usize));
+    while let Some((MyF64(cur_prob), cur_node)) = max_heap.pop() {
+        if cur_node == end_node as usize {
+            return cur_prob;
+        }
+        if cur_prob > records[cur_node] {
+            continue;
+        }
+        for &(next_node, prob) in graph[cur_node].iter() {
+            let next_prob = cur_prob * prob;
+            if next_prob > records[next_node] {
+                records[next_node] = next_prob;
+                max_heap.push((MyF64(next_prob), next_node));
+            }
+        }
+    }
+    records[end_node as usize]
 }
