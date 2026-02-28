@@ -438,3 +438,10 @@ pub fn closest_to_target(arr: Vec<i32>, target: i32) -> i32 {
     }
     ans
 }
+
+/// 23
+pub fn count_odds(low: i32, high: i32) -> i32 {
+    (low..=high)
+        .into_iter()
+        .fold(0, |acc, cur| if cur % 2 == 0 { acc } else { acc + 1 })
+}
