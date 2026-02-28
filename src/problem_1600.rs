@@ -3,8 +3,11 @@ use std::{
     cmp::Ordering,
     collections::{BinaryHeap, HashMap},
     i32,
+    rc::Rc,
     str::FromStr,
 };
+
+use crate::common::TreeNode;
 
 /// 02
 pub fn can_make_arithmetic_progression(mut arr: Vec<i32>) -> bool {
@@ -313,4 +316,125 @@ pub fn max_probability(
         }
     }
     records[end_node as usize]
+}
+
+/// 18
+pub fn num_water_bottles(mut num_bottles: i32, num_exchange: i32) -> i32 {
+    let mut total = num_bottles;
+    while num_bottles >= num_exchange {
+        let new_bottle = num_bottles / num_exchange;
+        total = total + new_bottle;
+        let old_bottle = num_bottles % num_exchange;
+        num_bottles = new_bottle + old_bottle;
+    }
+    total
+}
+
+/// 20
+pub fn max_num_of_substrings(s: String) -> Vec<String> {
+    let mut res: Vec<String> = Vec::new();
+    let mut left: Vec<i32> = vec![2147483647; 26];
+    let mut right: Vec<i32> = vec![-2147483648; 26];
+
+    let s_b = s.as_bytes();
+
+    for i in 0..s_b.len() {
+        left[(s_b[i] - 'a' as u8) as usize] =
+            (i as i32).min(left[(s_b[i] as u8 - 'a' as u8) as usize]);
+        right[(s_b[i] - 'a' as u8) as usize] =
+            (i as i32).max(right[(s_b[i] as u8 - 'a' as u8) as usize]);
+    }
+
+    let extention = |i: i32| -> i32 {
+        let mut p = right[(s_b[i as usize] - 'a' as u8) as usize];
+        let mut cur = i;
+        while cur < p {
+            if left[(s_b[cur as usize] - 'a' as u8) as usize] < i {
+                return -1;
+            }
+
+            if right[(s_b[cur as usize] - 'a' as u8) as usize] > p {
+                p = right[(s_b[cur as usize] - 'a' as u8) as usize]
+            }
+
+            cur += 1;
+        }
+
+        return p;
+    };
+
+    let mut last: i32 = -1;
+    for i in 0..s_b.len() {
+        if i != left[(s_b[i] as u8 - 'a' as u8) as usize] as usize {
+            continue;
+        }
+
+        let p = extention(i as i32);
+        if p == -1 {
+            continue;
+        }
+
+        if i as i32 > last {
+            res.push(String::from(&s[i..(p as usize + 1)]));
+        } else {
+            res.pop();
+            res.push(String::from(&s[i..(p as usize + 1)]));
+        }
+
+        last = p
+    }
+
+    res
+}
+
+/// 21
+pub fn closest_to_target(arr: Vec<i32>, target: i32) -> i32 {
+    const M: usize = 25;
+
+    let n = arr.len();
+    let mut sum = vec![[0_usize; M]; n];
+
+    for j in 0..M {
+        if arr[0] & (1 << j) > 0 {
+            sum[0][j] = 1;
+        }
+    }
+
+    for i in 1..n {
+        for j in 0..M {
+            if arr[i] & (1 << j) > 0 {
+                sum[i][j] = sum[i - 1][j] + 1;
+            } else {
+                sum[i][j] = sum[i - 1][j];
+            }
+        }
+    }
+
+    let get = |l: usize, r: usize| -> i32 {
+        let mut x = 0;
+        for j in 0..M {
+            let cnt = match l {
+                0 => sum[r][j],
+                l => sum[r][j] - sum[l - 1][j],
+            };
+            if cnt == r - l + 1 {
+                x |= 1 << j;
+            }
+        }
+        x
+    };
+
+    let mut ans = i32::MAX;
+    let mut j = 0;
+    for i in 0..n {
+        j = j.max(i);
+        let mut acc = get(i, j);
+        ans = ans.min((acc - target).abs());
+        while j < n - 1 && acc >= target {
+            j += 1;
+            acc &= arr[j];
+            ans = ans.min((acc - target).abs());
+        }
+    }
+    ans
 }
