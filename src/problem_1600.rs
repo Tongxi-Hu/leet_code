@@ -3,8 +3,11 @@ use std::{
     cmp::Ordering,
     collections::{BinaryHeap, HashMap},
     i32,
+    rc::Rc,
     str::FromStr,
 };
+
+use crate::common::TreeNode;
 
 /// 02
 pub fn can_make_arithmetic_progression(mut arr: Vec<i32>) -> bool {
@@ -489,4 +492,130 @@ pub fn min_number_operations(target: Vec<i32>) -> i32 {
         ans += (target[i] - target[i - 1]).max(0);
     }
     ans
+}
+
+/// 28
+pub fn restore_string(s: String, indices: Vec<i32>) -> String {
+    let (chars, mut ans) = (s.chars().collect::<Vec<char>>(), vec!['a'; indices.len()]);
+    for i in 0..indices.len() {
+        ans[indices[i] as usize] = chars[i];
+    }
+    ans.iter().collect::<String>()
+}
+
+/// 29
+pub fn min_flips(target: String) -> i32 {
+    let (chars, mut cur, mut total) = (target.chars().collect::<Vec<char>>(), '0', 0);
+    for i in 0..chars.len() {
+        if chars[i] != cur {
+            total = total + 1;
+            cur = chars[i];
+        }
+    }
+    total
+}
+
+/// 30
+pub fn count_pairs(root: Option<Rc<RefCell<TreeNode>>>, distance: i32) -> i32 {
+    fn dfs(root: Option<Rc<RefCell<TreeNode>>>, total: &mut i32, distance: i32) -> Vec<i32> {
+        if let Some(node) = root.as_ref() {
+            let (left, right) = (node.borrow().left.clone(), node.borrow().right.clone());
+            if left.is_none() && right.is_none() {
+                vec![0]
+            } else {
+                let mut left_depth = dfs(left, total, distance);
+                let mut right_depth = dfs(right, total, distance);
+                for i in left_depth.iter() {
+                    for j in right_depth.iter() {
+                        if i + j + 2 <= distance {
+                            *total += 1;
+                        }
+                    }
+                }
+                left_depth.append(&mut right_depth);
+                left_depth.iter().map(|d| d + 1).collect()
+            }
+        } else {
+            vec![]
+        }
+    }
+    let mut total = 0;
+    dfs(root.clone(), &mut total, distance);
+    total
+}
+
+/// 31
+pub fn get_length_of_optimal_compression(s: String, k: i32) -> i32 {
+    const CALC: [u8; 101] = [
+        0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+        3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+        3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+        3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4,
+    ];
+    let s = s.into_bytes();
+    let n = s.len();
+    let mut f = vec![vec![127; k as usize + 1]; n + 1];
+    f[0][0] = 0;
+    for i in 1..=n {
+        for j in 0..i.min(k as usize) + 1 {
+            if j > 0 {
+                f[i][j] = f[i - 1][j - 1]
+            }
+            let (mut same, mut diff) = (0, 0);
+            for i0 in (1..=i).rev() {
+                if s[i0 - 1] == s[i - 1] {
+                    same += 1;
+                    f[i][j] = f[i][j].min(f[i0 - 1][j - diff] + CALC[same])
+                } else {
+                    diff += 1;
+                    if diff > j {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    f[n][k as usize] as i32
+}
+
+/// 34
+pub fn count_good_triplets(arr: Vec<i32>, a: i32, b: i32, c: i32) -> i32 {
+    let (size, mut cnt) = (arr.len(), 0);
+    for i in 0..size - 2 {
+        for j in i + 1..size - 1 {
+            for k in j + 1..size {
+                if (arr[i] - arr[j]).abs() <= a
+                    && (arr[j] - arr[k]).abs() <= b
+                    && (arr[i] - arr[k]).abs() <= c
+                {
+                    cnt = cnt + 1;
+                }
+            }
+        }
+    }
+    cnt
+}
+
+/// 35
+pub fn get_winner(arr: Vec<i32>, k: i32) -> i32 {
+    let mut prev = arr[0].max(arr[1]);
+    if k == 1 {
+        return prev;
+    }
+    let mut consecutive = 1;
+    let mut max_num = prev;
+    for &num in &arr[2..] {
+        let curr = num;
+        if prev > curr {
+            consecutive += 1;
+            if consecutive == k {
+                return prev;
+            }
+        } else {
+            prev = curr;
+            consecutive = 1;
+        }
+        max_num = max_num.max(curr);
+    }
+    max_num
 }
