@@ -3,11 +3,8 @@ use std::{
     cmp::Ordering,
     collections::{BinaryHeap, HashMap},
     i32,
-    rc::Rc,
     str::FromStr,
 };
-
-use crate::common::TreeNode;
 
 /// 02
 pub fn can_make_arithmetic_progression(mut arr: Vec<i32>) -> bool {
@@ -444,4 +441,52 @@ pub fn count_odds(low: i32, high: i32) -> i32 {
     (low..=high)
         .into_iter()
         .fold(0, |acc, cur| if cur % 2 == 0 { acc } else { acc + 1 })
+}
+
+/// 24
+pub fn num_of_subarrays(arr: Vec<i32>) -> i32 {
+    let (mut even, mut odd, mut total, mut prefix_sum) = (1, 0, 0, 0);
+    for i in 0..arr.len() {
+        prefix_sum = prefix_sum + arr[i];
+        if prefix_sum % 2 == 0 {
+            total = (total + odd) % 1000000007;
+            even = even + 1;
+        } else {
+            total = (total + even) % 1000000007;
+            odd = odd + 1;
+        }
+    }
+    total
+}
+
+/// 25
+pub fn num_splits(s: String) -> i32 {
+    let chars = s.chars().collect::<Vec<char>>();
+    let mut right_cnt = chars.iter().fold(HashMap::new(), |mut acc, cur| {
+        *acc.entry(cur).or_insert(0) += 1;
+        acc
+    });
+    let (mut cnt, mut left_cnt) = (0, HashMap::new());
+    for i in 0..chars.len() {
+        if let Some(r) = right_cnt.get_mut(&chars[i]) {
+            *r -= 1;
+            if *r == 0 {
+                right_cnt.remove(&chars[i]);
+            }
+        }
+        *left_cnt.entry(chars[i]).or_insert(0) += 1;
+        if left_cnt.len() == right_cnt.len() {
+            cnt += 1;
+        }
+    }
+    cnt
+}
+
+/// 26
+pub fn min_number_operations(target: Vec<i32>) -> i32 {
+    let (size, mut ans) = (target.len(), target[0]);
+    for i in 1..size {
+        ans += (target[i] - target[i - 1]).max(0);
+    }
+    ans
 }
