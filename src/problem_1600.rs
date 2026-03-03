@@ -709,7 +709,7 @@ pub fn can_convert_string(s: String, t: String, k: i32) -> bool {
     s.bytes()
         .zip(t.bytes())
         .enumerate()
-        .fold(std::collections::HashMap::new(), |mut acc, (i, (u, v))| {
+        .fold(std::collections::HashMap::new(), |mut acc, (_, (u, v))| {
             if u != v {
                 *acc.entry((26 + v - u) % 26).or_insert(0) += 1;
             }
@@ -719,4 +719,29 @@ pub fn can_convert_string(s: String, t: String, k: i32) -> bool {
         .into_iter()
         .fold(0, |prev, (k, v)| prev.max((v - 1) * 26 + k as i32))
         <= k
+}
+
+/// 41
+pub fn min_insertions(s: String) -> i32 {
+    let chars = s.chars().collect::<Vec<char>>();
+    let (mut left, mut insertion, mut pointer) = (0, 0, 0);
+    while pointer < chars.len() {
+        if chars[pointer] == '(' {
+            left += 1;
+            pointer += 1;
+        } else {
+            if left > 0 {
+                left -= 1;
+            } else {
+                insertion += 1;
+            }
+            if pointer < chars.len() - 1 && chars[pointer + 1] == ')' {
+                pointer += 2;
+            } else {
+                insertion += 1;
+                pointer += 1;
+            }
+        }
+    }
+    insertion + left * 2
 }
