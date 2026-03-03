@@ -619,3 +619,104 @@ pub fn get_winner(arr: Vec<i32>, k: i32) -> i32 {
     }
     max_num
 }
+
+/// 36
+pub fn min_swaps(grid: Vec<Vec<i32>>) -> i32 {
+    let n = grid.len();
+    let mut pos = vec![-1; n];
+
+    for i in 0..n {
+        for j in (0..n).rev() {
+            if grid[i][j] == 1 {
+                pos[i] = j as i32;
+                break;
+            }
+        }
+    }
+
+    let mut ans = 0;
+    let mut pos = pos;
+    for i in 0..n {
+        let mut k = -1;
+        for j in i..n {
+            if pos[j] <= i as i32 {
+                ans += j - i;
+                k = j as i32;
+                break;
+            }
+        }
+
+        if k != -1 {
+            let k = k as usize;
+            for j in (i + 1..=k).rev() {
+                pos.swap(j, j - 1);
+            }
+        } else {
+            return -1;
+        }
+    }
+    ans as i32
+}
+
+/// 37
+pub fn max_sum(nums1: Vec<i32>, nums2: Vec<i32>) -> i32 {
+    let (mut p_1, mut p_2, size_1, size_2, mut score_1, mut score_2) =
+        (0, 0, nums1.len(), nums2.len(), 0, 0);
+    while p_1 < size_1 || p_2 < size_2 {
+        if p_1 < size_1 && p_2 < size_2 {
+            if nums1[p_1] < nums2[p_2] {
+                score_1 += nums1[p_1] as i64;
+                p_1 += 1;
+            } else if nums1[p_1] > nums2[p_2] {
+                score_2 += nums2[p_2] as i64;
+                p_2 += 1;
+            } else {
+                let max = score_1.max(score_2) + nums1[p_1] as i64;
+                score_1 = max;
+                score_2 = max;
+                p_1 += 1;
+                p_2 += 1;
+            }
+        } else {
+            if p_1 < size_1 {
+                score_1 += nums1[p_1] as i64;
+                p_1 += 1;
+            } else if p_2 < size_2 {
+                score_2 += nums2[p_2] as i64;
+                p_2 += 1;
+            }
+        }
+    }
+    (score_1.max(score_2) % 1000000007) as i32
+}
+
+/// 39
+pub fn find_kth_positive(arr: Vec<i32>, mut k: i32) -> i32 {
+    arr.iter().for_each(|n| {
+        if *n <= k {
+            k += 1;
+        }
+    });
+    k
+}
+
+/// 40
+pub fn can_convert_string(s: String, t: String, k: i32) -> bool {
+    if s.len() != t.len() {
+        return false;
+    }
+
+    s.bytes()
+        .zip(t.bytes())
+        .enumerate()
+        .fold(std::collections::HashMap::new(), |mut acc, (i, (u, v))| {
+            if u != v {
+                *acc.entry((26 + v - u) % 26).or_insert(0) += 1;
+            }
+
+            acc
+        })
+        .into_iter()
+        .fold(0, |prev, (k, v)| prev.max((v - 1) * 26 + k as i32))
+        <= k
+}
