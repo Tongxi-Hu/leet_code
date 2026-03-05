@@ -1,7 +1,7 @@
 use std::{
     cell::RefCell,
     cmp::Ordering,
-    collections::{BinaryHeap, HashMap},
+    collections::{BinaryHeap, HashMap, VecDeque},
     i32,
     rc::Rc,
     str::FromStr,
@@ -767,4 +767,43 @@ pub fn longest_awesome(s: String) -> i32 {
         }
     }
     ans
+}
+
+/// 44
+pub fn make_good(s: String) -> String {
+    let (mut stack, chars) = (VecDeque::<char>::new(), s.chars().collect::<Vec<char>>());
+    chars.iter().for_each(|&c| {
+        if let Some(&pre) = stack.back() {
+            if pre != c && pre.to_ascii_lowercase() == c.to_ascii_lowercase() {
+                stack.pop_back();
+            } else {
+                stack.push_back(c);
+            }
+        } else {
+            stack.push_back(c)
+        }
+    });
+    stack.iter().collect::<String>()
+}
+
+/// 45
+pub fn find_kth_bit(n: i32, k: i32) -> char {
+    fn invert(bit: char) -> char {
+        if bit == '0' { '1' } else { '0' }
+    }
+    fn find_kth_bit_recursive(n: i32, k: i32) -> char {
+        if k == 1 {
+            return '0';
+        }
+        let mid = 1 << (n - 1);
+        if k == mid {
+            return '1';
+        } else if k < mid {
+            return find_kth_bit_recursive(n - 1, k);
+        } else {
+            let new_k = mid * 2 - k;
+            return invert(find_kth_bit_recursive(n - 1, new_k));
+        }
+    }
+    find_kth_bit_recursive(n, k)
 }
