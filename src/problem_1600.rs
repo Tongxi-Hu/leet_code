@@ -5,6 +5,7 @@ use std::{
     i32,
     rc::Rc,
     str::FromStr,
+    usize,
 };
 
 use crate::common::TreeNode;
@@ -806,4 +807,33 @@ pub fn find_kth_bit(n: i32, k: i32) -> char {
         }
     }
     find_kth_bit_recursive(n, k)
+}
+
+/// 46
+pub fn max_non_overlapping(nums: Vec<i32>, target: i32) -> i32 {
+    let mut prefix_sum = vec![0; nums.len() + 1];
+    nums.iter().enumerate().for_each(|(i, &n)| {
+        if i == 0 {
+            prefix_sum[i + 1] = n;
+        } else {
+            prefix_sum[i + 1] = prefix_sum[i] + n;
+        }
+    });
+    let (mut last, mut cnt) = (0, 0);
+    'a: for right in 1..prefix_sum.len() {
+        for left in last..right {
+            if prefix_sum[right] - prefix_sum[left] == target {
+                cnt = cnt + 1;
+                last = right;
+                continue 'a;
+            }
+        }
+    }
+    cnt
+}
+
+/// 50
+pub fn three_consecutive_odds(arr: Vec<i32>) -> bool {
+    arr.windows(3)
+        .any(|v| v[0] % 2 == 1 && v[1] % 2 == 1 && v[2] % 2 == 1)
 }
