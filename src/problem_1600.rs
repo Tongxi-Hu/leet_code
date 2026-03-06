@@ -857,3 +857,84 @@ pub fn three_consecutive_odds(arr: Vec<i32>) -> bool {
     arr.windows(3)
         .any(|v| v[0] % 2 == 1 && v[1] % 2 == 1 && v[2] % 2 == 1)
 }
+
+/// 51
+pub fn min_operations(n: i32) -> i32 {
+    (1..=((n - 1) / 2) * 2 + 1)
+        .step_by(2)
+        .into_iter()
+        .fold(0, |acc, cur| acc + n - cur)
+}
+
+/// 52
+pub fn max_distance(position: Vec<i32>, m: i32) -> i32 {
+    let mut position = position;
+    position.sort();
+    let mut left = 1;
+    let mut right = position[position.len() - 1] - position[0];
+    let mut ans = -1;
+
+    fn check(x: i32, position: &Vec<i32>, m: i32) -> bool {
+        let mut pre = position[0];
+        let mut cnt = 1;
+        for &pos in &position[1..] {
+            if pos - pre >= x {
+                pre = pos;
+                cnt += 1;
+            }
+        }
+        cnt >= m
+    }
+    while left <= right {
+        let mid = (left + right) / 2;
+        if check(mid, &position, m) {
+            ans = mid;
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+    ans
+}
+
+/// 53
+pub fn min_days(n: i32) -> i32 {
+    let mut cache = HashMap::new();
+    fn get_min(n: i32, cache: &mut HashMap<i32, i32>) -> i32 {
+        if n <= 1 {
+            return 1;
+        }
+        if let Some(&v) = cache.get(&n) {
+            v
+        } else {
+            let two = get_min(n / 2, cache) + 1 + n % 2;
+            let three = get_min(n / 3, cache) + 1 + n % 3;
+            let min = two.min(three);
+            cache.insert(n, min);
+            min
+        }
+    }
+    get_min(n, &mut cache)
+}
+
+/// 56
+fn thousand_separator(mut n: i32) -> String {
+    if n == 0 {
+        return "0".to_string();
+    }
+
+    let mut ans = vec![];
+    let mut i = 0;
+
+    while n > 0 {
+        if i % 3 == 0 && i > 0 {
+            ans.push('.');
+        }
+
+        ans.push(((n % 10) as u8 + 48) as char);
+        n /= 10;
+        i += 1;
+    }
+
+    ans.into_iter().rev().collect()
+}
