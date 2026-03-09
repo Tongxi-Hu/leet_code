@@ -1065,3 +1065,50 @@ pub fn most_visited(n: i32, rounds: Vec<i32>) -> Vec<i32> {
     ans.sort();
     ans
 }
+
+/// 61
+pub fn max_coins(mut piles: Vec<i32>) -> i32 {
+    piles.sort();
+    piles.reverse();
+    let cnt = piles.len() / 3;
+    (1..=cnt)
+        .into_iter()
+        .map(|i| i * 2 - 1)
+        .fold(0, |acc, cur| acc + piles[cur])
+}
+
+/// 62
+pub fn find_latest_step(arr: Vec<i32>, m: i32) -> i32 {
+    let mut pos: Vec<Option<(usize, usize)>> = vec![None; arr.len() + 2];
+    let (mut ans, mut cnt, m) = (-1, 0, m as usize);
+    for (t, &i) in arr.iter().enumerate() {
+        let i = i as usize;
+        let left = if let Some((start, _)) = pos[i - 1] {
+            let p = pos[start].unwrap();
+            if p.1 - p.0 + 1 == m {
+                cnt -= 1;
+            }
+            p.0
+        } else {
+            i
+        };
+        let right = if let Some((_, end)) = pos[i + 1] {
+            let p = pos[end].unwrap();
+            if p.1 - p.0 + 1 == m {
+                cnt -= 1;
+            }
+            p.1
+        } else {
+            i
+        };
+        if right - left + 1 == m {
+            cnt += 1;
+        }
+        if cnt > 0 {
+            ans = t as i32 + 1;
+        }
+        pos[left] = Some((left, right));
+        pos[right] = Some((left, right));
+    }
+    ans
+}
