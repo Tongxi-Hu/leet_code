@@ -1112,3 +1112,40 @@ pub fn find_latest_step(arr: Vec<i32>, m: i32) -> i32 {
     }
     ans
 }
+
+/// 66
+pub fn contains_pattern(arr: Vec<i32>, m: i32, k: i32) -> bool {
+    arr.windows((m * k) as usize)
+        .any(|w| w.chunks(m as usize).all(|p| *p == w[0..m as usize]))
+}
+
+/// 67
+pub fn get_max_len(nums: Vec<i32>) -> i32 {
+    let size = nums.len();
+    let (mut dp, mut ans) = (vec![(0, 0); size], 0);
+    nums.iter().enumerate().for_each(|(i, &n)| {
+        if n > 0 {
+            if i == 0 {
+                dp[i] = (1, 0);
+            } else {
+                dp[i] = (
+                    dp[i - 1].0 + 1,
+                    if dp[i - 1].1 > 0 { dp[i - 1].1 + 1 } else { 0 },
+                );
+            }
+        } else if n == 0 {
+            dp[i] = (0, 0);
+        } else if n < 0 {
+            if i == 0 {
+                dp[i] = (0, 1);
+            } else {
+                dp[i] = (
+                    if dp[i - 1].1 > 0 { dp[i - 1].1 + 1 } else { 0 },
+                    dp[i - 1].0 + 1,
+                );
+            }
+        }
+        ans = ans.max(dp[i].0);
+    });
+    ans
+}
