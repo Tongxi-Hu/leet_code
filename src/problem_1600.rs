@@ -1,7 +1,7 @@
 use std::{
     cell::RefCell,
     cmp::Ordering,
-    collections::{BinaryHeap, HashMap, VecDeque},
+    collections::{BinaryHeap, HashMap, HashSet, VecDeque},
     i32,
     rc::Rc,
     str::FromStr,
@@ -937,4 +937,131 @@ fn thousand_separator(mut n: i32) -> String {
     }
 
     ans.into_iter().rev().collect()
+}
+
+/// 57
+pub fn find_smallest_set_of_vertices(n: i32, edges: Vec<Vec<i32>>) -> Vec<i32> {
+    let mut ans = (0..n).collect::<HashSet<i32>>();
+    edges.iter().for_each(|e| {
+        ans.remove(&e[1]);
+    });
+    ans.into_iter().collect::<Vec<i32>>()
+}
+
+/// 58
+pub fn min_operations_2(nums: Vec<i32>) -> i32 {
+    let mut nums = nums;
+    let len = nums.len();
+    let target = vec![0; len];
+    let mut res = 0;
+
+    while nums != target {
+        nums = nums
+            .iter()
+            .map(|x| {
+                if x % 2 == 1 {
+                    res += 1;
+                    (x - 1) / 2
+                } else {
+                    x / 2
+                }
+            })
+            .collect();
+        if nums == target {
+            break;
+        }
+        res += 1;
+    }
+    res
+}
+
+/// 59
+pub fn contains_cycle(grid: Vec<Vec<char>>) -> bool {
+    const DIFF_X: [i32; 4] = [1, 0, -1, 0];
+    const DIFF_Y: [i32; 4] = [0, 1, 0, -1];
+
+    fn dfs(
+        grid: &Vec<Vec<char>>,
+        visited: &mut Vec<Vec<bool>>,
+        cur_pos: (usize, usize),
+        route: &mut HashMap<(usize, usize), i32>,
+        depth: i32,
+    ) -> bool {
+        let mark = grid[cur_pos.0][cur_pos.1];
+        let mut ret = false;
+
+        for i in 0..4 {
+            let next_x = cur_pos.0 as i32 + DIFF_X[i];
+            let next_y = cur_pos.1 as i32 + DIFF_Y[i];
+            if next_x >= 0
+                && next_y >= 0
+                && next_x < grid.len() as i32
+                && next_y < grid[0].len() as i32
+            {
+                if grid[next_x as usize][next_y as usize] == mark {
+                    if !visited[next_x as usize][next_y as usize] {
+                        visited[next_x as usize][next_y as usize] = true;
+                        route.insert((next_x as usize, next_y as usize), depth + 1);
+                        ret |= dfs(
+                            grid,
+                            visited,
+                            (next_x as usize, next_y as usize),
+                            route,
+                            depth + 1,
+                        );
+                        route.remove(&(next_x as usize, next_y as usize));
+                    } else {
+                        let start_depth = *route.get(&(next_x as usize, next_y as usize)).unwrap();
+                        if depth - start_depth + 1 >= 4 {
+                            ret = true;
+                        }
+                    }
+                }
+            }
+            if ret {
+                break;
+            }
+        }
+
+        return ret;
+    }
+
+    let mut route = HashMap::new();
+    let mut visited = vec![vec![false; grid[0].len()]; grid.len()];
+
+    for i in 0..grid.len() {
+        for j in 0..grid[i].len() {
+            if !visited[i][j] {
+                visited[i][j] = true;
+                route.insert((i, j), 0);
+                if dfs(&grid, &mut visited, (i, j), &mut route, 0) {
+                    return true;
+                }
+                route.remove(&(i, j));
+            }
+        }
+    }
+
+    return false;
+}
+
+/// 60
+pub fn most_visited(n: i32, rounds: Vec<i32>) -> Vec<i32> {
+    let m = rounds.len();
+    let start = rounds[0];
+    let end = rounds[m - 1];
+
+    if start == end {
+        return vec![start];
+    }
+
+    if start < end {
+        return (start..=end).collect();
+    }
+
+    let mut ans = (start..=end + n)
+        .map(|x| ((x - 1) % n) + 1)
+        .collect::<Vec<i32>>();
+    ans.sort();
+    ans
 }
