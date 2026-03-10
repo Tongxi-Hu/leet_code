@@ -1583,3 +1583,13 @@ impl DSU {
             .count()
     }
 }
+
+/// 88
+pub fn sum_odd_length_subarrays(arr: Vec<i32>) -> i32 {
+    let mut sum = 0;
+    for i in 0..arr.len() {
+        let (lc, rc) = (i as i32, (arr.len() - i) as i32 - 1);
+        sum += arr[i] * (((lc + 1) / 2) * ((rc + 1) / 2) + (lc / 2 + 1) * (rc / 2 + 1));
+    }
+    sum
+}
