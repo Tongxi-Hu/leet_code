@@ -1366,3 +1366,220 @@ impl UnionFind {
         self.find(x) == self.find(y)
     }
 }
+
+/// 82
+pub fn num_special(mat: Vec<Vec<i32>>) -> i32 {
+    let (mut cnt, mut rows, mut cols) = (0, HashSet::new(), HashSet::new());
+    for r in 0..mat.len() {
+        for c in 0..mat[0].len() {
+            if mat[r][c] == 1
+                && !rows.contains(&r)
+                && !cols.contains(&c)
+                && mat[r].iter().sum::<i32>() == 1
+            {
+                let mut col_sum = 0;
+                for i in 0..mat.len() {
+                    col_sum = col_sum + mat[i][c];
+                }
+                if col_sum == 1 {
+                    cnt = cnt + 1;
+                    rows.insert(r);
+                    cols.insert(c);
+                }
+            }
+        }
+    }
+    cnt
+}
+
+/// 83
+pub fn unhappy_friends(n: i32, preferences: Vec<Vec<i32>>, pairs: Vec<Vec<i32>>) -> i32 {
+    let mut vec = vec![std::collections::HashSet::new(); n as usize];
+
+    for pair in pairs {
+        let x = pair[0] as usize;
+        let y = pair[1] as usize;
+
+        for &u in &preferences[x] {
+            let u = u as usize;
+            if u != y {
+                vec[x].insert(u);
+            } else {
+                break;
+            }
+        }
+
+        for &v in &preferences[y] {
+            let v = v as usize;
+            if v != x {
+                vec[y].insert(v);
+            } else {
+                break;
+            }
+        }
+    }
+
+    let mut ans = 0;
+
+    for i in 0..n as usize {
+        for j in 0..n as usize {
+            if i != j && vec[i].contains(&j) && vec[j].contains(&i) {
+                ans += 1;
+                break;
+            }
+        }
+    }
+
+    ans
+}
+
+/// 84
+pub fn min_cost_connect_points(points: Vec<Vec<i32>>) -> i32 {
+    let n = points.len();
+    let mut edges = vec![];
+
+    build_edges(&mut edges, points.iter().map(|x| (x[0], x[1])).collect());
+    build_edges(&mut edges, points.iter().map(|x| (x[1], x[0])).collect());
+    build_edges(&mut edges, points.iter().map(|x| (-x[1], x[0])).collect());
+    build_edges(&mut edges, points.iter().map(|x| (x[0], -x[1])).collect());
+
+    let mut dsu = DSU::new(n);
+    let mut ans = 0;
+    edges.sort();
+    for (d, i, j) in edges {
+        if !dsu.connected(i, j) {
+            ans += d;
+            dsu.unite(i, j);
+        }
+    }
+    ans
+}
+
+fn build_edges(edges: &mut Vec<(i32, usize, usize)>, points: Vec<(i32, i32)>) {
+    let mut points_i: Vec<_> = points.iter().enumerate().map(|(i, &x)| (x, i)).collect();
+    points_i.sort();
+
+    let a: std::collections::BTreeSet<_> = points.iter().map(|x| x.1 - x.0).collect();
+    let b: Vec<_> = a.into_iter().collect();
+
+    let num = b.len();
+    let mut bit = BIT::new(num);
+
+    for ((x, y), i) in points_i.into_iter().rev() {
+        let val = y - x;
+        let rank = b.binary_search(&val).unwrap();
+        if let Some(j) = bit.query(rank) {
+            let d = (x - points[j].0).abs() + (y - points[j].1).abs();
+            edges.push((d, i, j));
+        }
+        bit.update(x + y, rank, i);
+    }
+}
+
+struct BIT {
+    tree: Vec<i32>,
+    indices: Vec<Option<usize>>,
+}
+
+impl BIT {
+    fn new(n: usize) -> Self {
+        Self {
+            tree: vec![i32::MAX; n + 1],
+            indices: vec![None; n + 1],
+        }
+    }
+
+    fn lowbit(x: usize) -> usize {
+        debug_assert!(x > 0);
+        x - (x & (x - 1))
+    }
+
+    fn update(&mut self, val: i32, rank: usize, idx: usize) {
+        let mut i = rank + 1;
+        while i > 0 {
+            // println!("in update");
+            if self.tree[i] > val {
+                self.tree[i] = val;
+                self.indices[i].replace(idx);
+            }
+            i -= Self::lowbit(i);
+        }
+    }
+
+    fn query(&self, rank: usize) -> Option<usize> {
+        let mut ans = None;
+        let mut min_val = i32::MAX;
+        let mut i = rank + 1;
+
+        while i < self.tree.len() {
+            if min_val > self.tree[i] {
+                min_val = self.tree[i];
+                ans = self.indices[i];
+            }
+            i += Self::lowbit(i);
+        }
+        ans
+    }
+}
+
+struct DSU {
+    par: Vec<usize>,
+    sz: Vec<usize>,
+}
+
+impl DSU {
+    fn new(n: usize) -> Self {
+        Self {
+            par: (0..n).collect(),
+            sz: vec![0; n],
+        }
+    }
+
+    fn len(&self) -> usize {
+        let mut ans = 0;
+        for (i, p) in self.par.iter().enumerate() {
+            if i == *p {
+                ans += self.sz[i];
+            }
+        }
+        ans
+    }
+
+    fn find(&mut self, x: usize) -> usize {
+        if self.par[x] != x {
+            self.par[x] = self.find(self.par[x]);
+        }
+        self.par[x]
+    }
+
+    fn insert(&mut self, x: usize) {
+        if self.sz[x] == 0 {
+            self.sz[x] = 1
+        }
+    }
+
+    fn unite(&mut self, x: usize, y: usize) {
+        self.insert(x);
+        self.insert(y);
+        let (mut px, mut py) = (self.find(x), self.find(y));
+        if px != py {
+            if self.sz[px] > self.sz[py] {
+                std::mem::swap(&mut px, &mut py);
+            }
+            self.par[px] = self.par[py];
+            self.sz[py] += self.sz[px];
+        }
+    }
+
+    fn connected(&mut self, x: usize, y: usize) -> bool {
+        self.find(x) == self.find(y)
+    }
+
+    fn component_num(&self) -> usize {
+        self.par
+            .iter()
+            .enumerate()
+            .filter(|&(x, p)| self.sz[x] > 0 && x == *p)
+            .count()
+    }
+}
