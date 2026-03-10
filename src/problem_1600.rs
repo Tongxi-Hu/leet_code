@@ -1149,3 +1149,64 @@ pub fn get_max_len(nums: Vec<i32>) -> i32 {
     });
     ans
 }
+
+/// 72
+pub fn diagonal_sum(mat: Vec<Vec<i32>>) -> i32 {
+    let size = mat.len();
+    let mut sum = 0;
+    for i in 0..size {
+        sum = sum + mat[i][i] + mat[i][size - i - 1];
+    }
+    if size % 2 != 0 {
+        sum = sum - mat[size / 2][size / 2]
+    }
+    sum
+}
+
+/// 73
+pub fn num_ways(s: String) -> i32 {
+    let indices = s
+        .bytes()
+        .enumerate()
+        .filter(|&(_, c)| c == b'1')
+        .map(|(i, _)| i as i32)
+        .collect::<Vec<_>>();
+
+    if indices.len() % 3 != 0 {
+        return 0;
+    }
+
+    if indices.is_empty() {
+        return ((s.len() - 2) as i64 * (s.len() - 1) as i64 / 2 % 1000000007) as i32;
+    }
+
+    let third = indices.len() / 3;
+    let split_12 = (indices[third] - indices[third - 1]) as i64;
+    let split_23 = (indices[2 * third] - indices[2 * third - 1]) as i64;
+
+    (split_12 * split_23 % 1000000007) as i32
+}
+
+/// 74
+pub fn find_length_of_shortest_subarray(arr: Vec<i32>) -> i32 {
+    let (mut l, mut r, n) = (0, arr.len() - 1, arr.len());
+    while l < n - 1 && arr[l] <= arr[l + 1] {
+        l += 1;
+    }
+    if l == n - 1 {
+        return 0;
+    }
+    while r > l && arr[r - 1] <= arr[r] {
+        r -= 1;
+    }
+    let (mut i, mut j, mut ret) = (0, r, (r as i32).min((n - l) as i32 - 1));
+    while i <= l && j < n {
+        if arr[i] <= arr[j] {
+            ret = ret.min((j - i) as i32 - 1);
+            i += 1;
+        } else {
+            j += 1;
+        }
+    }
+    ret
+}
