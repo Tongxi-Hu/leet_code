@@ -1210,3 +1210,159 @@ pub fn find_length_of_shortest_subarray(arr: Vec<i32>) -> i32 {
     }
     ret
 }
+
+/// 76
+pub fn modify_string(s: String) -> String {
+    let mut chars = s.chars().collect::<Vec<char>>();
+    for i in 0..chars.len() {
+        if chars[i] == '?' {
+            let mut new_char = 'a';
+            while i > 0 && chars[i - 1] == new_char
+                || i < chars.len() - 1 && chars[i + 1] == new_char
+            {
+                new_char = (new_char as u8 + 1) as char;
+            }
+            chars[i] = new_char;
+        }
+    }
+    chars.iter().collect()
+}
+
+/// 77
+pub fn num_triplets(nums1: Vec<i32>, nums2: Vec<i32>) -> i32 {
+    fn helper(nums1: &[i32], nums2: &[i32]) -> i32 {
+        let mut counter: HashMap<i32, i32> = HashMap::new();
+        for &num in nums2 {
+            if let Some(cnt) = counter.get_mut(&num) {
+                *cnt += 1
+            } else {
+                counter.insert(num, 1);
+            }
+        }
+
+        let mut res = 0;
+        for &num1 in nums1 {
+            let target = num1 * num1;
+            for factor1 in 1..num1 {
+                if target % factor1 != 0 {
+                    continue;
+                }
+                let factor2 = target / factor1;
+                if let (Some(cnt1), Some(cnt2)) = (counter.get(&factor1), counter.get(&factor2)) {
+                    res += cnt1 * cnt2;
+                }
+            }
+            if let Some(cnt) = counter.get(&num1) {
+                res += cnt * (cnt - 1) / 2;
+            }
+        }
+        res
+    }
+    return helper(&nums1, &nums2) + helper(&nums2, &nums1);
+}
+
+/// 78
+pub fn min_cost_i(colors: String, needed_time: Vec<i32>) -> i32 {
+    let colors = colors.chars().collect::<Vec<char>>();
+    let (mut p, size, mut ans) = (0, colors.len(), 0);
+    while p < size {
+        let (color, mut max, mut sum) = (colors[p], 0, 0);
+        while p < size && colors[p] == color {
+            sum = sum + needed_time[p];
+            max = max.max(needed_time[p]);
+            p = p + 1;
+        }
+        ans = ans + sum - max;
+    }
+    ans
+}
+
+/// 79
+pub fn max_num_edges_to_remove(n: i32, edges: Vec<Vec<i32>>) -> i32 {
+    let n = n as usize;
+    let mut edges = edges;
+    let mut uf_alice = UnionFind::new(n);
+    let mut uf_bob = UnionFind::new(n);
+    let mut answer = 0;
+
+    edges.sort_unstable_by(|a, b| b[0].cmp(&a[0]));
+    for edge in edges {
+        let (t, u, v) = (edge[0], edge[1] as usize - 1, edge[2] as usize - 1);
+        if t == 3 {
+            if !uf_alice.union(u, v) || !uf_bob.union(u, v) {
+                answer += 1;
+            }
+        } else if t == 1 {
+            if !uf_alice.union(u, v) {
+                answer += 1;
+            }
+        } else {
+            if !uf_bob.union(u, v) {
+                answer += 1;
+            }
+        }
+    }
+    if uf_alice.set_count > 1 || uf_bob.set_count > 1 {
+        return -1;
+    }
+    answer
+}
+
+pub struct UnionFind {
+    parent: Vec<usize>,
+    rank: Vec<usize>,
+    sz: Vec<usize>,
+    pub set_count: usize,
+}
+
+impl UnionFind {
+    pub fn new(n: usize) -> Self {
+        let mut parent = vec![0; n];
+        for i in 0..n {
+            parent[i] = i;
+        }
+        UnionFind {
+            parent,
+            rank: vec![0; n],
+            sz: vec![1; n],
+            set_count: n,
+        }
+    }
+
+    pub fn find(&mut self, x: usize) -> usize {
+        if x != self.parent[x] {
+            self.parent[x] = self.find(self.parent[x]);
+        }
+        self.parent[x]
+    }
+
+    pub fn union(&mut self, x: usize, y: usize) -> bool {
+        let root_x = self.find(x);
+        let root_y = self.find(y);
+        if root_x == root_y {
+            return false;
+        }
+
+        match self.rank[root_x].cmp(&self.rank[root_y]) {
+            std::cmp::Ordering::Greater => {
+                self.parent[root_y] = root_x;
+                self.sz[root_x] += self.sz[root_y];
+            }
+            std::cmp::Ordering::Less => {
+                self.parent[root_x] = root_y;
+                self.sz[root_y] += self.sz[root_x];
+            }
+            _ => {
+                self.parent[root_y] = root_x;
+                self.rank[root_x] += 1;
+                self.sz[root_x] += self.sz[root_y];
+            }
+        }
+        self.set_count -= 1;
+        true
+    }
+
+    pub fn check_connected(&mut self, x: usize, y: usize) -> bool {
+        self.find(x) == self.find(y)
+    }
+}
