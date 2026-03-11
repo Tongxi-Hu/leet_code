@@ -1593,3 +1593,159 @@ pub fn sum_odd_length_subarrays(arr: Vec<i32>) -> i32 {
     }
     sum
 }
+
+/// 89
+pub fn max_sum_range_query(mut nums: Vec<i32>, requests: Vec<Vec<i32>>) -> i32 {
+    let n = nums.len();
+    nums.sort_unstable();
+    let mut v = vec![0i64; n + 1];
+    for req in requests.into_iter() {
+        v[req[0] as usize] += 1;
+        v[req[1] as usize + 1] -= 1;
+    }
+    for i in 1..n {
+        v[i] += v[i - 1];
+    }
+    v.pop();
+    v.sort_unstable();
+    const MOD: i64 = 1e9 as i64 + 7;
+    let mut res = 0i64;
+    for i in (0..n).rev() {
+        if v[i] == 0 {
+            break;
+        }
+        res = (res + (v[i] * nums[i] as i64) % MOD) % MOD;
+    }
+    res as i32
+}
+
+/// 90
+pub fn min_subarray(nums: Vec<i32>, p: i32) -> i32 {
+    use std::collections::HashMap;
+    let (sum, mut curr_sum, mut ret, mut cache) = (
+        nums.iter().fold(0, |sum, num| (sum + num) % p),
+        0,
+        nums.len() as i32,
+        HashMap::new(),
+    );
+    if sum % p == 0 {
+        return 0;
+    }
+    cache.insert(0, -1);
+    for i in 0..nums.len() {
+        curr_sum = (curr_sum + nums[i]) % p;
+        let target = (curr_sum - sum + p) % p;
+        if cache.contains_key(&target) {
+            ret = ret.min(i as i32 - cache.get(&target).unwrap());
+        }
+        cache.insert(curr_sum, i as i32);
+    }
+    if ret < nums.len() as i32 { ret } else { -1 }
+}
+
+/// 91
+struct Rect {
+    pub xmin: usize,
+    pub xmax: usize,
+    pub ymin: usize,
+    pub ymax: usize,
+}
+impl Rect {
+    pub fn new(x: usize, y: usize) -> Self {
+        Rect {
+            xmin: x,
+            xmax: x,
+            ymin: y,
+            ymax: y,
+        }
+    }
+    pub fn update(&mut self, x: usize, y: usize) {
+        if y > self.ymax {
+            self.ymax = y
+        };
+        if x > self.xmax {
+            self.xmax = x
+        };
+        if y < self.ymin {
+            self.ymin = y
+        };
+    }
+}
+struct Printer {
+    grid: Vec<Vec<i32>>,
+    rows: usize,
+    cols: usize,
+    rects: HashMap<i32, Rect>,
+}
+impl Printer {
+    fn new(grid: Vec<Vec<i32>>) -> Self {
+        let mut printer = Printer {
+            rows: grid.len(),
+            cols: grid[0].len(),
+            grid,
+            rects: HashMap::new(),
+        };
+        printer.create_rects();
+        printer
+    }
+    fn create_rects(&mut self) {
+        for x in 0..self.rows {
+            for y in 0..self.cols {
+                let color = self.grid[x][y];
+                if let Some(rect) = self.rects.get_mut(&color) {
+                    rect.update(x, y);
+                } else {
+                    let r = Rect::new(x, y);
+                    self.rects.insert(color, r);
+                }
+            }
+        }
+    }
+    fn wipe_rects(&mut self) -> bool {
+        let mut candidate_colors: Vec<Option<i32>> = Vec::new();
+        let mut found = false;
+        for (color, rect) in self.rects.iter() {
+            let mut skip = false;
+            for x in rect.xmin..=rect.xmax {
+                if skip {
+                    break;
+                }
+                for y in rect.ymin..=rect.ymax {
+                    let c = self.grid[x][y];
+                    if c != 0 && c != *color {
+                        skip = true;
+                        break;
+                    }
+                }
+            }
+            if skip {
+                continue;
+            }
+
+            for x in rect.xmin..=rect.xmax {
+                for y in rect.ymin..=rect.ymax {
+                    self.grid[x][y] = 0;
+                }
+            }
+            candidate_colors.push(Some(*color));
+            found = true;
+        }
+        for color in candidate_colors.into_iter() {
+            self.rects.remove(&color.unwrap());
+        }
+        found
+    }
+    fn ans(&mut self) -> bool {
+        while !self.rects.is_empty() {
+            let w = self.wipe_rects();
+            if !w {
+                return false;
+            }
+        }
+        true
+    }
+}
+pub fn is_printable(target_grid: Vec<Vec<i32>>) -> bool {
+    let mut printer = Printer::new(target_grid);
+    printer.ans()
+}
