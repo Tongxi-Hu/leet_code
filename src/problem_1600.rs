@@ -1749,3 +1749,18 @@ pub fn is_printable(target_grid: Vec<Vec<i32>>) -> bool {
     let mut printer = Printer::new(target_grid);
     printer.ans()
 }
+
+/// 92
+pub fn reorder_spaces(text: String) -> String {
+    let words = text.split(' ').filter(|s| s != &"").collect::<Vec<&str>>();
+    let spaces = text.chars().filter(|&c| c == ' ').count();
+    if words.len() == 1 {
+        return words[0].to_string() + &" ".repeat(spaces);
+    }
+    let (gap, tail) = (spaces / (words.len() - 1), spaces % (words.len() - 1));
+    let mut ans = "".to_string();
+    for i in 0..words.len() {
+        ans = ans + words[i] + &" ".repeat(if i == words.len() - 1 { tail } else { gap });
+    }
+    ans
+}
