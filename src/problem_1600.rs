@@ -1764,3 +1764,89 @@ pub fn reorder_spaces(text: String) -> String {
     }
     ans
 }
+
+/// 93
+pub fn max_unique_split(s: String) -> i32 {
+    let (mut max, mut sub_str) = (0, HashSet::new());
+    fn back_track(
+        index: usize,
+        s: &String,
+        max: &mut i32,
+        cur_split: i32,
+        sub_str: &mut HashSet<String>,
+    ) {
+        if index >= s.len() {
+            *max = (*max).max(cur_split);
+        } else {
+            for i in index..s.len() {
+                let str = s[index..i + 1].to_string();
+                if !sub_str.contains(&str) {
+                    sub_str.insert(str.clone());
+                    back_track(i + 1, s, max, cur_split + 1, sub_str);
+                    sub_str.remove(&str);
+                }
+            }
+        }
+    }
+    back_track(0, &s, &mut max, 0, &mut sub_str);
+    max
+}
+
+/// 94
+pub fn max_product_path(grid: Vec<Vec<i32>>) -> i32 {
+    const MOD: i64 = 1000000007;
+    let (height, width) = (grid.len(), grid[0].len());
+    let mut dp = vec![vec![(i64::MIN, i64::MAX); width]; height];
+    dp[0][0] = (grid[0][0] as i64, grid[0][0] as i64);
+    for i in 0..height {
+        for j in 0..width {
+            if j > 0 {
+                dp[i][j].0 = dp[i][j]
+                    .0
+                    .max(dp[i][j - 1].0 * grid[i][j] as i64)
+                    .max(dp[i][j - 1].1 * grid[i][j] as i64);
+                dp[i][j].1 = dp[i][j]
+                    .1
+                    .min(dp[i][j - 1].0 * grid[i][j] as i64)
+                    .min(dp[i][j - 1].1 * grid[i][j] as i64);
+            }
+            if i > 0 {
+                dp[i][j].0 = dp[i][j]
+                    .0
+                    .max(dp[i - 1][j].0 * grid[i][j] as i64)
+                    .max(dp[i - 1][j].1 * grid[i][j] as i64);
+                dp[i][j].1 = dp[i][j]
+                    .1
+                    .min(dp[i - 1][j].0 * grid[i][j] as i64)
+                    .min(dp[i - 1][j].1 * grid[i][j] as i64);
+            }
+        }
+    }
+    if dp[height - 1][width - 1].0 < 0 {
+        -1
+    } else {
+        (dp[height - 1][width - 1].0 % MOD) as i32
+    }
+}
+
+/// 95
+pub fn connect_two_groups(cost: Vec<Vec<i32>>) -> i32 {
+    let n = cost.len();
+    let m = cost[0].len();
+    let mut dp = vec![vec![1_000_000_007; 1 << m]; n + 1];
+    dp[n][(1 << m) - 1] = 0;
+
+    for i in (0..n).rev() {
+        for k in (0..(1 << m)).rev() {
+            for j in 0..m {
+                dp[i][k] = dp[i][k].min(cost[i][j] + dp[i + 1][k | (1 << j)]);
+
+                if k & (1 << j) == 0 {
+                    dp[i][k] = dp[i][k].min(cost[i][j] + dp[i][k | (1 << j)]);
+                }
+            }
+        }
+    }
+
+    dp[0][0] as i32
+}
