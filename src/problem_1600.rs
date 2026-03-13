@@ -1897,3 +1897,49 @@ pub fn min_operations_max_profit(
     ans
 }
 
+/// 100
+struct ThroneInheritance {
+    king: String,
+    children: HashMap<String, Vec<String>>,
+    dead: HashSet<String>,
+}
+
+impl ThroneInheritance {
+    fn new(king_name: String) -> Self {
+        let mut ti = ThroneInheritance {
+            king: king_name.clone(),
+            children: HashMap::new(),
+            dead: HashSet::new(),
+        };
+        ti.children.insert(king_name, Vec::new());
+        ti
+    }
+
+    fn birth(&mut self, parent_name: String, child_name: String) {
+        if let Some(children) = self.children.get_mut(&parent_name) {
+            children.push(child_name.clone());
+        }
+        self.children.insert(child_name, Vec::new());
+    }
+
+    fn death(&mut self, name: String) {
+        self.dead.insert(name);
+    }
+
+    fn get_inheritance_order(&self) -> Vec<String> {
+        let mut order = Vec::new();
+        self.dfs(&self.king, &mut order);
+        order
+    }
+
+    fn dfs(&self, name: &str, order: &mut Vec<String>) {
+        if !self.dead.contains(name) {
+            order.push(name.to_string());
+        }
+        if let Some(children) = self.children.get(name) {
+            for child in children {
+                self.dfs(child, order);
+            }
+        }
+    }
+}
