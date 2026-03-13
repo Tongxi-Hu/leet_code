@@ -1850,3 +1850,50 @@ pub fn connect_two_groups(cost: Vec<Vec<i32>>) -> i32 {
 
     dp[0][0] as i32
 }
+
+/// 98
+pub fn min_operations_i(logs: Vec<String>) -> i32 {
+    logs.iter().fold(0, |mut deepth, str| {
+        match str {
+            s if s.contains("../") => {
+                if deepth > 0 {
+                    deepth -= 1;
+                }
+            }
+            s if s.contains("./") => (),
+            _ => {
+                deepth += 1;
+            }
+        }
+        deepth
+    })
+}
+
+/// 99
+pub fn min_operations_max_profit(
+    customers: Vec<i32>,
+    boarding_cost: i32,
+    running_cost: i32,
+) -> i32 {
+    let mut ans = -1;
+    let mut mx = 0;
+    let mut t = 0;
+    let mut wait = 0;
+    let mut i = 0;
+
+    while wait > 0 || i < customers.len() {
+        wait += if i < customers.len() { customers[i] } else { 0 };
+        let up = std::cmp::min(4, wait);
+        wait -= up;
+        i += 1;
+        t += up * boarding_cost - running_cost;
+
+        if t > mx {
+            mx = t;
+            ans = i as i32;
+        }
+    }
+
+    ans
+}
+
