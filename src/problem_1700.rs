@@ -249,3 +249,47 @@ pub fn visible_points(points: Vec<Vec<i32>>, angle: i32, location: Vec<i32>) -> 
 
     ret + same_point
 }
+
+/// 11
+pub fn minimum_one_bit_operations(n: i32) -> i32 {
+    if n == 0 {
+        return 0;
+    }
+    let x = (n as f64).log2().floor() as i32;
+    (1 << (x + 1)) - 1 - minimum_one_bit_operations(n - (1 << x))
+}
+
+/// 14
+pub fn max_depth(s: String) -> i32 {
+    s.chars()
+        .into_iter()
+        .fold((0, 0), |mut acc, cur| {
+            if cur == '(' {
+                acc.1 = acc.1 + 1;
+                acc.0 = acc.0.max(acc.1);
+            } else if cur == ')' {
+                acc.1 = acc.1 - 1;
+            }
+            acc
+        })
+        .0
+}
+
+/// 15
+pub fn maximal_network_rank(n: i32, roads: Vec<Vec<i32>>) -> i32 {
+    let n = n as usize;
+    let (mut deg, mut con) = (vec![0; n], vec![vec![false; n]; n]);
+    roads.iter().for_each(|c| {
+        deg[c[0] as usize] += 1;
+        deg[c[1] as usize] += 1;
+        con[c[0] as usize][c[1] as usize] = true;
+        con[c[1] as usize][c[0] as usize] = true;
+    });
+    let mut max = 0;
+    for i in 0..n {
+        for j in i + 1..n {
+            max = max.max(deg[i] + deg[j] - if con[i][j] == true { 1 } else { 0 })
+        }
+    }
+    max
+}
