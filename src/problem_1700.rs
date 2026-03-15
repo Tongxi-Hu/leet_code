@@ -1,7 +1,7 @@
 use std::{
     cell::RefCell,
     cmp::Reverse,
-    collections::{BTreeSet, BinaryHeap},
+    collections::{BTreeSet, BinaryHeap, HashMap},
     f64::consts::PI,
     rc::Rc,
 };
@@ -354,4 +354,118 @@ pub fn best_coordinate(towers: Vec<Vec<i32>>, radius: i32) -> Vec<i32> {
     }
 
     vec![ans.1.0, ans.2.0]
+}
+
+/// 22
+struct Fancy {
+    v: Vec<i32>,
+    a: Vec<i32>,
+    b: Vec<i32>,
+}
+
+impl Fancy {
+    const MOD: i64 = 1_000_000_007;
+
+    fn new() -> Self {
+        Fancy {
+            v: Vec::new(),
+            a: vec![1],
+            b: vec![0],
+        }
+    }
+
+    fn append(&mut self, val: i32) {
+        self.v.push(val);
+        self.a.push(*self.a.last().unwrap());
+        self.b.push(*self.b.last().unwrap());
+    }
+
+    fn add_all(&mut self, inc: i32) {
+        let last_idx = self.b.len() - 1;
+        self.b[last_idx] = ((self.b[last_idx] as i64 + inc as i64) % Self::MOD) as i32;
+    }
+
+    fn mult_all(&mut self, m: i32) {
+        let last_idx = self.a.len() - 1;
+        self.a[last_idx] = ((self.a[last_idx] as i64 * m as i64) % Self::MOD) as i32;
+        self.b[last_idx] = ((self.b[last_idx] as i64 * m as i64) % Self::MOD) as i32;
+    }
+
+    fn get_index(&self, idx: i32) -> i32 {
+        let idx = idx as usize;
+        if idx >= self.v.len() {
+            return -1;
+        }
+
+        let ao =
+            ((Self::inv(self.a[idx] as i64) * self.a[self.a.len() - 1] as i64) % Self::MOD) as i64;
+        let bo = (self.b[self.b.len() - 1] as i64 - self.b[idx] as i64 * ao % Self::MOD
+            + Self::MOD)
+            % Self::MOD;
+        let ans = (ao * self.v[idx] as i64 % Self::MOD + bo) % Self::MOD;
+        ans as i32
+    }
+
+    fn quick_mul(x: i64, y: i64) -> i64 {
+        let mut ret = 1i64;
+        let mut cur = x;
+        let mut power = y;
+        while power != 0 {
+            if power & 1 != 0 {
+                ret = (ret * cur) % Self::MOD;
+            }
+            cur = (cur * cur) % Self::MOD;
+            power >>= 1;
+        }
+        ret
+    }
+
+    fn inv(x: i64) -> i64 {
+        Self::quick_mul(x, Self::MOD - 2)
+    }
+}
+
+/// 24
+pub fn max_length_between_equal_characters(s: String) -> i32 {
+    let (mut cnt, mut max) = (HashMap::new(), -1);
+    s.chars().into_iter().enumerate().for_each(|(i, c)| {
+        let record = cnt.entry(c).or_insert(vec![]);
+        record.push(i);
+        if record.len() > 1 {
+            max = max.max((record.last().unwrap() - record[0] - 1) as i32)
+        }
+    });
+    max
+}
+
+/// 25
+pub fn find_lex_smallest_string(s: String, a: i32, b: i32) -> String {
+    let n = s.len();
+    let mut vis = vec![false; n];
+    let mut res = s.clone();
+    let s = s.repeat(2);
+    let mut i = 0;
+    while !vis[i] {
+        vis[i] = true;
+        for j in 0..10 {
+            let k_limit = if b % 2 == 0 { 0 } else { 9 };
+            for k in 0..=k_limit {
+                let mut t: Vec<char> = s[i..i + n].chars().collect();
+                for p in (1..n).step_by(2) {
+                    let digit = t[p].to_digit(10).unwrap() as i32;
+                    t[p] = std::char::from_digit(((digit + j * a) % 10) as u32, 10).unwrap();
+                }
+                for p in (0..n).step_by(2) {
+                    let digit = t[p].to_digit(10).unwrap() as i32;
+                    t[p] = std::char::from_digit(((digit + k * a) % 10) as u32, 10).unwrap();
+                }
+                let t_str: String = t.into_iter().collect();
+                if t_str < res {
+                    res = t_str;
+                }
+            }
+        }
+        i = (i + b as usize) % n;
+    }
+    res
 }
