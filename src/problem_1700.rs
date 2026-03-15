@@ -293,3 +293,65 @@ pub fn maximal_network_rank(n: i32, roads: Vec<Vec<i32>>) -> i32 {
     }
     max
 }
+
+/// 16
+pub fn check_palindrome_formation(a: String, b: String) -> bool {
+    fn check1(a: &[u8], b: &[u8]) -> bool {
+        let (mut i, mut j) = (0, b.len() - 1);
+        while i < j && a[i] == b[j] {
+            i += 1;
+            j -= 1;
+        }
+        if i >= j {
+            return true;
+        }
+        check2(a, i, j) || check2(b, i, j)
+    }
+
+    fn check2(a: &[u8], mut i: usize, mut j: usize) -> bool {
+        while i < j && a[i] == a[j] {
+            i += 1;
+            j -= 1;
+        }
+        i >= j
+    }
+
+    let a = a.as_bytes();
+    let b = b.as_bytes();
+    check1(a, b) || check1(b, a)
+}
+
+/// 19
+pub fn trim_mean(mut arr: Vec<i32>) -> f64 {
+    let size = arr.len();
+    let count = size / 20;
+    arr.sort();
+    arr[count..size - count]
+        .iter()
+        .fold(0.0, |acc, &cur| acc + cur as f64)
+        / (size as f64 * 0.9)
+}
+
+/// 20
+pub fn best_coordinate(towers: Vec<Vec<i32>>, radius: i32) -> Vec<i32> {
+    let mut ans = (0, Reverse(0), Reverse(0));
+
+    for i in 0..51 {
+        for j in 0..51 {
+            let mut sum = 0;
+
+            for tower in &towers {
+                let (x, y, q) = (tower[0], tower[1], tower[2]);
+                let d = (x - i).pow(2) + (y - j).pow(2);
+
+                if d <= radius.pow(2) {
+                    sum += ((q as f64) / (1.0 + (d as f64).sqrt())).floor() as i32;
+                }
+            }
+
+            ans = ans.max((sum, Reverse(i), Reverse(j)))
+        }
+    }
+
+    vec![ans.1.0, ans.2.0]
+}
