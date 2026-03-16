@@ -1,6 +1,6 @@
 use std::{
     cell::RefCell,
-    cmp::Reverse,
+    cmp::{Ordering, Reverse},
     collections::{BTreeSet, BinaryHeap, HashMap},
     f64::consts::PI,
     rc::Rc,
@@ -468,4 +468,59 @@ pub fn find_lex_smallest_string(s: String, a: i32, b: i32) -> String {
         i = (i + b as usize) % n;
     }
     res
+}
+
+/// 26
+pub fn best_team_score(scores: Vec<i32>, ages: Vec<i32>) -> i32 {
+    let mut data = scores.into_iter().zip(ages).collect::<Vec<(i32, i32)>>();
+    data.sort_by(|a, b| match a.0.cmp(&b.0) {
+        Ordering::Greater => Ordering::Greater,
+        Ordering::Less => Ordering::Less,
+        Ordering::Equal => return a.1.cmp(&b.1),
+    });
+    let (mut dp, mut max) = (vec![0; data.len()], 0);
+    dp[0] = data[0].0;
+    for i in 1..data.len() {
+        dp[i] = data[i].0;
+        for j in 0..i {
+            if data[i].1 >= data[j].1 {
+                dp[i] = dp[i].max(dp[j] + data[i].0);
+            }
+        }
+        max = max.max(dp[i]);
+    }
+    max
+}
+
+/// 29
+pub fn slowest_key(release_times: Vec<i32>, keys_pressed: String) -> char {
+    keys_pressed
+        .chars()
+        .enumerate()
+        .fold((char::from(0), 0), |(ret, max), (i, ch)| match i {
+            0 => (ch, release_times[0]),
+            _ => {
+                if release_times[i] - release_times[i - 1] > max
+                    || (release_times[i] - release_times[i - 1] == max && ret < ch)
+                {
+                    (ch, release_times[i] - release_times[i - 1])
+                } else {
+                    (ret, max)
+                }
+            }
+        })
+        .0
+}
+
+/// 30
+pub fn check_arithmetic_subarrays(nums: Vec<i32>, l: Vec<i32>, r: Vec<i32>) -> Vec<bool> {
+    l.iter()
+        .zip(&r)
+        .map(|(&l, &r)| {
+            let mut n = nums[l as usize..=r as usize].to_vec();
+            n.sort();
+            let gap = n[1] - n[0];
+            n.windows(2).all(|v| v[1] - v[0] == gap)
+        })
+        .collect()
 }
