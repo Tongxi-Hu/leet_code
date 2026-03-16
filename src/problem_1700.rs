@@ -1,7 +1,7 @@
 use std::{
     cell::RefCell,
     cmp::{Ordering, Reverse},
-    collections::{BTreeSet, BinaryHeap, HashMap},
+    collections::{BTreeSet, BinaryHeap, HashMap, VecDeque},
     f64::consts::PI,
     rc::Rc,
 };
@@ -523,4 +523,207 @@ pub fn check_arithmetic_subarrays(nums: Vec<i32>, l: Vec<i32>, r: Vec<i32>) -> V
             n.windows(2).all(|v| v[1] - v[0] == gap)
         })
         .collect()
+}
+
+/// 31
+pub fn minimum_effort_path(heights: Vec<Vec<i32>>) -> i32 {
+    let (m, n) = (heights.len(), heights[0].len());
+
+    let mut records = vec![vec![1_000_000; n]; m];
+    let mut min_heap = BinaryHeap::new();
+
+    records[0][0] = 0;
+    min_heap.push(Reverse((0, 0, 0)));
+
+    while let Some(Reverse((cost, x, y))) = min_heap.pop() {
+        if x + 1 == m && y + 1 == n {
+            return cost;
+        }
+        if cost > records[x][y] {
+            continue;
+        }
+
+        if x > 0 {
+            let next_cost = i32::max(cost, (heights[x][y] - heights[x - 1][y]).abs());
+            if next_cost < records[x - 1][y] {
+                records[x - 1][y] = next_cost;
+                min_heap.push(Reverse((next_cost, x - 1, y)));
+            }
+        }
+        if x + 1 < m {
+            let next_cost = i32::max(cost, (heights[x][y] - heights[x + 1][y]).abs());
+            if next_cost < records[x + 1][y] {
+                records[x + 1][y] = next_cost;
+                min_heap.push(Reverse((next_cost, x + 1, y)));
+            }
+        }
+        if y > 0 {
+            let next_cost = i32::max(cost, (heights[x][y] - heights[x][y - 1]).abs());
+            if next_cost < records[x][y - 1] {
+                records[x][y - 1] = next_cost;
+                min_heap.push(Reverse((next_cost, x, y - 1)));
+            }
+        }
+        if y + 1 < n {
+            let next_cost = i32::max(cost, (heights[x][y] - heights[x][y + 1]).abs());
+            if next_cost < records[x][y + 1] {
+                records[x][y + 1] = next_cost;
+                min_heap.push(Reverse((next_cost, x, y + 1)));
+            }
+        }
+    }
+    0
+}
+
+/// 32
+struct Helper {
+    root: Vec<Vec<(i32, i32)>>,
+}
+
+impl Helper {
+    fn new(arr: &Vec<Vec<i32>>) -> Self {
+        let (n, m) = (arr.len(), arr[0].len());
+        let mut root = Self {
+            root: (0..n as i32)
+                .map(|i| (0..m as i32).map(|j| (i, j)).collect())
+                .collect(),
+        };
+        let mut x2idx_tab = HashMap::with_capacity(n * m);
+        for (i, row) in arr.iter().enumerate() {
+            for (j, &x) in row.iter().enumerate() {
+                x2idx_tab
+                    .entry(x)
+                    .or_insert(vec![])
+                    .push((i as i32, j as i32))
+            }
+            for tab in x2idx_tab.values() {
+                let father = root.find_father(tab[0]);
+                for &point in tab.iter().skip(1) {
+                    let pfather = root.find_father(point);
+                    root.root[pfather.0 as usize][pfather.1 as usize] = father;
+                }
+            }
+            x2idx_tab.clear();
+        }
+        for j in 0..m {
+            for i in 0..n {
+                x2idx_tab
+                    .entry(arr[i][j])
+                    .or_insert(vec![])
+                    .push((i as i32, j as i32))
+            }
+            for tab in x2idx_tab.values() {
+                let father = root.find_father(tab[0]);
+                for &point in tab.iter().skip(1) {
+                    let pfather = root.find_father(point);
+                    root.root[pfather.0 as usize][pfather.1 as usize] = father;
+                }
+            }
+            x2idx_tab.clear();
+        }
+        root
+    }
+
+    fn find_father(&mut self, p: (i32, i32)) -> (i32, i32) {
+        let (i, j) = (p.0 as usize, p.1 as usize);
+        if self.root[i][j] == p {
+            p
+        } else {
+            let father = self.find_father(self.root[i][j]);
+            self.root[i][j] = father;
+            father
+        }
+    }
+}
+pub fn matrix_rank_transform(matrix: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+    let (n, m) = (matrix.len(), matrix[0].len());
+    let mut helper = Helper::new(&matrix);
+    let mut degree = HashMap::with_capacity(n * m);
+    let mut adj = HashMap::with_capacity(n * m);
+    {
+        let mut x2idx_tab = HashMap::with_capacity(n * m);
+        let mut sorted_tab = Vec::with_capacity(n.max(m));
+        for (i, row) in matrix.iter().enumerate() {
+            for (j, &x) in row.iter().enumerate() {
+                let p = (i as i32, j as i32);
+                x2idx_tab.entry(x).or_insert(p);
+            }
+            x2idx_tab
+                .iter()
+                .for_each(|(k, p)| sorted_tab.push((*k, *p)));
+            sorted_tab.sort_unstable_by_key(|k| k.0);
+            for tab in sorted_tab.windows(2) {
+                let p1 = helper.find_father(tab[0].1);
+                let p2 = helper.find_father(tab[1].1);
+                *degree.entry(p2).or_insert(0) += 1;
+                adj.entry(p1).or_insert(vec![]).push(p2);
+            }
+            sorted_tab.clear();
+            x2idx_tab.clear();
+        }
+        for j in 0..m {
+            for i in 0..n {
+                let p = (i as i32, j as i32);
+                x2idx_tab.entry(matrix[i][j]).or_insert(p);
+            }
+            x2idx_tab
+                .iter()
+                .for_each(|(k, p)| sorted_tab.push((*k, *p)));
+            sorted_tab.sort_unstable_by_key(|k| k.0);
+            for tab in sorted_tab.windows(2) {
+                let p1 = helper.find_father(tab[0].1);
+                let p2 = helper.find_father(tab[1].1);
+                *degree.entry(p2).or_insert(0) += 1;
+                adj.entry(p1).or_insert(vec![]).push(p2);
+            }
+            sorted_tab.clear();
+            x2idx_tab.clear();
+        }
+    }
+    let mut ranks = HashMap::with_capacity(n * m);
+    for i in 0..n {
+        for j in 0..m {
+            let p = (i as i32, j as i32);
+            let father = helper.find_father(p);
+            ranks.entry(father).or_insert(1);
+        }
+    }
+    let mut fifo = VecDeque::with_capacity(n * m);
+    ranks.keys().for_each(|p| {
+        if degree.get(p).is_none() {
+            fifo.push_back(*p);
+        }
+    });
+    while let Some(p1) = fifo.pop_front() {
+        if let Some(iter) = adj.get(&p1) {
+            for &p2 in iter {
+                let deg = degree.entry(p2).or_insert(0);
+                *deg -= 1;
+                if *deg == 0 {
+                    fifo.push_back(p2);
+                }
+                let p1_rank = *ranks.entry(p1).or_insert(0);
+
+                let p2_rank = ranks.entry(p2).or_insert(0);
+                *p2_rank = (*p2_rank).max(p1_rank + 1);
+            }
+        }
+    }
+    (0..n as i32)
+        .map(|i| {
+            (0..m as i32)
+                .map(|j| *ranks.get(&helper.find_father((i, j))).unwrap())
+                .collect()
+        })
+        .collect()
+}
+
+/// 36
+pub fn frequency_sort(mut nums: Vec<i32>) -> Vec<i32> {
+    let cnt = nums.iter().fold(HashMap::new(), |mut cnt, i| {
+        *cnt.entry(*i).or_insert(0) += 1;
+        cnt
+    });
+    nums.sort_by(|a, b| cnt.get(a).unwrap().cmp(cnt.get(b).unwrap()).then(b.cmp(a)));
+    nums
 }
