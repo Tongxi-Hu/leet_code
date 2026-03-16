@@ -727,3 +727,100 @@ pub fn frequency_sort(mut nums: Vec<i32>) -> Vec<i32> {
     nums.sort_by(|a, b| cnt.get(a).unwrap().cmp(cnt.get(b).unwrap()).then(b.cmp(a)));
     nums
 }
+
+/// 37
+pub fn max_width_of_vertical_area(mut points: Vec<Vec<i32>>) -> i32 {
+    points.sort_by(|a, b| a[0].cmp(&b[0]));
+    points
+        .windows(2)
+        .fold(0, |acc, v| acc.max(v[1][0] - v[0][0]))
+}
+
+/// 38
+pub fn count_substrings(s: String, t: String) -> i32 {
+    let (char_1, char_2) = (
+        s.chars().collect::<Vec<char>>(),
+        t.chars().collect::<Vec<char>>(),
+    );
+    let mut ans = 0;
+    for i in 0..char_1.len() {
+        for j in 0..char_2.len() {
+            let (mut diff, mut k) = (0, 0);
+            while i + k < char_1.len() && j + k < char_2.len() {
+                if char_1[i + k] != char_2[j + k] {
+                    diff = diff + 1;
+                }
+                if diff == 1 {
+                    ans = ans + 1;
+                }
+                if diff > 1 {
+                    break;
+                }
+                k += 1;
+            }
+        }
+    }
+    ans
+}
+
+/// 39
+pub fn num_ways(words: Vec<String>, target: String) -> i32 {
+    fn add(a: i64, b: i64) -> i64 {
+        return (a + b) % 1000000007;
+    }
+
+    fn multi(a: i64, b: i64) -> i64 {
+        return ((a % 1000000007) * (b % 1000000007)) % 1000000007;
+    }
+
+    let target = target.chars().collect::<Vec<char>>();
+    let mut masks = vec![vec![0; 26]; words[0].len()];
+    for word in words.iter() {
+        for (i, c) in word.chars().enumerate() {
+            let mask = (c as u8 - 'a' as u8) as usize;
+            masks[i][mask] += 1;
+        }
+    }
+    let mut dp = vec![vec![0 as i64; masks.len()]; target.len()];
+    let mut x = target.len() as i32 - 1;
+    let mut y;
+
+    while x >= 0 {
+        y = masks.len() as i32 - 1 - (target.len() as i32 - 1 - x);
+        while y >= x {
+            let c = (target[x as usize] as u8 - 'a' as u8) as usize;
+            if x == target.len() as i32 - 1 {
+                dp[x as usize][y as usize] = masks[y as usize][c];
+            } else {
+                dp[x as usize][y as usize] =
+                    multi(masks[y as usize][c], dp[x as usize + 1][y as usize + 1]);
+            }
+            if y != masks.len() as i32 - 1 {
+                // Accumulate suffix sum
+                dp[x as usize][y as usize] =
+                    add(dp[x as usize][y as usize], dp[x as usize][y as usize + 1]);
+            }
+            y -= 1;
+        }
+        x -= 1;
+    }
+    return dp[0][0] as i32;
+}
+
+/// 40
+pub fn can_form_array(arr: Vec<i32>, pieces: Vec<Vec<i32>>) -> bool {
+    let mut cache = vec![-1; 101];
+    arr.iter()
+        .enumerate()
+        .for_each(|(i, v)| cache[*v as usize] = i as i32);
+    for piece in pieces {
+        let mut next = cache[piece[0] as usize];
+        for p in piece {
+            if cache[p as usize] == -1 || cache[p as usize] != next {
+                return false;
+            }
+            next = cache[p as usize] + 1;
+        }
+    }
+    true
+}
