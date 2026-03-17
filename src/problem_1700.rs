@@ -889,26 +889,164 @@ pub fn kth_smallest_path(destination: Vec<i32>, k: i32) -> String {
 
         if i == n - 1 {
             ans.push('H');
-            Self::gen_command(dp, ans, i, j + 1, k, n, m);
+            gen_command(dp, ans, i, j + 1, k, n, m);
             return;
         }
 
         if j == m - 1 {
             ans.push('V');
-            Self::gen_command(dp, ans, i + 1, j, k, n, m);
+            gen_command(dp, ans, i + 1, j, k, n, m);
             return;
         }
 
         if k <= dp[i][j + 1] {
             ans.push('H');
-            Self::gen_command(dp, ans, i, j + 1, k, n, m);
+            gen_command(dp, ans, i, j + 1, k, n, m);
         } else {
             ans.push('V');
-            Self::gen_command(dp, ans, i + 1, j, k - dp[i][j + 1], n, m);
+            gen_command(dp, ans, i + 1, j, k - dp[i][j + 1], n, m);
         }
     }
 
     gen_command(&dp, &mut ans, 0, 0, k, n, m);
 
+    ans
+}
+
+/// 46
+pub fn get_maximum_generated(n: i32) -> i32 {
+    if n == 0 {
+        return 0;
+    }
+    let (mut arr, mut max) = (vec![0, 1], 1);
+    for i in 2..=n as usize {
+        if i % 2 == 0 {
+            arr.push(arr[i / 2]);
+            max = max.max(arr[i]);
+        } else {
+            arr.push(arr[i / 2] + arr[i / 2 + 1]);
+            max = max.max(arr[i]);
+        }
+    }
+    max
+}
+
+/// 47
+pub fn min_deletions(s: String) -> i32 {
+    use std::collections::BinaryHeap;
+    let mut dict = vec![0; 26];
+    s.chars()
+        .for_each(|ch| dict[(ch as u8 - b'a') as usize] += 1);
+
+    let mut heap: BinaryHeap<i32> = dict.into_iter().collect();
+    let mut cur = i32::MAX;
+    let mut ans = 0;
+
+    while let Some(now) = heap.pop() {
+        if now == 0 {
+            break;
+        }
+        if now > cur {
+            ans += now - cur;
+            cur = (cur - 1).max(0);
+        } else {
+            cur = now - 1;
+        }
+    }
+
+    ans
+}
+
+/// 48
+pub fn max_profit(inventory: Vec<i32>, orders: i32) -> i32 {
+    let mut lo = 0 as i64;
+    let mut hi = *inventory.iter().max().unwrap() as i64;
+    let mut ans = 0;
+
+    while lo <= hi {
+        let mid = lo + (hi - lo) / 2;
+        let mut tmp = 0;
+
+        for &iv in inventory.iter() {
+            if iv as i64 > mid {
+                tmp += iv as i64 - mid;
+            }
+        }
+
+        if tmp >= orders as i64 {
+            ans = mid;
+            lo = mid + 1;
+        } else {
+            hi = mid - 1;
+        }
+    }
+
+    ans += 1;
+    let mut total = 0;
+    let mut res = 0;
+
+    for &iv in inventory.iter() {
+        if iv as i64 > ans {
+            total += iv as i64 - ans;
+            res += (iv as i64 + ans + 1) * (iv as i64 - ans) / 2;
+            res %= 1_000_000_007;
+        }
+    }
+
+    res += ((orders as i64 - total) * ans);
+    res %= 1_000_000_007;
+
+    res as i32
+}
+
+/// 49
+struct BIT {
+    arr: Vec<i32>,
+}
+
+impl BIT {
+    fn new(n: usize) -> Self {
+        Self {
+            arr: vec![0; n + 1],
+        }
+    }
+
+    fn update(&mut self, mut i: usize, diff: i32) {
+        i += 1;
+        while i < self.arr.len() {
+            self.arr[i] += diff;
+            i += Self::lowbit(i);
+        }
+    }
+
+    fn query(&self, l: usize, r: usize) -> i32 {
+        self.prefix(r) - self.prefix(l)
+    }
+
+    fn prefix(&self, mut i: usize) -> i32 {
+        let mut ans = 0;
+        while i > 0 {
+            ans += self.arr[i];
+            i -= Self::lowbit(i);
+        }
+        ans
+    }
+
+    fn lowbit(num: usize) -> usize {
+        num & (!num + 1)
+    }
+}
+
+pub fn create_sorted_array(instructions: Vec<i32>) -> i32 {
+    let mut bit = BIT::new(100_001);
+    let (l, r) = (0, 100_001);
+    let mut ans = 0;
+    let m = 1_000_000_007;
+
+    for i in instructions {
+        ans += bit.query(l, i as usize).min(bit.query(i as usize + 1, r));
+        ans %= m;
+        bit.update(i as usize, 1);
+    }
     ans
 }
