@@ -824,3 +824,91 @@ pub fn can_form_array(arr: Vec<i32>, pieces: Vec<Vec<i32>>) -> bool {
     }
     true
 }
+
+/// 41
+pub fn count_vowel_strings(n: i32) -> i32 {
+    (n + 4) * (n + 3) * (n + 2) * (n + 1) / 24
+}
+
+/// 42
+pub fn furthest_building(heights: Vec<i32>, bricks: i32, ladders: i32) -> i32 {
+    let (size, mut heap, mut bricks_cnt) = (heights.len(), BinaryHeap::new(), 0);
+    for i in 1..size {
+        let delta = heights[i] - heights[i - 1];
+        if delta > 0 {
+            heap.push(Reverse(delta));
+            if heap.len() > ladders as usize {
+                bricks_cnt += heap.pop().unwrap().0;
+            }
+            if bricks_cnt > bricks {
+                return (i - 1) as i32;
+            }
+        }
+    }
+    (size - 1) as i32
+}
+
+/// 43
+pub fn kth_smallest_path(destination: Vec<i32>, k: i32) -> String {
+    let n = (destination[0] + 1) as usize;
+    let m = (destination[1] + 1) as usize;
+    let mut ans = String::new();
+    let mut dp = vec![vec![0; m]; n];
+
+    for i in (0..n).rev() {
+        for j in (0..m).rev() {
+            if i == n - 1 && j == m - 1 {
+                dp[i][j] = 1;
+                continue;
+            }
+            if i == n - 1 {
+                dp[i][j] = dp[i][j + 1];
+                continue;
+            }
+            if j == m - 1 {
+                dp[i][j] = dp[i + 1][j];
+                continue;
+            }
+
+            dp[i][j] = dp[i][j + 1] + dp[i + 1][j];
+        }
+    }
+
+    fn gen_command(
+        dp: &[Vec<i32>],
+        ans: &mut String,
+        i: usize,
+        j: usize,
+        k: i32,
+        n: usize,
+        m: usize,
+    ) {
+        if i == n - 1 && j == m - 1 {
+            return;
+        }
+
+        if i == n - 1 {
+            ans.push('H');
+            Self::gen_command(dp, ans, i, j + 1, k, n, m);
+            return;
+        }
+
+        if j == m - 1 {
+            ans.push('V');
+            Self::gen_command(dp, ans, i + 1, j, k, n, m);
+            return;
+        }
+
+        if k <= dp[i][j + 1] {
+            ans.push('H');
+            Self::gen_command(dp, ans, i, j + 1, k, n, m);
+        } else {
+            ans.push('V');
+            Self::gen_command(dp, ans, i + 1, j, k - dp[i][j + 1], n, m);
+        }
+    }
+
+    gen_command(&dp, &mut ans, 0, 0, k, n, m);
+
+    ans
+}
