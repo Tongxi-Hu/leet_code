@@ -993,7 +993,7 @@ pub fn max_profit(inventory: Vec<i32>, orders: i32) -> i32 {
         }
     }
 
-    res += ((orders as i64 - total) * ans);
+    res += (orders as i64 - total) * ans;
     res %= 1_000_000_007;
 
     res as i32
@@ -1049,4 +1049,141 @@ pub fn create_sorted_array(instructions: Vec<i32>) -> i32 {
         bit.update(i as usize, 1);
     }
     ans
+}
+
+/// 52
+pub fn decrypt(code: Vec<i32>, k: i32) -> Vec<i32> {
+    let mut ans = vec![0; code.len()];
+    if k == 0 {
+        return ans;
+    } else if k > 0 {
+        for i in 0..code.len() {
+            ans[i] = (1..=k as usize)
+                .into_iter()
+                .fold(0, |acc, cur| acc + code[(cur + i) % code.len()]);
+        }
+        ans
+    } else {
+        for i in 0..code.len() {
+            ans[i] = (1..=k.abs() as usize).into_iter().fold(0, |acc, cur| {
+                let idx = if cur > i {
+                    i + code.len() - cur
+                } else {
+                    i - cur
+                };
+                acc + code[idx % code.len()]
+            });
+        }
+        ans
+    }
+}
+
+/// 53
+pub fn minimum_deletions(s: String) -> i32 {
+    let chars = s.chars().collect::<Vec<char>>();
+    let (mut left_b, mut right_a) = (0, chars.iter().filter(|c| **c == 'a').count());
+    let mut min = right_a;
+    chars.iter().for_each(|c| {
+        if *c == 'a' {
+            right_a -= 1;
+        } else {
+            left_b += 1;
+        }
+        min = min.min(right_a + left_b);
+    });
+    min as i32
+}
+
+/// 54
+pub fn minimum_jumps(forbidden: Vec<i32>, a: i32, b: i32, x: i32) -> i32 {
+    let mut forbidden = forbidden.into_iter().fold(
+        vec![false; 2001 + a as usize + b as usize],
+        |mut forbidden, x| {
+            forbidden[x as usize] = true;
+            forbidden
+        },
+    );
+    fn dfs(
+        step: i32,
+        cur: i32,
+        forbidden: &mut Vec<bool>,
+        is_forward: bool,
+        a: i32,
+        b: i32,
+        x: i32,
+    ) -> i32 {
+        if cur < 0 || cur > 2000 + a + b || forbidden[cur as usize] {
+            -1
+        } else if cur == x {
+            step
+        } else {
+            if is_forward {
+                forbidden[cur as usize] = true;
+            }
+            let res = dfs(step + 1, cur + a, forbidden, true, a, b, x);
+            if res == -1 && is_forward {
+                dfs(step + 1, cur - b, forbidden, false, a, b, x)
+            } else {
+                res
+            }
+        }
+    }
+    dfs(0, 0, &mut forbidden, false, a, b, x)
+}
+
+/// 55
+pub fn can_distribute(nums: Vec<i32>, mut quantity: Vec<i32>) -> bool {
+    let mut cnt_map = HashMap::new();
+    for n in nums {
+        *cnt_map.entry(n).or_insert(0) += 1;
+    }
+
+    let occ: Vec<i32> = cnt_map.keys().cloned().collect();
+
+    quantity.sort_by(|a, b| b.cmp(&a));
+
+    pub fn find(
+        path: &mut Vec<Vec<i32>>,
+        cnt_map: &mut HashMap<i32, i32>,
+        quantity: &Vec<i32>,
+        idx_now: usize,
+        occ: &Vec<i32>,
+    ) -> bool {
+        if idx_now == quantity.len() {
+            println!("{:?}  {:?}", path, cnt_map);
+
+            return true;
+        }
+
+        let mut res = false;
+        for &oc in occ {
+            if let Some(time) = cnt_map.get_mut(&oc) {
+                if *time >= quantity[idx_now] {
+                    *time -= quantity[idx_now];
+
+                    let used = vec![oc; quantity[idx_now] as usize];
+                    path.push(used);
+
+                    res |= find(path, cnt_map, quantity, idx_now + 1, occ);
+
+                    if res {
+                        return res;
+                    }
+
+                    if let Some(rev) = cnt_map.get_mut(&oc) {
+                        *rev += quantity[idx_now];
+                    }
+                    path.pop();
+                } else {
+                    continue;
+                }
+            } else {
+                panic!("");
+            }
+        }
+
+        res
+    }
+
+    find(&mut vec![], &mut cnt_map, &quantity, 0, &occ)
 }
