@@ -1401,3 +1401,58 @@ pub fn get_max_grid_happiness(m: i32, n: i32, introverts_count: i32, extroverts_
     ans
 }
 
+/// 62
+pub fn array_strings_are_equal(word1: Vec<String>, word2: Vec<String>) -> bool {
+    let str_1 = word1.iter().fold("".to_string(), |acc, cur| acc + cur);
+    let str_2 = word2.iter().fold("".to_string(), |acc, cur| acc + cur);
+    str_1 == str_2
+}
+
+/// 63
+pub fn get_smallest_string(n: i32, k: i32) -> String {
+    let (mut char_values, mut sum, mut last) = (vec![1 as u8; n as usize], n * 1, (n - 1) as usize);
+    while k - sum > 0 {
+        let remain = k - sum;
+        if remain > 25 {
+            char_values[last] += 25;
+            sum += 25;
+            last = last - 1;
+        } else {
+            char_values[last] += remain as u8;
+            break;
+        }
+    }
+    char_values.iter().fold("".to_string(), |mut acc, cur| {
+        acc.push((cur - 1 + b'a') as char);
+        acc
+    })
+}
+
+/// 64
+pub fn ways_to_make_fair(nums: Vec<i32>) -> i32 {
+    let (mut pre_odd, mut pre_even, mut sur_odd, mut sur_even) = (0, 0, 0, 0);
+    nums.iter().enumerate().for_each(|(i, n)| {
+        if i % 2 == 0 {
+            sur_even += n;
+        } else {
+            sur_odd += n;
+        }
+    });
+    let mut cnt = 0;
+    for i in 0..nums.len() {
+        if i % 2 == 0 {
+            sur_even -= nums[i];
+        } else {
+            sur_odd -= nums[i];
+        }
+        if pre_odd + sur_even == pre_even + sur_odd {
+            cnt = cnt + 1;
+        }
+        if i % 2 == 0 {
+            pre_even += nums[i];
+        } else {
+            pre_odd += nums[i];
+        }
+    }
+    cnt
+}
