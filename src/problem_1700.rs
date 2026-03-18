@@ -1187,3 +1187,217 @@ pub fn can_distribute(nums: Vec<i32>, mut quantity: Vec<i32>) -> bool {
 
     find(&mut vec![], &mut cnt_map, &quantity, 0, &occ)
 }
+
+/// 56
+struct OrderedStream {
+    a: Vec<String>,
+    ptr: usize,
+}
+
+impl OrderedStream {
+    fn new(n: i32) -> Self {
+        Self {
+            a: vec![String::new(); (n + 1) as usize],
+            ptr: 1,
+        }
+    }
+
+    fn insert(&mut self, id_key: i32, value: String) -> Vec<String> {
+        self.a[id_key as usize] = value;
+        let start = self.ptr;
+        while self.ptr < self.a.len() && !self.a[self.ptr].is_empty() {
+            self.ptr += 1;
+        }
+        self.a[start..self.ptr].to_vec()
+    }
+}
+
+/// 57
+pub fn close_strings(word1: String, word2: String) -> bool {
+    let (char_1, char_2) = (
+        word1.chars().collect::<Vec<char>>(),
+        word2.chars().collect::<Vec<char>>(),
+    );
+
+    if char_1.len() != char_2.len() {
+        return false;
+    } else {
+        let (mut cnt_1, mut cnt_2) =
+            char_1
+                .iter()
+                .zip(&char_2)
+                .fold(([0; 26], [0; 26]), |mut acc, cur| {
+                    acc.0[(*cur.0 as u8 - b'a') as usize] += 1;
+                    acc.1[(*cur.1 as u8 - b'a') as usize] += 1;
+                    acc
+                });
+        for i in 0..26 {
+            if (cnt_1[i] == 0) != (cnt_2[i] == 0) {
+                return false;
+            }
+        }
+        cnt_1.sort();
+        cnt_2.sort();
+        cnt_1 == cnt_2
+    }
+}
+
+/// 58
+pub fn min_operations(nums: Vec<i32>, x: i32) -> i32 {
+    let (sum, mut l, mut r, mut window_sum, mut len) =
+        (nums.iter().sum::<i32>() - x, 0, 0, 0, i32::MIN);
+    if sum == 0 {
+        return nums.len() as i32;
+    }
+    if sum < 0 {
+        return -1;
+    }
+    while r < nums.len() {
+        window_sum += nums[r];
+        while window_sum >= sum {
+            if window_sum == sum {
+                len = len.max((r - l + 1) as i32);
+            }
+            window_sum -= nums[l];
+            l += 1;
+        }
+        r += 1;
+    }
+    if len == i32::MIN {
+        -1
+    } else {
+        nums.len() as i32 - len
+    }
+}
+
+/// 59
+pub fn get_max_grid_happiness(m: i32, n: i32, introverts_count: i32, extroverts_count: i32) -> i32 {
+    let dims = vec![6, 7, 7, 3usize.pow(5)];
+    let mut dp: Vec<Vec<Vec<Vec<i32>>>> =
+        vec![vec![vec![vec![i32::MIN; dims[3]]; dims[2]]; dims[1]]; dims[0]];
+
+    let max_state = 3usize.pow(n as u32);
+    let mut ans = 0;
+
+    dp[0][0][0][0] = 0;
+
+    let count_people = |state: usize| -> (i32, i32) {
+        let mut state = state;
+        let mut count1 = 0;
+        let mut count2 = 0;
+
+        while state > 0 {
+            let r = state % 3;
+            if r == 1 {
+                count1 += 1;
+            } else if r == 2 {
+                count2 += 1;
+            }
+            state /= 3;
+        }
+
+        (count1, count2)
+    };
+
+    let mut people = vec![vec![0, 2]; max_state];
+    for state in 0..max_state {
+        let (c1, c2) = count_people(state);
+        people[state][0] = c1;
+        people[state][1] = c2;
+    }
+
+    let compute_score = |pre: usize, cur: usize, n: i32| -> i32 {
+        let mut p = vec![0; n as usize];
+        let mut q = vec![0; n as usize];
+        let mut pre = pre;
+        let mut cur = cur;
+
+        for i in 0..n {
+            p[i as usize] = pre % 3;
+            pre /= 3;
+            q[i as usize] = cur % 3;
+            cur /= 3;
+        }
+
+        let mut res = 0;
+
+        for i in 0..n {
+            if q[i as usize] == 1 {
+                res += 120;
+                if i >= 1 && q[(i - 1) as usize] > 0 {
+                    res -= 30;
+                }
+                if i + 1 < n && q[(i + 1) as usize] > 0 {
+                    res -= 30;
+                }
+                if p[i as usize] > 0 {
+                    res -= 30;
+                }
+
+                if p[i as usize] == 1 {
+                    res -= 30;
+                } else if p[i as usize] == 2 {
+                    res += 20;
+                }
+            } else if q[i as usize] == 2 {
+                res += 40;
+                if i > 0 && q[(i - 1) as usize] > 0 {
+                    res += 20;
+                }
+                if i < n - 1 && q[(i + 1) as usize] > 0 {
+                    res += 20;
+                }
+                if p[i as usize] > 0 {
+                    res += 20;
+                }
+
+                if p[i as usize] == 1 {
+                    res -= 30;
+                } else if p[i as usize] == 2 {
+                    res += 20;
+                }
+            }
+        }
+
+        res
+    };
+
+    let mut scores = vec![vec![0; max_state]; max_state];
+    for pre in 0..max_state {
+        for cur in 0..max_state {
+            scores[pre][cur] = compute_score(pre, cur, n);
+        }
+    }
+
+    for i in 1..=m {
+        for x in 0..=introverts_count {
+            for y in 0..=extroverts_count {
+                for state in 0..max_state {
+                    let (a, b) = (people[state][0], people[state][1]);
+                    if a > x || b > y {
+                        continue;
+                    }
+                    for pre_state in 0..max_state {
+                        if !(dp[(i - 1) as usize][(x - a) as usize][(y - b) as usize][pre_state]
+                            as f32)
+                            .is_finite()
+                        {
+                            continue;
+                        }
+                        dp[i as usize][x as usize][y as usize][state] =
+                            dp[i as usize][x as usize][y as usize][state].max(
+                                dp[(i - 1) as usize][(x - a) as usize][(y - b) as usize][pre_state]
+                                    + scores[pre_state][state],
+                            )
+                    }
+                    if i == m {
+                        ans = ans.max(dp[i as usize][x as usize][y as usize][state]);
+                    }
+                }
+            }
+        }
+    }
+
+    ans
+}
+
