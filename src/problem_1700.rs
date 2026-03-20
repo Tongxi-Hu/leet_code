@@ -1,7 +1,7 @@
 use std::{
     cell::RefCell,
     cmp::{Ordering, Reverse},
-    collections::{BTreeSet, BinaryHeap, HashMap, VecDeque},
+    collections::{BTreeSet, BinaryHeap, HashMap, HashSet, VecDeque},
     f64::consts::PI,
     rc::Rc,
 };
@@ -1691,4 +1691,77 @@ pub fn concatenated_binary(n: i32) -> i32 {
         num -= 1;
     }
     ans
+}
+
+/// 81
+pub fn minimum_incompatibility(nums: Vec<i32>, k: i32) -> i32 {
+    let n = nums.len();
+    let k = (n / k as usize) as u32;
+    let mut dp = vec![i32::MAX >> 2; 1 << nums.len()];
+    if k == 1 {
+        return 0;
+    }
+    for s in 1..(1 << n) as usize {
+        if s.count_ones() % k != 0 {
+            continue;
+        }
+        if s.count_ones() == k {
+            let mut hs = HashSet::new();
+            for i in 0..n {
+                if (s >> i) & 1 == 1 {
+                    hs.insert(nums[i]);
+                }
+            }
+            if hs.len() == k as usize {
+                dp[s] = hs.iter().max().unwrap() - hs.iter().min().unwrap();
+            }
+            continue;
+        }
+        let mut ss = s;
+        while ss != 0 {
+            ss = (ss - 1) & s;
+            dp[s] = dp[s].min(dp[ss] + dp[s ^ ss]);
+        }
+    }
+    if dp[(1 << n) - 1] >= i32::MAX >> 2 {
+        -1
+    } else {
+        dp[(1 << n) - 1]
+    }
+}
+
+/// 84
+pub fn count_consistent_strings(allowed: String, words: Vec<String>) -> i32 {
+    let (mut cache, mut cnt) = (vec![false; 26], 0);
+    for ch in allowed.as_bytes().iter() {
+        cache[(ch - b'a') as usize] = true;
+    }
+    for word in words {
+        let mut is_exist = true;
+        for ch in word.as_bytes().iter() {
+            if !cache[(ch - b'a') as usize] {
+                is_exist = false;
+                break;
+            }
+        }
+        cnt += if is_exist { 1 } else { 0 };
+    }
+    cnt
+}
+
+/// 85
+pub fn get_sum_absolute_differences(nums: Vec<i32>) -> Vec<i32> {
+    let (mut prefix, mut surfix) = (vec![0; nums.len()], vec![0; nums.len()]);
+    for i in 1..nums.len() {
+        prefix[i] = prefix[i - 1] + nums[i - 1];
+    }
+    for i in (0..=nums.len() - 2).rev() {
+        surfix[i] = surfix[i + 1] + nums[i + 1];
+    }
+    prefix
+        .iter()
+        .zip(surfix.iter())
+        .enumerate()
+        .map(|(i, (p, s))| nums[i] * i as i32 - p + s - nums[i] * ((nums.len() - i - 1) as i32))
+        .collect()
 }
