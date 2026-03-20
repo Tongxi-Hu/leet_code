@@ -1613,3 +1613,17 @@ pub fn minimum_mountain_removals(nums: Vec<i32>) -> i32 {
 pub fn maximum_wealth(accounts: Vec<Vec<i32>>) -> i32 {
     accounts.iter().fold(0, |t, a| t.max(a.iter().sum()))
 }
+
+/// 73
+pub fn most_competitive(nums: Vec<i32>, k: i32) -> Vec<i32> {
+    let mut res = Vec::new();
+    let n = nums.len();
+    for i in 0..n {
+        while res.len() > 0 && (n - i + res.len()) as i32 > k && *res.last().unwrap() > nums[i] {
+            res.pop();
+        }
+        res.push(nums[i]);
+    }
+    res.truncate(k as usize);
+    res
+}
