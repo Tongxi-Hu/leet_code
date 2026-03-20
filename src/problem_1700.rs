@@ -1627,3 +1627,68 @@ pub fn most_competitive(nums: Vec<i32>, k: i32) -> Vec<i32> {
     res.truncate(k as usize);
     res
 }
+
+/// 78
+pub fn interpret(command: String) -> String {
+    let chars = command.chars().collect::<Vec<char>>();
+    let (mut pointer, mut res) = (0, "".to_string());
+    while pointer < chars.len() {
+        match chars[pointer] {
+            'G' => {
+                res.push('G');
+                pointer += 1;
+            }
+            '(' => match chars[pointer + 1] {
+                ')' => {
+                    res.push('o');
+                    pointer += 2;
+                }
+                _ => {
+                    res.push('a');
+                    res.push('l');
+                    pointer += 4;
+                }
+            },
+            _ => (),
+        }
+    }
+    res
+}
+
+/// 79
+pub fn max_operations(nums: Vec<i32>, k: i32) -> i32 {
+    let (mut cnt, mut res) = (HashMap::new(), 0);
+    nums.iter().for_each(|&n| {
+        let pair = k - n;
+        if let Some(v) = cnt.get_mut(&pair) {
+            if *v > 1 {
+                *v -= 1;
+            } else {
+                cnt.remove(&pair);
+            }
+            res += 1;
+        } else {
+            *cnt.entry(n).or_insert(0) += 1;
+        }
+    });
+    res
+}
+
+/// 80
+pub fn concatenated_binary(n: i32) -> i32 {
+    let mut ans = 0;
+    let mut num = n;
+    let mut carry = 1;
+    let m = 1_000_000_007;
+    let mut t = 0;
+    while num > 0 {
+        t = num;
+        while t != 0 {
+            ans = (ans + (t & 1) * carry) % m;
+            t >>= 1;
+            carry = carry * 2 % m;
+        }
+        num -= 1;
+    }
+    ans
+}
