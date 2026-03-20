@@ -6,7 +6,7 @@ use std::{
     rc::Rc,
 };
 
-use crate::common::TreeNode;
+use crate::common::{ListNode, TreeNode};
 
 /// 01
 pub fn maximum_requests(n: i32, mut requests: Vec<Vec<i32>>) -> i32 {
@@ -1455,4 +1455,161 @@ pub fn ways_to_make_fair(nums: Vec<i32>) -> i32 {
         }
     }
     cnt
+}
+
+/// 68
+pub fn max_repeating(sequence: String, word: String) -> i32 {
+    let (total, target) = (
+        sequence.chars().collect::<Vec<char>>(),
+        word.chars().collect::<Vec<char>>(),
+    );
+    let (mut max, mut dp) = (0, vec![0; total.len()]);
+    for i in target.len() - 1..total.len() {
+        if total[i - target.len() + 1..=i] == target {
+            dp[i] = if i >= target.len() {
+                dp[i - target.len()]
+            } else {
+                0
+            } + 1;
+            max = max.max(dp[i]);
+        }
+    }
+    max as i32
+}
+
+/// 69
+pub fn merge_in_between(
+    mut list1: Option<Box<ListNode>>,
+    a: i32,
+    b: i32,
+    mut list2: Option<Box<ListNode>>,
+) -> Option<Box<ListNode>> {
+    let mut parent = &mut list1;
+
+    let mut i = 1;
+    while i < a {
+        parent = &mut parent.as_mut().unwrap().next;
+        i += 1;
+    }
+
+    let mut next = parent.as_mut().unwrap().next.take();
+    while i <= b {
+        next = next.as_mut().unwrap().next.take();
+        i += 1;
+    }
+
+    let mut current = &mut list2;
+    while current.as_ref().unwrap().next.is_some() {
+        current = &mut current.as_mut().unwrap().next;
+    }
+
+    current.as_mut().unwrap().next = next;
+    parent.as_mut().unwrap().next = list2;
+
+    list1
+}
+
+/// 70
+struct FrontMiddleBackQueue {
+    left: VecDeque<i32>,
+    right: VecDeque<i32>,
+}
+
+impl FrontMiddleBackQueue {
+    fn new() -> Self {
+        Self {
+            left: VecDeque::new(),
+            right: VecDeque::new(),
+        }
+    }
+
+    fn balance(&mut self) {
+        if self.left.len() > self.right.len() {
+            self.right.push_front(self.left.pop_back().unwrap());
+        } else if self.right.len() > self.left.len() + 1 {
+            self.left.push_back(self.right.pop_front().unwrap());
+        }
+    }
+
+    fn push_front(&mut self, val: i32) {
+        self.left.push_front(val);
+        self.balance();
+    }
+
+    fn push_middle(&mut self, val: i32) {
+        if self.left.len() < self.right.len() {
+            self.left.push_back(val);
+        } else {
+            self.right.push_front(val);
+        }
+    }
+
+    fn push_back(&mut self, val: i32) {
+        self.right.push_back(val);
+        self.balance();
+    }
+
+    fn pop_front(&mut self) -> i32 {
+        if self.right.is_empty() {
+            return -1;
+        }
+        let val = if self.left.is_empty() {
+            self.right.pop_front().unwrap()
+        } else {
+            self.left.pop_front().unwrap()
+        };
+        self.balance();
+        val
+    }
+
+    fn pop_middle(&mut self) -> i32 {
+        if self.right.is_empty() {
+            return -1;
+        }
+        if self.left.len() == self.right.len() {
+            return self.left.pop_back().unwrap();
+        }
+        self.right.pop_front().unwrap()
+    }
+
+    fn pop_back(&mut self) -> i32 {
+        if self.right.is_empty() {
+            return -1;
+        }
+        let val = self.right.pop_back().unwrap();
+        self.balance();
+        val
+    }
+}
+
+/// 71
+pub fn minimum_mountain_removals(nums: Vec<i32>) -> i32 {
+    let (mut increase, mut decrease) = (vec![1; nums.len()], vec![1; nums.len()]);
+    for i in 0..nums.len() {
+        for j in 0..i {
+            if nums[i] > nums[j] {
+                increase[i] = increase[i].max(increase[j] + 1);
+            }
+        }
+    }
+    for i in (0..nums.len()).rev() {
+        for j in (i..nums.len()).rev() {
+            if nums[i] > nums[j] {
+                decrease[i] = decrease[i].max(decrease[j] + 1);
+            }
+        }
+    }
+    nums.len() as i32
+        - increase.iter().zip(decrease.iter()).fold(0, |t, a| {
+            if *a.0 == 1 || *a.1 == 1 {
+                t
+            } else {
+                t.max(a.0 + a.1 - 1)
+            }
+        })
+}
+
+/// 72
+pub fn maximum_wealth(accounts: Vec<Vec<i32>>) -> i32 {
+    accounts.iter().fold(0, |t, a| t.max(a.iter().sum()))
 }
