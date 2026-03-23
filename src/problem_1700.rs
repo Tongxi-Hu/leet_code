@@ -2009,3 +2009,30 @@ pub fn distance_limited_paths_exist(
     }
     ret
 }
+
+///100
+pub fn count_students(students: Vec<i32>, sandwiches: Vec<i32>) -> i32 {
+    let mut cnt = students.iter().fold((0, 0), |acc, &cur| {
+        if cur == 0 {
+            (acc.0 + 1, acc.1)
+        } else {
+            (acc.0, acc.1 + 1)
+        }
+    });
+    for i in 0..sandwiches.len() {
+        if sandwiches[i] == 0 {
+            if cnt.0 == 0 {
+                return cnt.1;
+            } else {
+                cnt.0 -= 1;
+            }
+        } else {
+            if cnt.1 == 0 {
+                return cnt.0;
+            } else {
+                cnt.1 -= 1;
+            }
+        }
+    }
+    0
+}
