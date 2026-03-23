@@ -1871,3 +1871,75 @@ pub fn stone_game_vii(stones: Vec<i32>) -> i32 {
     }
     dfs(0, n - 1, &s, &mut memo)
 }
+
+/// 91
+pub fn max_height(mut cuboids: Vec<Vec<i32>>) -> i32 {
+    let mut ret;
+    let mut dp = vec![0; cuboids.len()];
+    cuboids.iter_mut().for_each(|cuboid| cuboid.sort());
+    cuboids.sort_by(|a, b| (a[0] + a[1] + a[2]).cmp(&(b[0] + b[1] + b[2])));
+    dp[0] = cuboids[0][2];
+    ret = dp[0];
+    for i in 0..cuboids.len() {
+        dp[i] = cuboids[i][2];
+        for j in 0..i {
+            if cuboids[i][0] >= cuboids[j][0]
+                && cuboids[i][1] >= cuboids[j][1]
+                && cuboids[i][2] >= cuboids[j][2]
+            {
+                dp[i] = dp[i].max(dp[j] + cuboids[i][2]);
+            }
+        }
+        ret = ret.max(dp[i]);
+    }
+    ret
+}
+
+/// 94
+pub fn reformat_number(number: String) -> String {
+    let chars = number
+        .chars()
+        .filter(|&c| c != ' ' && c != '-')
+        .collect::<Vec<char>>();
+    let (mut p, mut ans) = (0, "".to_string());
+    while (p as i32) < ((chars.len() - 4) as i32) {
+        ans.push(chars[p]);
+        ans.push(chars[p + 1]);
+        ans.push(chars[p + 2]);
+        ans.push('-');
+        p = p + 3;
+    }
+    if p == chars.len() - 4 {
+        ans.push(chars[p]);
+        ans.push(chars[p + 1]);
+        ans.push('-');
+        ans.push(chars[p + 2]);
+        ans.push(chars[p + 3]);
+    }
+    if p == chars.len() - 3 {
+        ans.push(chars[p]);
+        ans.push(chars[p + 1]);
+        ans.push(chars[p + 2]);
+    }
+    if p == chars.len() - 2 {
+        ans.push(chars[p]);
+        ans.push(chars[p + 1]);
+    }
+    ans
+}
+
+/// 95
+pub fn maximum_unique_subarray(nums: Vec<i32>) -> i32 {
+    let (mut l, mut cnt, mut sum, mut ans) = (0, HashSet::new(), 0, 0);
+    for r in 0..nums.len() {
+        while cnt.get(&nums[r]).is_some() {
+            sum -= nums[l];
+            cnt.remove(&nums[l]);
+            l += 1;
+        }
+        cnt.insert(nums[r]);
+        sum += nums[r];
+        ans = ans.max(sum);
+    }
+    ans
+}
