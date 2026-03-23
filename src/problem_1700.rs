@@ -1680,7 +1680,7 @@ pub fn concatenated_binary(n: i32) -> i32 {
     let mut num = n;
     let mut carry = 1;
     let m = 1_000_000_007;
-    let mut t = 0;
+    let mut t;
     while num > 0 {
         t = num;
         while t != 0 {
@@ -1764,4 +1764,110 @@ pub fn get_sum_absolute_differences(nums: Vec<i32>) -> Vec<i32> {
         .enumerate()
         .map(|(i, (p, s))| nums[i] * i as i32 - p + s - nums[i] * ((nums.len() - i - 1) as i32))
         .collect()
+}
+
+/// 86
+pub fn stone_game_vi(alice_values: Vec<i32>, bob_values: Vec<i32>) -> i32 {
+    if alice_values.len() == 1 {
+        return 1;
+    }
+    let mut total = alice_values
+        .iter()
+        .zip(bob_values.iter())
+        .map(|(a, b)| [a + b, *a, *b])
+        .collect::<Vec<[i32; 3]>>();
+    total.sort_by(|a, b| b[0].cmp(&a[0]));
+    let a: i32 = total.iter().step_by(2).map(|value| value[1]).sum();
+    let b: i32 = total.iter().skip(1).step_by(2).map(|value| value[2]).sum();
+    if a > b {
+        1
+    } else if a == b {
+        0
+    } else {
+        -1
+    }
+}
+
+/// 87
+pub fn box_delivering(
+    boxes: Vec<Vec<i32>>,
+    _: i32,
+    mut max_boxes: i32,
+    mut max_weight: i32,
+) -> i32 {
+    let n = boxes.len();
+    let mut j = 0;
+    let mut k = 0;
+    let mut p = 0;
+    let mut dp = vec![0; n + 1];
+
+    for i in 0..n {
+        while j < n && max_boxes > 0 && max_weight >= boxes[j][1] {
+            max_boxes -= 1;
+            max_weight -= boxes[j][1];
+
+            if j == 0 || boxes[j][0] != boxes[j - 1][0] {
+                p = j;
+                k += 1;
+            }
+
+            j += 1;
+            dp[j] = 1000000;
+        }
+
+        dp[j] = dp[j].min(dp[i] + k + 1);
+        dp[p] = dp[p].min(dp[i] + k);
+        max_boxes += 1;
+        max_weight += boxes[i][1];
+
+        if i == n - 1 || boxes[i][0] != boxes[i + 1][0] {
+            k -= 1;
+        }
+    }
+
+    dp[n]
+}
+
+/// 88
+pub fn number_of_matches(mut n: i32) -> i32 {
+    let mut ans = 0;
+    while n != 1 {
+        if n % 2 == 0 {
+            ans = ans + n / 2;
+            n = n / 2;
+        } else {
+            ans = ans + (n - 1) / 2;
+            n = (n - 1) / 2 + 1;
+        }
+    }
+    ans
+}
+
+/// 89
+pub fn min_partitions(n: String) -> i32 {
+    n.chars()
+        .fold(0, |acc, cur| acc.max((cur as u8 - b'0') as i32))
+}
+
+/// 90
+pub fn stone_game_vii(stones: Vec<i32>) -> i32 {
+    let n = stones.len();
+    let mut s = vec![0; n + 1];
+    for (i, &x) in stones.iter().enumerate() {
+        s[i + 1] = s[i] + x;
+    }
+    let mut memo = vec![vec![0; n]; n];
+    fn dfs(i: usize, j: usize, s: &Vec<i32>, memo: &mut Vec<Vec<i32>>) -> i32 {
+        if i == j {
+            return 0;
+        }
+        if memo[i][j] > 0 {
+            return memo[i][j];
+        }
+        let res1 = s[j + 1] - s[i + 1] - dfs(i + 1, j, s, memo);
+        let res2 = s[j] - s[i] - dfs(i, j - 1, s, memo);
+        memo[i][j] = res1.max(res2);
+        memo[i][j]
+    }
+    dfs(0, n - 1, &s, &mut memo)
 }
