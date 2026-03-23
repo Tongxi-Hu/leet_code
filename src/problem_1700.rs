@@ -1943,3 +1943,69 @@ pub fn maximum_unique_subarray(nums: Vec<i32>) -> i32 {
     }
     ans
 }
+
+/// 96
+pub fn max_result(nums: Vec<i32>, k: i32) -> i32 {
+    let mut dp = vec![0; nums.len()];
+    let k = k as usize;
+    dp[0] = nums[0];
+    let mut q = VecDeque::new();
+    q.push_back(0);
+    for i in 1..nums.len() {
+        if *q.front().unwrap() + k < i {
+            q.pop_front();
+        }
+        dp[i] = dp[*q.front().unwrap()] + nums[i];
+        while !q.is_empty() && dp[i] >= dp[*q.back().unwrap()] {
+            q.pop_back();
+        }
+        q.push_back(i);
+    }
+    dp[nums.len() - 1]
+}
+
+/// 97
+pub struct UnionFind {
+    parent: Vec<i32>,
+}
+
+impl UnionFind {
+    fn new(n: i32) -> Self {
+        let mut parent = (0..n).collect::<Vec<_>>();
+        UnionFind { parent }
+    }
+
+    fn find(&mut self, x: i32) -> i32 {
+        if self.parent[x as usize] != x {
+            self.parent[x as usize] = self.find(self.parent[x as usize]);
+        }
+        self.parent[x as usize]
+    }
+    fn union(&mut self, x: i32, y: i32) {
+        let (x, y) = (self.find(x), self.find(y));
+        self.parent[x as usize] = self.parent[y as usize]
+    }
+}
+
+pub fn distance_limited_paths_exist(
+    n: i32,
+    mut edge_list: Vec<Vec<i32>>,
+    mut queries: Vec<Vec<i32>>,
+) -> Vec<bool> {
+    let (m, _n, mut j, mut uf) = (edge_list.len(), queries.len(), 0, UnionFind::new(n));
+    let mut ret = vec![false; _n];
+    queries
+        .iter_mut()
+        .enumerate()
+        .for_each(|(i, query)| query.push(i as i32));
+    edge_list.sort_by(|a, b| a[2].cmp(&b[2]));
+    queries.sort_by(|a, b| a[2].cmp(&b[2]));
+    for i in 0.._n {
+        while j < m && edge_list[j][2] < queries[i][2] {
+            uf.union(edge_list[j][0], edge_list[j][1]);
+            j += 1;
+        }
+        ret[queries[i][3] as usize] = uf.find(queries[i][0]) == uf.find(queries[i][1]);
+    }
+    ret
+}
