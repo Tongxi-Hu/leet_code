@@ -1,6 +1,6 @@
 use std::{
     cmp::Reverse,
-    collections::{BinaryHeap, HashSet},
+    collections::{BinaryHeap, HashMap, HashSet},
 };
 
 /// 01
@@ -206,4 +206,79 @@ pub fn maximum_units(mut box_types: Vec<Vec<i32>>, mut truck_size: i32) -> i32 {
         }
     }
     total
+}
+
+/// 11
+pub fn count_pairs(deliciousness: Vec<i32>) -> i32 {
+    let m = 10_i32.pow(9) + 7;
+    let mut hashmap = HashMap::new();
+    let pows: Vec<i32> = (0..22).map(|i| 2_i32.pow(i)).collect();
+    let mut answer = 0;
+    for x in deliciousness {
+        for i in 0..22 {
+            if pows[i] >= x {
+                let y = pows[i] - x;
+                if let Some(&n) = hashmap.get(&y) {
+                    answer += n;
+                    answer = answer % m;
+                }
+            }
+        }
+        *hashmap.entry(x).or_insert(0) += 1;
+    }
+    answer
+}
+
+/// 12
+pub fn ways_to_split(mut nums: Vec<i32>) -> i32 {
+    let mut ret = 0;
+
+    for i in 1..nums.len() {
+        nums[i] += nums[i - 1];
+    }
+
+    let sum = *nums.last().unwrap();
+
+    for i in 0..nums.len() - 2 {
+        let j = match nums[i + 1..].binary_search(&(2 * nums[i] - 1)) {
+            Ok(a) => a + 1,
+            Err(b) => b,
+        };
+        let k = match nums[i + 1..].binary_search(&((sum - nums[i]) / 2 + nums[i])) {
+            Ok(a) if a == nums.len() - i - 2 => a,
+            Ok(a) => a + 1,
+            Err(b) if b == nums.len() - i - 1 => b - 1,
+            Err(b) => b,
+        };
+
+        ret = (ret + k.saturating_sub(j) as i32) % 1_000_000_007;
+    }
+
+    ret
+}
+
+/// 13
+pub fn min_operations(target: Vec<i32>, arr: Vec<i32>) -> i32 {
+    let mp = target
+        .iter()
+        .enumerate()
+        .fold(HashMap::new(), |mut acc, (i, v)| {
+            acc.insert(v, i);
+            acc
+        });
+
+    let mut vec = vec![];
+
+    for val in arr.iter() {
+        if let Some(&i) = mp.get(val) {
+            let j = vec.binary_search(&i).unwrap_or_else(|x| x);
+            if j == vec.len() {
+                vec.push(i);
+            } else {
+                vec[j] = i;
+            }
+        }
+    }
+
+    (target.len() - vec.len()) as i32
 }
