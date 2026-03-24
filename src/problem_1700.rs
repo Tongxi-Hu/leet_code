@@ -1971,7 +1971,7 @@ pub struct UnionFind {
 
 impl UnionFind {
     fn new(n: i32) -> Self {
-        let mut parent = (0..n).collect::<Vec<_>>();
+        let parent = (0..n).collect::<Vec<_>>();
         UnionFind { parent }
     }
 
