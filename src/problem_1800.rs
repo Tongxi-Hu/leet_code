@@ -114,3 +114,96 @@ pub fn eaten_apples(apples: Vec<i32>, days: Vec<i32>) -> i32 {
     }
     ans
 }
+
+/// 06
+pub fn find_ball(grid: Vec<Vec<i32>>) -> Vec<i32> {
+    let n = grid[0].len();
+    let mut ans = vec![0; n];
+    for j in 0..n {
+        let mut cur_col = j as i32;
+        for row in &grid {
+            let d = row[cur_col as usize];
+            cur_col += d;
+            if cur_col < 0 || cur_col as usize == n || row[cur_col as usize] != d {
+                cur_col = -1;
+                break;
+            }
+        }
+        ans[j] = cur_col;
+    }
+    ans
+}
+
+/// 07
+pub fn maximize_xor(nums: Vec<i32>, queries: Vec<Vec<i32>>) -> Vec<i32> {
+    struct TrieNode {
+        next: Vec<Option<TrieNode>>,
+    }
+
+    let mut nums = nums;
+    nums.sort_unstable();
+    let mut queries = queries;
+    queries
+        .iter_mut()
+        .enumerate()
+        .for_each(|(i, v)| v.push(i as i32));
+    queries.sort_unstable_by(|a, b| a[1].cmp(&b[1]));
+
+    let mut trie = TrieNode {
+        next: vec![None, None],
+    };
+
+    let mut nums_i = 0;
+    for i in 0..queries.len() {
+        if queries[i][1] < nums[0] {
+            queries[i].push(-1);
+            continue;
+        }
+        while nums_i < nums.len() && queries[i][1] >= nums[nums_i] {
+            let mut trie_ptr = &mut trie;
+            for nums_j in (0..32).rev() {
+                let bit = ((nums[nums_i] >> nums_j) & 1) as usize;
+                if trie_ptr.next[bit].is_none() {
+                    trie_ptr.next[bit] = Some(TrieNode {
+                        next: vec![None, None],
+                    });
+                }
+                trie_ptr = trie_ptr.next[bit].as_mut().unwrap();
+            }
+            nums_i += 1;
+        }
+
+        let x = queries[i][0];
+        let mut trie_ptr = &trie;
+        let mut y = 0;
+        for j in (0..32).rev() {
+            let best = 1 - ((x >> j) & 1) as usize;
+            if trie_ptr.next[best].is_none() {
+                y = y | ((1 - best) << j) as i32;
+                trie_ptr = trie_ptr.next[1 - best].as_ref().unwrap();
+            } else {
+                y = y | (best << j) as i32;
+                trie_ptr = trie_ptr.next[best].as_ref().unwrap();
+            }
+        }
+        queries[i].push(x ^ y);
+    }
+    queries.sort_unstable_by(|a, b| a[2].cmp(&b[2]));
+    queries.into_iter().map(|x| x[3]).collect()
+}
+
+/// 10
+pub fn maximum_units(mut box_types: Vec<Vec<i32>>, mut truck_size: i32) -> i32 {
+    box_types.sort_by(|a, b| b[1].cmp(&a[1]));
+    let mut total = 0;
+    for i in 0..box_types.len() {
+        if truck_size >= box_types[i][0] {
+            total += box_types[i][0] * box_types[i][1];
+            truck_size -= box_types[i][0];
+        } else {
+            total += truck_size * box_types[i][1];
+            break;
+        }
+    }
+    total
+}
