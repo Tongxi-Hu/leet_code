@@ -662,3 +662,14 @@ pub fn count_good_rectangles(rectangles: Vec<Vec<i32>>) -> i32 {
         })
         .1
 }
+
+/// 26
+pub fn tuple_same_product(nums: Vec<i32>) -> i32 {
+    let mut cnt = HashMap::new();
+    for i in 0..nums.len() {
+        for j in i + 1..nums.len() {
+            *cnt.entry(nums[i] * nums[j]).or_insert(0) += 1;
+        }
+    }
+    cnt.values().into_iter().fold(0, |a, c| a + c * (c - 1) * 4)
+}
