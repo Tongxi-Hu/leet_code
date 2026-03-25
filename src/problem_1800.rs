@@ -1,7 +1,10 @@
 use std::{
+    cell::RefCell,
     cmp::Reverse,
     collections::{BinaryHeap, HashMap, HashSet},
 };
+
+use crate::common::ListNode;
 
 /// 01
 pub fn average_waiting_time(customers: Vec<Vec<i32>>) -> f64 {
@@ -281,4 +284,381 @@ pub fn min_operations(target: Vec<i32>, arr: Vec<i32>) -> i32 {
     }
 
     (target.len() - vec.len()) as i32
+}
+
+/// 16
+pub fn total_money(n: i32) -> i32 {
+    const D: i32 = 7;
+    let w = n / D;
+    let r = n % D;
+    (w * D * (w + D) + r * (w * 2 + r + 1)) / 2
+}
+
+/// 17
+pub fn maximum_gain(s: String, x: i32, y: i32) -> i32 {
+    let (a, b, a_s, b_s) = if x > y {
+        (b'a', b'b', x, y)
+    } else {
+        (b'b', b'a', y, x)
+    };
+    let mut res = 0;
+    let mut s = s.as_bytes().to_vec();
+    fn remove_s(s: &mut Vec<u8>, a: u8, b: u8, sc: i32) -> i32 {
+        let mut i = 0;
+        let mut score = 0;
+        while i + 1 < s.len() {
+            if s[i] == a && s[i + 1] == b {
+                score += sc;
+                s.remove(i);
+                s.remove(i);
+                i = if i == 0 { 0 } else { i - 1 };
+            } else {
+                i += 1;
+            }
+        }
+        score
+    }
+    res += remove_s(&mut s, a, b, a_s);
+    res += remove_s(&mut s, b, a, b_s);
+    res
+}
+
+/// 18
+pub fn construct_distanced_sequence(n: i32) -> Vec<i32> {
+    fn backtrace(n: i32, idx: usize, path: &mut Vec<i32>, vis: &mut HashSet<i32>) -> bool {
+        if path.len() <= idx {
+            true
+        } else if path[idx] != 0 {
+            backtrace(n, idx + 1, path, vis)
+        } else {
+            for x in (1..=n).rev() {
+                if vis.insert(x) {
+                    if x == 1 {
+                        path[idx] = x;
+                        if backtrace(n, idx + 1, path, vis) {
+                            return true;
+                        }
+                        path[idx] = 0;
+                    } else if matches!(path.get(idx + (x as usize)), Some(v) if *v == 0) {
+                        path[idx] = x;
+                        path[idx + (x as usize)] = x;
+                        if backtrace(n, idx + 1, path, vis) {
+                            return true;
+                        }
+                        path[idx] = 0;
+                        path[idx + (x as usize)] = 0;
+                    }
+                    vis.remove(&x);
+                }
+            }
+            false
+        }
+    }
+
+    let mut vis = HashSet::new();
+    let mut path = vec![0; n as usize * 2 - 1];
+    backtrace(n, 0, &mut path, &mut vis);
+    path
+}
+
+/// 19
+pub fn check_ways(pairs: Vec<Vec<i32>>) -> i32 {
+    let mut graph: HashMap<i32, HashSet<i32>> = HashMap::new();
+    let mut result = 1;
+    for pair in pairs {
+        (*graph.entry(pair[0]).or_insert(HashSet::new())).insert(pair[1]);
+        (*graph.entry(pair[1]).or_insert(HashSet::new())).insert(pair[0]);
+    }
+
+    let mut nodes: Vec<i32> = graph.keys().map(|x| *x).collect();
+    nodes.sort_by(|a, b| {
+        graph
+            .get(a)
+            .unwrap()
+            .len()
+            .partial_cmp(&(graph.get(b).unwrap().len()))
+            .unwrap()
+    });
+
+    let mut tree: HashMap<i32, Vec<i32>> = HashMap::new();
+    let mut root = -1;
+    for i in 0..nodes.len() {
+        let mut p = i + 1;
+        let leaf = nodes.get(i).unwrap();
+        while p < nodes.len() && !graph.get(nodes.get(p).unwrap()).unwrap().contains(leaf) {
+            p += 1;
+        }
+        if p < nodes.len() {
+            (*tree.entry(*nodes.get(p).unwrap()).or_insert(Vec::new())).push(*leaf);
+            if graph.get(nodes.get(p).unwrap()).unwrap().len() == graph.get(leaf).unwrap().len() {
+                result = 2;
+            }
+        } else {
+            if root == -1 {
+                root = *leaf;
+            } else {
+                return 0;
+            }
+        }
+    }
+
+    fn solve_by_dfs(
+        root: i32,
+        depth: i32,
+        result: i32,
+        tree: RefCell<HashMap<i32, Vec<i32>>>,
+        graph: &HashMap<i32, HashSet<i32>>,
+        visited: &mut HashSet<i32>,
+    ) -> (i32, i32) {
+        if result == 0 {
+            return (-1, 0);
+        }
+        if visited.contains(&root) {
+            return (-1, 0);
+        }
+
+        visited.insert(root);
+
+        let mut descendants_num = 0;
+        tree.borrow_mut().entry(root).or_insert(Vec::new());
+        if let Some(nodes) = tree.borrow().get(&root) {
+            nodes.iter().for_each(|node| {
+                descendants_num += solve_by_dfs(
+                    *node,
+                    depth + 1,
+                    result,
+                    RefCell::clone(&tree),
+                    graph,
+                    visited,
+                )
+                .0
+            });
+        }
+
+        if descendants_num + depth != graph.get(&root).unwrap().len() as i32 {
+            return (-1, 0);
+        }
+
+        return (descendants_num + 1, result);
+    }
+
+    solve_by_dfs(
+        root,
+        0,
+        result,
+        RefCell::new(tree),
+        &graph,
+        &mut HashSet::new(),
+    )
+    .1
+}
+
+/// 20
+pub fn decode(encoded: Vec<i32>, first: i32) -> Vec<i32> {
+    let (mut ret, mut p) = (Vec::new(), first);
+    ret.push(first);
+    for e in encoded {
+        let n = e ^ p;
+        ret.push(n);
+        p = n;
+    }
+    ret
+}
+
+/// 21
+pub fn swap_nodes(head: Option<Box<ListNode>>, k: i32) -> Option<Box<ListNode>> {
+    let mut n = 0;
+    let mut ptr = head.as_ref();
+    while let Some(node) = ptr {
+        n += 1;
+        ptr = node.next.as_ref();
+    }
+
+    let swap1 = k.min(n + 1 - k);
+    let swap2 = k.max(n + 1 - k);
+    if swap1 == swap2 {
+        return head;
+    }
+
+    let mut head = head;
+    let mut ptr = head.as_mut();
+    let mut swap1_val = 0;
+    let mut swap2_val = 0;
+
+    let mut i = 1;
+    while let Some(node) = ptr {
+        if i == swap1 {
+            swap1_val = node.val;
+        }
+        if i == swap2 {
+            swap2_val = node.val;
+        }
+        i += 1;
+        ptr = node.next.as_mut();
+    }
+
+    let mut ptr = head.as_mut();
+    let mut i = 1;
+    while let Some(node) = ptr {
+        if i == swap1 {
+            node.val = swap2_val;
+        }
+        if i == swap2 {
+            node.val = swap1_val;
+        }
+        i += 1;
+        ptr = node.next.as_mut();
+    }
+
+    head
+}
+
+/// 22
+pub fn minimum_hamming_distance(
+    source: Vec<i32>,
+    target: Vec<i32>,
+    allowed_swaps: Vec<Vec<i32>>,
+) -> i32 {
+    use std::collections::HashMap;
+    let n = source.len();
+    let mut unfd = UnionFind::with_capacity(n);
+    allowed_swaps
+        .into_iter()
+        .for_each(|v| unfd.union(v[0] as usize, v[1] as usize));
+    let mut indice = HashMap::new();
+
+    source
+        .iter()
+        .enumerate()
+        .for_each(|(i, &v)| indice.entry(v).or_insert(Vec::new()).push(i));
+    let mut visit = vec![true; n];
+    let mut ans = 0;
+
+    'outer: for i in 0..n {
+        if let Some(other) = indice.get(&target[i]) {
+            for &j in other.iter() {
+                if visit[j] && unfd.is_connected(i, j) {
+                    visit[j] = false;
+                    continue 'outer;
+                }
+            }
+            ans += 1;
+        } else {
+            ans += 1;
+        }
+    }
+    ans
+}
+
+struct UnionFind {
+    parents: Vec<usize>,
+    size: Vec<usize>,
+    count: usize,
+}
+impl UnionFind {
+    fn with_capacity(n: usize) -> Self {
+        Self {
+            parents: (0..n).collect(),
+            size: vec![1; n],
+            count: n,
+        }
+    }
+    fn find(&mut self, node: usize) -> usize {
+        while self.parents[node] != self.parents[self.parents[node]] {
+            self.parents[node] = self.parents[self.parents[node]];
+        }
+        self.parents[node]
+    }
+    fn union(&mut self, node_a: usize, node_b: usize) {
+        let p_a = self.find(node_a);
+        let p_b = self.find(node_b);
+        if p_a != p_b {
+            self.count -= 1;
+            if self.size[p_a] >= self.size[p_b] {
+                self.parents[p_b] = p_a;
+                self.size[p_a] += self.size[p_b];
+            } else {
+                self.parents[p_a] = p_b;
+                self.size[p_b] += self.size[p_a];
+            }
+        }
+    }
+    fn is_connected(&mut self, node_a: usize, node_b: usize) -> bool {
+        self.find(node_a) == self.find(node_b)
+    }
+}
+
+/// 23
+pub fn minimum_time_required(mut jobs: Vec<i32>, k: i32) -> i32 {
+    fn check(jobs: &Vec<i32>, limit: i32, k: usize) -> bool {
+        let mut workloads = vec![0; k];
+
+        return backtrack(jobs, &mut workloads, k, limit, 0);
+    }
+
+    fn backtrack(
+        jobs: &Vec<i32>,
+        workloads: &mut Vec<i32>,
+        k: usize,
+        limit: i32,
+        index: usize,
+    ) -> bool {
+        if index >= jobs.len() {
+            return true;
+        }
+
+        let job = jobs[index];
+
+        for i in 0..k {
+            if workloads[i] + job <= limit {
+                workloads[i] += job;
+
+                if backtrack(jobs, workloads, k, limit, index + 1) {
+                    return true;
+                }
+
+                workloads[i] -= job;
+
+                if workloads[i] == 0 {
+                    break;
+                }
+            }
+        }
+
+        false
+    }
+    jobs.sort_by(|a, b| b.cmp(a));
+
+    let mut l = jobs[0];
+    let mut r = jobs.iter().sum();
+    let k = k as usize;
+
+    while l < r {
+        let m = (l + r) >> 1;
+
+        if check(&jobs, m, k) {
+            r = m;
+        } else {
+            l = m + 1;
+        }
+    }
+
+    l
+}
+
+/// 25
+pub fn count_good_rectangles(rectangles: Vec<Vec<i32>>) -> i32 {
+    rectangles
+        .iter()
+        .fold((0, 0), |a, c| {
+            let cur = c[0].min(c[1]);
+            if cur > a.0 {
+                (cur, 1)
+            } else if cur == a.0 {
+                (a.0, a.1 + 1)
+            } else {
+                (a.0, a.1)
+            }
+        })
+        .1
 }
