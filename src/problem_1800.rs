@@ -673,3 +673,153 @@ pub fn tuple_same_product(nums: Vec<i32>) -> i32 {
     }
     cnt.values().into_iter().fold(0, |a, c| a + c * (c - 1) * 4)
 }
+
+/// 27
+pub fn largest_submatrix(matrix: Vec<Vec<i32>>) -> i32 {
+    let m = matrix.len();
+    let n = matrix[0].len();
+    let mut matrix = matrix;
+    let mut max_area = 0;
+
+    for i in 1..m {
+        for j in 0..n {
+            if matrix[i][j] == 1 {
+                matrix[i][j] += matrix[i - 1][j];
+            }
+        }
+    }
+
+    for i in 0..m {
+        matrix[i].sort_by(|a, b| b.cmp(a));
+        for j in 0..n {
+            let area = (j as i32 + 1) * matrix[i][j];
+            if area > max_area {
+                max_area = area;
+            }
+        }
+    }
+
+    max_area
+}
+
+/// 28
+pub fn can_mouse_win(grid: Vec<String>, cat_jump: i32, mouse_jump: i32) -> bool {
+    static MOUSE_TURN: usize = 0;
+    static CAT_TURN: usize = 1;
+
+    fn build_graph(jump: i32, grid_arr: &Vec<Vec<char>>) -> Vec<Vec<i32>> {
+        let (m, n) = (grid_arr.len(), grid_arr[0].len());
+        let mut graph = vec![Vec::new(); m * n];
+        for i in 0..m {
+            for j in 0..n {
+                let mut list = Vec::new();
+                if grid_arr[i][j] == '#' {
+                    continue;
+                }
+                list.push((i * n + j) as i32);
+                for dir in [[-1, 0], [1, 0], [0, -1], [0, 1]] {
+                    for k in 1..=jump {
+                        let (x, y) = (i as i32 + dir[0] * k, j as i32 + dir[1] * k);
+                        if x < 0
+                            || x as usize >= m
+                            || y < 0
+                            || y as usize >= n
+                            || grid_arr[x as usize][y as usize] == '#'
+                        {
+                            break;
+                        }
+                        list.push(x * n as i32 + y);
+                    }
+                }
+                graph[i * n + j] = list;
+            }
+        }
+        graph
+    }
+
+    fn dfs<'a>(
+        p1: usize,
+        p2: usize,
+        food_pos: i32,
+        mut turn: usize,
+        memo: &'a RefCell<Vec<Vec<Vec<i32>>>>,
+        graph: &Vec<Vec<Vec<i32>>>,
+    ) -> &'a RefCell<Vec<Vec<Vec<i32>>>> {
+        if p1 == p2 {
+            return &memo;
+        }
+        let dst = if turn == 0 { p2 } else { p1 };
+        if dst == food_pos as usize {
+            return &memo;
+        }
+        if memo.borrow()[p1][p2][turn as usize] < 0 {
+            return &memo;
+        }
+        memo.borrow_mut()[p1][p2][turn as usize] = -1;
+        turn ^= 1;
+        for w in &graph[turn as usize][p2] {
+            if turn == MOUSE_TURN {
+                dfs(*w as usize, p1, food_pos, turn, memo, graph);
+            } else {
+                memo.borrow_mut()[*w as usize][p1][turn as usize] += 1;
+                if memo.borrow()[*w as usize][p1][turn as usize] as usize
+                    == graph[turn as usize][*w as usize].len()
+                {
+                    dfs(*w as usize, p1, food_pos, turn, memo, graph);
+                }
+            }
+        }
+        &memo
+    }
+
+    let grid_arr = grid
+        .iter()
+        .map(|g| g.chars().collect::<Vec<char>>())
+        .collect::<Vec<_>>();
+    let (m, n) = (grid.len(), grid[0].len());
+    let (mut mouse_pos, mut cat_pos, mut food_pos) = (0, 0, 0);
+
+    for i in 0..m {
+        for j in 0..n {
+            match grid_arr[i][j] {
+                'F' => food_pos = i * n + j,
+                'C' => cat_pos = i * n + j,
+                'M' => mouse_pos = i * n + j,
+                _ => {}
+            }
+        }
+    }
+    let mut graph: Vec<Vec<Vec<i32>>> = vec![Vec::new(); 2];
+    graph[0] = build_graph(mouse_jump, &grid_arr);
+    graph[1] = build_graph(cat_jump, &grid_arr);
+    let memo = RefCell::new(vec![vec![vec![0; 2]; m * n]; m * n]);
+    for i in 0..m {
+        for j in 0..n {
+            let ch = grid_arr[i][j];
+            if ch == '#' || ch == 'F' {
+                continue;
+            }
+            let ret = dfs(
+                i * n + j,
+                food_pos,
+                food_pos as i32,
+                CAT_TURN as usize,
+                &memo,
+                &graph,
+            )
+            .borrow()[mouse_pos][cat_pos][MOUSE_TURN]
+                < 0;
+            if ret {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+/// 32
+pub fn largest_altitude(gain: Vec<i32>) -> i32 {
+    gain.iter()
+        .fold((0, 0), |a, c| (a.0 + c, a.1.max(a.0 + c)))
+        .1
+}
