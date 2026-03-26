@@ -1012,3 +1012,17 @@ pub fn minimum_boxes(mut n: i32) -> i32 {
         (block_base + extra) as i32 + 1
     }
 }
+
+/// 42
+pub fn count_balls(low_limit: i32, high_limit: i32) -> i32 {
+    let mut cnt = HashMap::new();
+    for mut i in low_limit..=high_limit {
+        let mut key = 0;
+        while i > 0 {
+            key += i % 10;
+            i = i / 10;
+        }
+        *cnt.entry(key).or_insert(0) += 1;
+    }
+    *cnt.values().into_iter().max().unwrap()
+}
