@@ -823,3 +823,94 @@ pub fn largest_altitude(gain: Vec<i32>) -> i32 {
         .fold((0, 0), |a, c| (a.0 + c, a.1.max(a.0 + c)))
         .1
 }
+
+/// 33
+pub fn minimum_teachings(_: i32, languages: Vec<Vec<i32>>, friendships: Vec<Vec<i32>>) -> i32 {
+    let mut cncon = HashSet::new();
+    for friendship in friendships {
+        let mut mp = HashSet::new();
+        let mut conm = false;
+        for &lan in &languages[friendship[0] as usize - 1] {
+            mp.insert(lan);
+        }
+        for &lan in &languages[friendship[1] as usize - 1] {
+            if mp.contains(&lan) {
+                conm = true;
+                break;
+            }
+        }
+
+        if !conm {
+            cncon.insert(friendship[0] - 1);
+            cncon.insert(friendship[1] - 1);
+        }
+    }
+
+    let mut max_cnt = 0;
+    let mut cnt = HashMap::new();
+    for &person in &cncon {
+        for &lan in &languages[person as usize] {
+            *cnt.entry(lan).or_insert(0) += 1;
+            max_cnt = max_cnt.max(*cnt.get(&lan).unwrap());
+        }
+    }
+
+    cncon.len() as i32 - max_cnt
+}
+
+/// 34
+pub fn decode_ii(mut encoded: Vec<i32>) -> Vec<i32> {
+    let n = encoded.len() + 1;
+    let mut s = encoded[1..]
+        .chunks(2)
+        .fold((2..=n as i32).fold(1, |s, x| s ^ x), |s, x| s ^ x[0]);
+    encoded.push(0);
+    encoded.iter_mut().for_each(|x| {
+        let t = *x;
+        *x = s;
+        s ^= t
+    });
+    encoded
+}
+
+/// 35
+pub fn ways_to_fill_array(queries: Vec<Vec<i32>>) -> Vec<i32> {
+    const MOD: i64 = 1_000_000_007;
+    const MAXN: usize = 10_014;
+    const MAXM: usize = 14;
+
+    let mut comb = vec![vec![0; MAXM]; MAXN];
+    let mut ans = Vec::new();
+
+    comb[0][0] = 1;
+    for i in 1..MAXN {
+        comb[i][0] = 1;
+        for j in 1..=i.min(MAXM - 1) {
+            comb[i][j] = (comb[i - 1][j - 1] + comb[i - 1][j]) % MOD;
+        }
+    }
+
+    for q in queries {
+        let n = q[0] as usize;
+        let mut k = q[1] as i64;
+        let mut tot = 1;
+
+        let mut i = 2;
+        while i * i <= k {
+            if k % i == 0 {
+                let mut cnt = 0;
+                while k % i == 0 {
+                    k /= i;
+                    cnt += 1;
+                }
+                tot = (tot * comb[n + cnt - 1][cnt]) % MOD;
+            }
+            i += 1;
+        }
+        if k > 1 {
+            tot = (tot * n as i64) % MOD;
+        }
+        ans.push(tot as i32);
+    }
+    ans
+}
