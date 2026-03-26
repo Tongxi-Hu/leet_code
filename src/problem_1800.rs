@@ -914,3 +914,101 @@ pub fn ways_to_fill_array(queries: Vec<Vec<i32>>) -> Vec<i32> {
     }
     ans
 }
+
+/// 36
+pub fn maximum_time(time: String) -> String {
+    let times = time.as_bytes();
+    let mut ans = String::new();
+
+    if times[0] == b'?' {
+        ans.push(if b'4' <= times[1] && times[1] <= b'9' {
+            '1'
+        } else {
+            '2'
+        });
+    } else {
+        ans.push(times[0] as char);
+    }
+
+    if times[1] == b'?' {
+        ans.push(if times[0] == b'2' || times[0] == b'?' {
+            '3'
+        } else {
+            '9'
+        });
+    } else {
+        ans.push(times[1] as char);
+    }
+
+    ans.push(':');
+
+    if times[3] == b'?' {
+        ans.push('5');
+    } else {
+        ans.push(times[3] as char);
+    }
+
+    if times[4] == b'?' {
+        ans.push('9');
+    } else {
+        ans.push(times[4] as char);
+    }
+
+    ans
+}
+
+/// 37
+pub fn min_characters(a: String, b: String) -> i32 {
+    let mut ac = vec![0; 26];
+    for c in a.bytes() {
+        let c = c as usize - b'a' as usize;
+        ac[c] += 1;
+    }
+    let mut bc = vec![0; 26];
+    for c in b.bytes() {
+        let c = c as usize - b'a' as usize;
+        bc[c] += 1;
+    }
+    let mut ans = a.len() + b.len() - (0..ac.len()).map(|i| ac[i] + bc[i]).max().unwrap();
+    let (sa, sb) = (a.len(), b.len());
+    let mut a = 0;
+    let mut b = 0;
+    for i in 0..25 {
+        a += ac[i];
+        b += bc[i];
+        ans = ans.min(a + sb - b).min(b + sa - a);
+    }
+
+    ans as _
+}
+
+/// 38
+pub fn kth_largest_value(matrix: Vec<Vec<i32>>, k: i32) -> i32 {
+    let (height, width) = (matrix.len(), matrix[0].len());
+    let (mut prefix, mut all) = (vec![vec![0; width + 1]; height + 1], vec![]);
+    for r in 0..height {
+        for c in 0..width {
+            prefix[r + 1][c + 1] =
+                prefix[r][c + 1] ^ prefix[r + 1][c] ^ prefix[r][c] ^ matrix[r][c];
+            all.push(prefix[r + 1][c + 1]);
+        }
+    }
+    all.sort();
+    all[all.len() - k as usize]
+}
+
+/// 39
+pub fn minimum_boxes(mut n: i32) -> i32 {
+    let mut base = (6_f64 * n as f64).cbrt() as i64;
+    if base * (base + 1) * (base + 2) / 6_i64 > n as i64 {
+        base -= 1;
+    }
+    let block_base = base * (base + 1) / 2;
+    n -= (base * (base + 1) * (base + 2) / 6) as i32;
+    let extra = (2_f64 * n as f64).sqrt() as i64;
+    if extra * (extra + 1) / 2 >= n as i64 {
+        (block_base + extra) as i32
+    } else {
+        (block_base + extra) as i32 + 1
+    }
+}
