@@ -1026,3 +1026,78 @@ pub fn count_balls(low_limit: i32, high_limit: i32) -> i32 {
     }
     *cnt.values().into_iter().max().unwrap()
 }
+
+/// 43
+pub fn restore_array(adjacent_pairs: Vec<Vec<i32>>) -> Vec<i32> {
+    let (mut cnt, mut ans) = (HashMap::new(), vec![0; adjacent_pairs.len() + 1]);
+    adjacent_pairs.iter().for_each(|p| {
+        cnt.entry(p[0]).or_insert(vec![]).push(p[1]);
+        cnt.entry(p[1]).or_insert(vec![]).push(p[0]);
+    });
+    for (k, v) in cnt.iter() {
+        if v.len() == 1 {
+            ans[0] = *k;
+            ans[1] = v[0];
+            break;
+        }
+    }
+    for i in 2..=adjacent_pairs.len() {
+        if let Some(v) = cnt.get(&ans[i - 1]) {
+            ans[i] = if v[0] == ans[i - 2] { v[1] } else { v[0] }
+        }
+    }
+    ans
+}
+
+/// 44
+pub fn can_eat(candies_count: Vec<i32>, queries: Vec<Vec<i32>>) -> Vec<bool> {
+    let n = candies_count.len();
+    let mut candies_prefix_sum = vec![0_i64; n + 1];
+    for i in 0..n {
+        candies_prefix_sum[i + 1] = candies_prefix_sum[i] + candies_count[i] as i64;
+    }
+    let mut answer = vec![false; queries.len()];
+    for (i, query) in queries.into_iter().enumerate() {
+        let f_type = query[0] as usize;
+        let f_day = query[1] as i64;
+        let d_cap = query[2] as i64;
+        if f_day >= candies_prefix_sum[f_type + 1] {
+            continue;
+        }
+        let min = candies_prefix_sum[f_type] + 1;
+        if d_cap * (f_day + 1) >= min {
+            answer[i] = true;
+        }
+    }
+    answer
+}
+
+/// 45
+pub fn check_partitioning(s: String) -> bool {
+    let chars = s.chars().collect::<Vec<char>>();
+    let length = chars.len();
+    let mut is_pal = vec![vec![false; length]; length];
+    for l in 1..length {
+        for s in 0..=length - l {
+            let e = s + l - 1;
+            if l == 1 {
+                is_pal[s][e] = true;
+            } else if l == 2 {
+                is_pal[s][e] = chars[s] == chars[e];
+            } else {
+                is_pal[s][e] = chars[s] == chars[e] && is_pal[s + 1][e - 1];
+            }
+        }
+    }
+    for l in 1..=length - 2 {
+        if !is_pal[0][l - 1] {
+            continue;
+        }
+        for r in l..=length - 2 {
+            if is_pal[l][r] && is_pal[r + 1][length - 1] {
+                return true;
+            }
+        }
+    }
+    false
+}
