@@ -2,6 +2,7 @@ use std::{
     cell::RefCell,
     cmp::Reverse,
     collections::{BinaryHeap, HashMap, HashSet},
+    i32,
 };
 
 use crate::common::ListNode;
@@ -1100,4 +1101,60 @@ pub fn check_partitioning(s: String) -> bool {
         }
     }
     false
+}
+
+/// 48
+pub fn sum_of_unique(nums: Vec<i32>) -> i32 {
+    nums.iter()
+        .fold((HashSet::new(), HashSet::new()), |mut a, c| {
+            if a.1.contains(c) {
+                a
+            } else if a.0.contains(c) {
+                a.0.remove(c);
+                a.1.insert(c);
+                a
+            } else {
+                a.0.insert(c);
+                a
+            }
+        })
+        .0
+        .into_iter()
+        .sum()
+}
+
+/// 49
+pub fn max_absolute_sum(nums: Vec<i32>) -> i32 {
+    let (mut dp, mut max) = (vec![(i32::MIN, i32::MAX); nums.len()], i32::MIN);
+    dp[0] = (nums[0], nums[0]);
+    max = max.max(nums[0].abs());
+    for i in 1..nums.len() {
+        if dp[i - 1].0 < 0 {
+            dp[i].0 = nums[i];
+            dp[i].1 = dp[i - 1].1 + nums[i];
+        } else if dp[i - 1].1 < 0 {
+            dp[i].0 = dp[i - 1].0 + nums[i];
+            dp[i].1 = dp[i - 1].1 + nums[i];
+        } else {
+            dp[i].0 = dp[i - 1].0 + nums[i];
+            dp[i].1 = nums[i];
+        }
+        max = max.max(dp[i].0.abs().max(dp[i].1.abs()));
+    }
+    max
+}
+
+/// 50
+pub fn minimum_length(s: String) -> i32 {
+    let (mut l, mut r, s_arr) = (0, s.len() - 1, s.as_bytes());
+    while l < r && s_arr[l] == s_arr[r] {
+        let target = s_arr[l];
+        while l <= r && s_arr[l] == target {
+            l += 1;
+        }
+        while l <= r && s_arr[r] == target {
+            r -= 1;
+        }
+    }
+    (r - l + 1) as i32
 }
