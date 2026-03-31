@@ -1273,3 +1273,49 @@ pub fn min_abs_difference(nums: Vec<i32>, goal: i32) -> i32 {
     let (left_sums, right_sums) = get_sums(&nums);
     get_min_diff(&left_sums, &right_sums, goal)
 }
+
+/// 58
+pub fn min_operations_ii(s: String) -> i32 {
+    let (chars, mut cnt) = (s.chars().collect::<Vec<char>>(), 0);
+    for i in 0..chars.len() {
+        if i % 2 == 0 && chars[i] != '0' {
+            cnt += 1
+        }
+        if i % 2 == 1 && chars[i] != '1' {
+            cnt += 1
+        }
+    }
+    cnt.min(chars.len() - cnt) as i32
+}
+
+/// 59
+pub fn count_homogenous(s: String) -> i32 {
+    s.as_bytes()
+        .windows(2)
+        .fold((1, 1), |(cnt, ret), ch| {
+            if ch[0] == ch[1] {
+                (cnt + 1, (ret + cnt + 1) % 1_000_000_007)
+            } else {
+                (1, (ret + 1) % 1_000_000_007)
+            }
+        })
+        .1
+}
+
+/// 60
+pub fn minimum_size(nums: Vec<i32>, max_operations: i32) -> i32 {
+    let (mut left, mut right, mut ans) = (1, *nums.iter().max().unwrap(), 0);
+    while left <= right {
+        let (t, mut op) = ((left + right) / 2, 0 as i64);
+        for n in nums.iter() {
+            op += ((n - 1) / t) as i64;
+        }
+        if op <= max_operations as i64 {
+            ans = t;
+            right = t - 1;
+        } else {
+            left = t + 1;
+        }
+    }
+    ans
+}
