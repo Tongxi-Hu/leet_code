@@ -1,7 +1,7 @@
 use std::{
     cell::RefCell,
     cmp::Reverse,
-    collections::{BinaryHeap, HashMap, HashSet},
+    collections::{BTreeSet, BinaryHeap, HashMap, HashSet},
     i32,
 };
 
@@ -1157,4 +1157,119 @@ pub fn minimum_length(s: String) -> i32 {
         }
     }
     (r - l + 1) as i32
+}
+
+/// 51
+pub fn max_value(mut events: Vec<Vec<i32>>, k: i32) -> i32 {
+    events.sort_by_key(|e| e[1]);
+    let n = events.len();
+    let k = k as usize;
+    let mut dp = vec![vec![0; k + 1]; n + 1];
+
+    for i in 0..n {
+        let p = events.partition_point(|x| x[1] < events[i][0]);
+        for j in 1..=k {
+            dp[i + 1][j] = dp[i][j].max(dp[p][j - 1] + events[i][2]);
+        }
+    }
+
+    dp[n][k]
+}
+
+/// 52
+pub fn check(nums: Vec<i32>) -> bool {
+    let mut reverse = 0;
+    for i in 0..nums.len() {
+        if nums[i] > nums[(i + 1) % nums.len()] {
+            reverse += 1;
+            if reverse > 1 {
+                return false;
+            }
+        }
+    }
+    true
+}
+
+/// 53
+pub fn maximum_score(a: i32, b: i32, c: i32) -> i32 {
+    ((a + b + c) / 2).min(a + b + c - a.max(b).max(c))
+}
+
+/// 54
+pub fn largest_merge(word1: String, word2: String) -> String {
+    let (mut i, mut j, mut ret, word1, word2) = (
+        0,
+        0,
+        String::with_capacity(word1.len() + word2.len()),
+        word1.into_bytes(),
+        word2.into_bytes(),
+    );
+    while i < word1.len() || j < word2.len() {
+        if word1[i..] > word2[j..] {
+            ret.push(word1[i] as char);
+            i += 1
+        } else {
+            ret.push(word2[j] as char);
+            j += 1
+        }
+    }
+    ret
+}
+
+/// 55
+pub fn min_abs_difference(nums: Vec<i32>, goal: i32) -> i32 {
+    fn get_sums(nums: &Vec<i32>) -> (BTreeSet<i32>, BTreeSet<i32>) {
+        let n = nums.len();
+
+        let left_len = n / 2;
+        let left_total_status = (1 << left_len) as usize;
+
+        let mut left_sums = vec![0; left_total_status];
+        for i in 1..left_total_status {
+            for j in 0..left_len {
+                if i & (1 << j) == 0 {
+                    continue;
+                }
+                left_sums[i] = left_sums[i - (1 << j)] + nums[j];
+                break;
+            }
+        }
+
+        let right_len = n - left_len;
+        let right_total_status = (1 << right_len) as usize;
+
+        let mut right_sums = vec![0; right_total_status];
+        for i in 1..right_total_status {
+            for j in 0..right_len {
+                if i & (1 << j) == 0 {
+                    continue;
+                }
+                right_sums[i] = right_sums[i - (1 << j)] + nums[j + left_len];
+                break;
+            }
+        }
+
+        (
+            left_sums.into_iter().collect::<BTreeSet<i32>>(),
+            right_sums.into_iter().collect::<BTreeSet<i32>>(),
+        )
+    }
+
+    fn get_min_diff(left_sums: &BTreeSet<i32>, right_sums: &BTreeSet<i32>, target: i32) -> i32 {
+        let mut min_diff = i32::MAX;
+
+        for &val1 in left_sums.iter() {
+            let val2 = target - val1;
+            if let Some(&val2) = right_sums.range(val2..).next() {
+                min_diff = i32::min(min_diff, (target - (val1 + val2)).abs());
+            }
+            if let Some(&val2) = right_sums.range(..val2).next_back() {
+                min_diff = i32::min(min_diff, (target - (val1 + val2)).abs());
+            }
+        }
+
+        min_diff
+    }
+    let (left_sums, right_sums) = get_sums(&nums);
+    get_min_diff(&left_sums, &right_sums, goal)
 }
