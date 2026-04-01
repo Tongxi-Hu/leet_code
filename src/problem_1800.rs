@@ -1,7 +1,7 @@
 use std::{
     cell::RefCell,
     cmp::Reverse,
-    collections::{BTreeSet, BinaryHeap, HashMap, HashSet},
+    collections::{BTreeSet, BinaryHeap, HashMap, HashSet, VecDeque},
     i32,
 };
 
@@ -1315,6 +1315,103 @@ pub fn minimum_size(nums: Vec<i32>, max_operations: i32) -> i32 {
             right = t - 1;
         } else {
             left = t + 1;
+        }
+    }
+    ans
+}
+
+/// 61
+pub fn min_trio_degree(n: i32, edges: Vec<Vec<i32>>) -> i32 {
+    let n = n as usize;
+    let mut g = vec![vec![false; n]; n];
+    let mut dgr = vec![0; n];
+    for edge in edges {
+        let (u, v) = (edge[0] as usize - 1, edge[1] as usize - 1);
+        g[u][v] = true;
+        g[v][u] = true;
+        dgr[u] += 1;
+        dgr[v] += 1;
+    }
+    let mut res = i32::MAX;
+    (0..n).for_each(|i| {
+        (i + 1..n).for_each(|j| {
+            if !g[i][j] {
+                return;
+            }
+            (j + 1..n).for_each(|k| {
+                if g[i][k] && g[j][k] {
+                    res = res.min(dgr[i] + dgr[j] + dgr[k] - 6);
+                }
+            })
+        })
+    });
+    if res == i32::MAX { -1 } else { res }
+}
+
+/// 63
+pub fn longest_nice_substring(s: String) -> String {
+    let cache: HashSet<char> = s.chars().collect();
+
+    for (i, ch) in s.chars().enumerate() {
+        if cache.contains(&ch.to_ascii_uppercase()) && cache.contains(&ch.to_ascii_lowercase()) {
+            continue;
+        }
+        let (s1, s2) = (
+            longest_nice_substring(s[0..i].to_string()),
+            longest_nice_substring(s[i + 1..].to_string()),
+        );
+        return if s1.len() >= s2.len() { s1 } else { s2 };
+    }
+    s
+}
+
+/// 64
+pub fn can_choose(groups: Vec<Vec<i32>>, nums: Vec<i32>) -> bool {
+    let (mut i, mut j, m, n) = (0, 0, groups.len(), nums.len());
+    while j < n {
+        let (mut p, mut q) = (j, 0);
+        while p < n && q < groups[i].len() && groups[i][q] == nums[p] {
+            p += 1;
+            q += 1;
+        }
+        if groups[i].len() == q {
+            i += 1;
+            j = p - 1;
+        }
+        if i == m {
+            return true;
+        }
+        j += 1;
+    }
+    i == m
+}
+
+/// 65
+pub fn highest_peak(is_water: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+    let (rows, cols) = (is_water.len(), is_water[0].len());
+    let mut visited = vec![vec![false; cols]; rows];
+    let mut q = VecDeque::new();
+    for i in 0..rows {
+        for j in 0..cols {
+            if is_water[i][j] == 1 {
+                visited[i][j] = true;
+                q.push_back((i, j));
+            }
+        }
+    }
+    let mut ans = vec![vec![0; cols]; rows];
+    let mut high = 0;
+    while !q.is_empty() {
+        high += 1;
+        for _ in 0..q.len() {
+            let (i, j) = q.pop_front().unwrap();
+            for (x, y) in [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)] {
+                if x < rows && y < cols && !visited[x][y] {
+                    ans[x][y] = high;
+                    visited[x][y] = true;
+                    q.push_back((x, y));
+                }
+            }
         }
     }
     ans
