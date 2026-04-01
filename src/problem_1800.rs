@@ -1542,3 +1542,31 @@ pub fn maximum_score_ii(nums: Vec<i32>, multipliers: Vec<i32>) -> i32 {
     }
     ans
 }
+
+/// 71
+pub fn longest_palindrome(word1: String, word2: String) -> i32 {
+    let mut chars = word1.chars().collect::<Vec<char>>();
+    let length_1 = chars.len();
+    chars.append(&mut word2.chars().collect::<Vec<char>>());
+
+    let total_length = chars.len();
+    let mut dp = vec![vec![0; total_length]; total_length];
+    let mut ans = 0;
+    for i in (0..total_length).rev() {
+        for j in i..total_length {
+            if i == j {
+                dp[i][j] = 1;
+            } else {
+                if chars[i] == chars[j] {
+                    dp[i][j] = dp[i + 1][j - 1] + 2;
+                    if i < length_1 && length_1 <= j {
+                        ans = ans.max(dp[i][j]);
+                    }
+                } else {
+                    dp[i][j] = dp[i][j].max(dp[i + 1][j].max(dp[i][j - 1]));
+                }
+            }
+        }
+    }
+    ans
+}
