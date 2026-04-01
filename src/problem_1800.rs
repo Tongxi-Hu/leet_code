@@ -1416,3 +1416,129 @@ pub fn highest_peak(is_water: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
     }
     ans
 }
+
+/// 66
+pub fn get_coprimes(nums: Vec<i32>, edges: Vec<Vec<i32>>) -> Vec<i32> {
+    let n = nums.len();
+    let mut gcds = vec![vec![]; 51];
+    let mut tmp = vec![vec![]; 51];
+    let mut ans = vec![-1; n];
+    let mut dep = vec![-1; n];
+    let mut g = vec![vec![]; n];
+
+    fn gcd(a: i32, b: i32) -> i32 {
+        let mut a = a;
+        let mut b = b;
+        while b != 0 {
+            let temp = b;
+            b = a % b;
+            a = temp;
+        }
+        a.abs()
+    }
+
+    fn dfs(
+        x: usize,
+        depth: i32,
+        dep: &mut [i32],
+        ans: &mut [i32],
+        nums: &Vec<i32>,
+        tmp: &mut Vec<Vec<usize>>,
+        gcds: &Vec<Vec<i32>>,
+        g: &Vec<Vec<usize>>,
+    ) {
+        dep[x] = depth;
+        for &val in &gcds[nums[x] as usize] {
+            if tmp[val as usize].is_empty() {
+                continue;
+            }
+            let las = *tmp[val as usize].last().unwrap();
+            if ans[x] == -1 || dep[las] > dep[ans[x] as usize] {
+                ans[x] = las as i32;
+            }
+        }
+        tmp[nums[x] as usize].push(x);
+        for &val in &g[x] {
+            if dep[val] == -1 {
+                dfs(val, depth + 1, dep, ans, nums, tmp, gcds, g);
+            }
+        }
+        tmp[nums[x] as usize].pop();
+    }
+
+    for i in 1..=50 {
+        for j in 1..=50 {
+            if gcd(i, j) == 1 {
+                gcds[i as usize].push(j);
+            }
+        }
+    }
+    for edge in &edges {
+        let x = edge[0] as usize;
+        let y = edge[1] as usize;
+        g[x].push(y);
+        g[y].push(x);
+    }
+    dfs(0, 1, &mut dep, &mut ans, &nums, &mut tmp, &gcds, &g);
+    ans
+}
+
+/// 68
+pub fn merge_alternately(word1: String, word2: String) -> String {
+    let (char_1, char_2) = (
+        word1.chars().collect::<Vec<char>>(),
+        word2.chars().collect::<Vec<char>>(),
+    );
+    let mut ans = "".to_string();
+    for i in 0..char_1.len().min(char_2.len()) {
+        ans.push(char_1[i]);
+        ans.push(char_2[i]);
+    }
+    if char_1.len() > char_2.len() {
+        for i in 0..char_1.len() - char_2.len() {
+            ans.push(char_1[char_2.len() + i]);
+        }
+    }
+    if char_1.len() < char_2.len() {
+        for i in 0..char_2.len() - char_1.len() {
+            ans.push(char_2[char_1.len() + i]);
+        }
+    }
+    ans
+}
+
+/// 69
+pub fn min_operations_iii(boxes: String) -> Vec<i32> {
+    let chars = boxes.chars().collect::<Vec<char>>();
+    let mut ans = vec![0; chars.len()];
+    for i in 0..chars.len() {
+        for j in 0..chars.len() {
+            if chars[j] == '1' {
+                ans[i] += (i as i32 - j as i32).abs()
+            }
+        }
+    }
+    ans
+}
+
+/// 70
+pub fn maximum_score_ii(nums: Vec<i32>, multipliers: Vec<i32>) -> i32 {
+    let (n, m) = (nums.len(), multipliers.len());
+    let mut dp = vec![vec![i32::MIN; m + 1]; m + 1];
+    dp[0][0] = 0;
+    for i in 0..=m {
+        for j in 0..=m - i {
+            if i > 0 {
+                dp[i][j] = dp[i][j].max(dp[i - 1][j] + multipliers[i + j - 1] * nums[i - 1]);
+            }
+            if j > 0 {
+                dp[i][j] = dp[i][j].max(dp[i][j - 1] + multipliers[i + j - 1] * nums[n - j]);
+            }
+        }
+    }
+    let mut ans = i32::MIN;
+    for i in 0..=m {
+        ans = ans.max(dp[i][m - i]);
+    }
+    ans
+}
