@@ -1548,7 +1548,6 @@ pub fn longest_palindrome(word1: String, word2: String) -> i32 {
     let mut chars = word1.chars().collect::<Vec<char>>();
     let length_1 = chars.len();
     chars.append(&mut word2.chars().collect::<Vec<char>>());
-
     let total_length = chars.len();
     let mut dp = vec![vec![0; total_length]; total_length];
     let mut ans = 0;
@@ -1570,3 +1569,101 @@ pub fn longest_palindrome(word1: String, word2: String) -> i32 {
     }
     ans
 }
+
+/// 73
+pub fn count_matches(items: Vec<Vec<String>>, rule_key: String, rule_value: String) -> i32 {
+    items.iter().fold(0, |a, c| match rule_key.as_str() {
+        "type" => {
+            if c[0] == rule_value {
+                a + 1
+            } else {
+                a
+            }
+        }
+        "color" => {
+            if c[1] == rule_value {
+                a + 1
+            } else {
+                a
+            }
+        }
+        "name" => {
+            if c[2] == rule_value {
+                a + 1
+            } else {
+                a
+            }
+        }
+        _ => a,
+    })
+}
+
+/// 74
+pub fn closest_cost(base_costs: Vec<i32>, topping_costs: Vec<i32>, target: i32) -> i32 {
+    static mut RET: i32 = i32::MAX;
+    static mut DIFF: i32 = i32::MAX;
+
+    fn back_track(topping_costs: &Vec<i32>, cost: i32, target: i32, curr_idx: usize) {
+        let cost_diff = (target - cost).abs();
+        unsafe {
+            if cost_diff == DIFF && cost < RET || cost_diff < DIFF {
+                DIFF = cost_diff;
+                RET = cost;
+            }
+        }
+        if curr_idx >= topping_costs.len() || cost > target {
+            return;
+        }
+        back_track(topping_costs, cost, target, curr_idx + 1);
+        back_track(
+            topping_costs,
+            cost + topping_costs[curr_idx],
+            target,
+            curr_idx + 1,
+        );
+        back_track(
+            topping_costs,
+            cost + topping_costs[curr_idx] * 2,
+            target,
+            curr_idx + 1,
+        );
+    }
+    unsafe {
+        RET = i32::MAX;
+        DIFF = i32::MAX;
+    }
+    for base in base_costs {
+        back_track(&topping_costs, base, target, 0);
+    }
+    unsafe { RET }
+}
+
+/// 75
+pub fn min_operations_iv(nums1: Vec<i32>, nums2: Vec<i32>) -> i32 {
+    let s1: i32 = nums1.iter().sum();
+    let s2: i32 = nums2.iter().sum();
+    let (l, r, t) = if s1 < s2 {
+        (nums1, nums2, s2 - s1)
+    } else {
+        (nums2, nums1, s1 - s2)
+    };
+    if t == 0 {
+        return 0;
+    }
+    let mut q: Vec<_> = l
+        .into_iter()
+        .map(|i| 6 - i)
+        .chain(r.into_iter().map(|i| i - 1))
+        .collect();
+    q.sort_unstable();
+    q.into_iter()
+        .rev()
+        .scan(t, |t, n| {
+            *t -= n;
+            Some(*t)
+        })
+        .zip(1..)
+        .find(|v| v.0 <= 0)
+        .map_or(-1, |v| v.1)
+}
+
