@@ -1,6 +1,6 @@
 use std::{
     cell::RefCell,
-    cmp::Reverse,
+    cmp::{Ordering, Reverse},
     collections::{BTreeSet, BinaryHeap, HashMap, HashSet, VecDeque},
     i32,
 };
@@ -1692,4 +1692,87 @@ pub fn check_powers_of_three(mut n: i32) -> bool {
         n = n / 3;
     }
     true
+}
+
+/// 81
+pub fn beauty_sum(s: String) -> i32 {
+    let (mut ret, arr) = (0, s.as_bytes());
+    for i in 0..s.len() {
+        let mut cnt = vec![0; 26];
+        for j in i..s.len() {
+            cnt[(arr[j] - b'a') as usize] += 1;
+            ret += cnt.iter().filter(|&&c| c > 0).max().unwrap_or(&i32::MIN)
+                - cnt.iter().filter(|&&c| c > 0).min().unwrap_or(&i32::MAX);
+        }
+    }
+    ret
+}
+
+/// 82
+pub fn count_pairs_ii(n: i32, edges: Vec<Vec<i32>>, mut queries: Vec<i32>) -> Vec<i32> {
+    let n = n as usize;
+    let mut degs: Vec<usize> = vec![0; n + 1];
+    let mut cnt_e: HashMap<usize, usize> = HashMap::new();
+    for edge in edges.iter() {
+        let (x, y) = (edge[0], edge[1]);
+        let (mut x, mut y) = (x as usize, y as usize);
+        if x < y {
+            y = x ^ y;
+            x = x ^ y;
+            y = x ^ y;
+        }
+        degs[x] += 1;
+        degs[y] += 1;
+        let key = x * n + y;
+        cnt_e.insert(key, cnt_e.get(&key).unwrap_or(&0) + 1);
+    }
+
+    let mut cnt_deg: HashMap<usize, usize> = HashMap::new();
+    for &deg in degs[1..].iter() {
+        cnt_deg.insert(deg, cnt_deg.get(&deg).unwrap_or(&0) + 1);
+    }
+
+    let mut cnts = vec![0; degs.iter().max().unwrap_or(&0) * 2 + 2];
+    for (&deg1, &c1) in cnt_deg.iter() {
+        for (&deg2, &c2) in cnt_deg.iter() {
+            match deg1.cmp(&deg2) {
+                Ordering::Less => cnts[deg1 + deg2] += c1 * c2,
+                Ordering::Equal => cnts[deg1 + deg2] += c1 * (c1 - 1) >> 1,
+                Ordering::Greater => {}
+            }
+        }
+    }
+
+    for (e, c) in cnt_e {
+        let (x, y) = (e / n, e % n);
+        let s = degs[x] + degs[y];
+        cnts[s] -= 1;
+        cnts[s - c] += 1;
+    }
+    for i in (1..cnts.len()).rev() {
+        cnts[i - 1] += cnts[i];
+    }
+    for q in queries.iter_mut() {
+        *q = cnts[(*q as usize + 1).min(cnts.len() - 1)] as i32;
+    }
+    queries
+}
+
+/// 84
+pub fn check_ones_segment(s: String) -> bool {
+    let chars = s.chars().collect::<Vec<char>>();
+    chars.windows(2).fold(0, |a, c| {
+        if (c[0] == '0' && c[1] == '1') || (c[1] == '0' && c[0] == '1') {
+            a + 1
+        } else {
+            a
+        }
+    }) < 2
+}
+
+/// 85
+pub fn min_elements(nums: Vec<i32>, limit: i32, goal: i32) -> i32 {
+    ((((goal as i64 - nums.iter().map(|a| *a as i64).sum::<i64>()).abs() + limit as i64 - 1)
+        / limit as i64) as f64)
+        .ceil() as i32
 }
