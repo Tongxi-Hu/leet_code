@@ -1776,3 +1776,76 @@ pub fn min_elements(nums: Vec<i32>, limit: i32, goal: i32) -> i32 {
         / limit as i64) as f64)
         .ceil() as i32
 }
+
+/// 87
+pub fn min_changes(nums: Vec<i32>, k: i32) -> i32 {
+    const N: usize = 1024;
+    let k = k as usize;
+    let n = nums.len();
+    let mut group_amount = vec![0; k as usize];
+    let mut group_record: Vec<HashMap<i32, i32>> = vec![HashMap::new(); k];
+
+    for i in 0..n {
+        group_amount[i % k] += 1;
+        let count = group_record[i % k].entry(nums[i]).or_insert(0);
+        *count += 1;
+    }
+
+    let mut dp = vec![vec![0; N]; k];
+    for j in 0..N {
+        let count = group_record[0].entry(j as i32).or_insert(0);
+        dp[0][j] = group_amount[0] - *count;
+    }
+
+    for i in 1..k {
+        let upper_limit = dp[i - 1].iter().fold(i32::MAX, |a, b| a.min(*b)) + group_amount[i];
+        for _fill in dp[i].iter_mut() {
+            *_fill = upper_limit;
+        }
+
+        for (num, amount) in group_record[i % k].iter() {
+            let num = *num as usize;
+            for j in 0..N {
+                dp[i][j ^ num] = dp[i][j ^ num].min(dp[i - 1][j] + group_amount[i] - amount);
+            }
+        }
+    }
+    dp[k - 1][0]
+}
+
+/// 90
+pub fn are_almost_equal(s1: String, s2: String) -> bool {
+    let diff = s1.chars().zip(s2.chars()).fold(vec![], |mut a, c| {
+        if c.0 != c.1 {
+            a.push((c.0, c.1));
+        }
+        a
+    });
+    if diff.len() > 2 || diff.len() == 1 {
+        return false;
+    } else if diff.len() == 2 {
+        if diff[0].0 == diff[1].1 && diff[0].1 == diff[1].0 {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        true
+    }
+}
+
+/// 91
+pub fn find_center(edges: Vec<Vec<i32>>) -> i32 {
+    let mut degree = HashMap::new();
+    for e in edges {
+        *degree.entry(e[0]).or_insert(0) += 1;
+        if *degree.get(&e[0]).unwrap() > 1 {
+            return e[0];
+        }
+        *degree.entry(e[1]).or_insert(0) += 1;
+        if *degree.get(&e[1]).unwrap() > 1 {
+            return e[1];
+        }
+    }
+    return -1;
+}
