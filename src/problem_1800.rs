@@ -1667,3 +1667,29 @@ pub fn min_operations_iv(nums1: Vec<i32>, nums2: Vec<i32>) -> i32 {
         .map_or(-1, |v| v.1)
 }
 
+/// 79
+pub fn nearest_valid_point(x: i32, y: i32, points: Vec<Vec<i32>>) -> i32 {
+    points
+        .iter()
+        .enumerate()
+        .fold((-1, i32::MAX), |a, (i, v)| {
+            if v[0] == x || v[1] == y {
+                let dis = (v[0] - x).abs() + (v[1] - y).abs();
+                if dis < a.1 { (i as i32, dis) } else { a }
+            } else {
+                a
+            }
+        })
+        .0
+}
+
+/// 80
+pub fn check_powers_of_three(mut n: i32) -> bool {
+    while n > 0 {
+        if n % 3 == 2 {
+            return false;
+        }
+        n = n / 3;
+    }
+    true
+}
