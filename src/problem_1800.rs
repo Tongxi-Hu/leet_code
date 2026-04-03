@@ -1849,3 +1849,74 @@ pub fn find_center(edges: Vec<Vec<i32>>) -> i32 {
     }
     return -1;
 }
+
+/// 92
+#[derive(PartialEq, Debug)]
+struct ClassRatio {
+    pass: i64,
+    total: i64,
+}
+
+impl Eq for ClassRatio {}
+
+impl PartialOrd for ClassRatio {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        let val1 = (other.total + 1) * other.total * (self.total - self.pass);
+        let val2 = (self.total + 1) * self.total * (other.total - other.pass);
+        val1.partial_cmp(&val2)
+    }
+}
+
+impl Ord for ClassRatio {
+    fn cmp(&self, other: &Self) -> Ordering {
+        let val1 = (other.total + 1) * other.total * (self.total - self.pass);
+        let val2 = (self.total + 1) * self.total * (other.total - other.pass);
+        val1.cmp(&val2)
+    }
+}
+
+pub fn max_average_ratio(classes: Vec<Vec<i32>>, extra_students: i32) -> f64 {
+    let mut heap = BinaryHeap::new();
+    for c in &classes {
+        heap.push(ClassRatio {
+            pass: c[0] as i64,
+            total: c[1] as i64,
+        });
+    }
+
+    for _ in 0..extra_students {
+        if let Some(mut class) = heap.pop() {
+            class.pass += 1;
+            class.total += 1;
+            heap.push(class);
+        }
+    }
+
+    let mut res = 0.0;
+    let count = classes.len() as f64;
+    while let Some(class) = heap.pop() {
+        res += class.pass as f64 / class.total as f64;
+    }
+    res / count
+}
+
+/// 93
+pub fn maximum_score_iii(nums: Vec<i32>, k: i32) -> i32 {
+    let n = nums.len() as i32;
+    let mut left = k - 1;
+    let mut right = k + 1;
+    let mut ans = 0;
+    for i in (0..=nums[k as usize]).rev() {
+        while left >= 0 && left < n && nums[left as usize] >= i {
+            left -= 1;
+        }
+        while right < n && nums[right as usize] >= i {
+            right += 1;
+        }
+        ans = ans.max((right - left - 1) as i32 * i);
+        if left == -1 && right == n {
+            break;
+        }
+    }
+    ans
+}
