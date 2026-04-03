@@ -1920,3 +1920,108 @@ pub fn maximum_score_iii(nums: Vec<i32>, k: i32) -> i32 {
     }
     ans
 }
+
+/// 96
+pub fn second_highest(s: String) -> i32 {
+    let cnt = s.chars().into_iter().fold(HashSet::new(), |mut a, c| {
+        if ('0'..='9').contains(&c) {
+            a.insert(c.to_string().parse::<i32>().unwrap());
+        }
+        a
+    });
+    if cnt.len() < 2 {
+        return -1;
+    } else {
+        let mut v = cnt.into_iter().collect::<Vec<i32>>();
+        v.sort_by(|a, b| b.cmp(&a));
+        v[1]
+    }
+}
+
+/// 97
+struct AuthenticationManager {
+    tab: HashMap<String, i32>,
+    ttl: i32,
+}
+
+impl AuthenticationManager {
+    fn new(time_to_live: i32) -> Self {
+        Self {
+            tab: HashMap::new(),
+            ttl: time_to_live,
+        }
+    }
+
+    fn generate(&mut self, token_id: String, current_time: i32) {
+        *self.tab.entry(token_id).or_insert(0) = current_time + self.ttl;
+    }
+
+    fn renew(&mut self, token_id: String, current_time: i32) {
+        if let Some(t) = self.tab.get_mut(&token_id) {
+            if *t > current_time {
+                *t = current_time + self.ttl;
+            }
+        }
+    }
+
+    fn count_unexpired_tokens(&self, current_time: i32) -> i32 {
+        self.tab
+            .iter()
+            .fold(0, |ans, (_, &t)| ans + (t > current_time) as i32)
+    }
+}
+
+/// 98
+pub fn get_maximum_consecutive(mut coins: Vec<i32>) -> i32 {
+    coins.sort_unstable();
+    coins
+        .into_iter()
+        .fold(1, |s, x| if s >= x { s + x } else { s })
+}
+
+/// 99
+pub fn max_score(nums: Vec<i32>) -> i32 {
+    fn gcd(a: i32, b: i32) -> i32 {
+        if b == 0 { a } else { gcd(b, a % b) }
+    }
+    fn dfs(nums: &Vec<i32>, dp: &mut Vec<Vec<i32>>, i: usize, mask: i32) -> i32 {
+        if i > nums.len() / 2 {
+            return 0;
+        }
+        if dp[i][mask as usize] == 0 {
+            for j in 0..nums.len() {
+                for k in j + 1..nums.len() {
+                    let new_mask = (1 << j as i32) + (1 << k as i32);
+                    if (mask & new_mask) == 0 {
+                        dp[i][mask as usize] = dp[i][mask as usize].max(
+                            (i as i32) * gcd(nums[j], nums[k])
+                                + dfs(nums, dp, i + 1, mask + new_mask),
+                        );
+                    }
+                }
+            }
+        }
+        dp[i][mask as usize]
+    }
+    dfs(
+        &nums,
+        &mut vec![vec![0; 1 << nums.len()]; nums.len() / 2 + 1],
+        1,
+        0,
+    )
+}
+
+/// 100
+pub fn max_ascending_sum(nums: Vec<i32>) -> i32 {
+    let (mut l, mut max) = (0, 0);
+    while l < nums.len() {
+        let (mut sum, mut r) = (nums[l], l + 1);
+        while r < nums.len() && nums[r] > nums[r - 1] {
+            sum += nums[r];
+            r += 1;
+        }
+        max = max.max(sum);
+        l = r;
+    }
+    max
+}
