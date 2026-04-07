@@ -1,6 +1,6 @@
 use std::{
     cmp::{Ordering, Reverse},
-    collections::{BinaryHeap, HashSet},
+    collections::{BinaryHeap, HashMap, HashSet},
 };
 
 /// 01
@@ -173,4 +173,50 @@ pub fn num_different_integers(word: String) -> i32 {
         .map(|s| s.trim_start_matches('0'))
         .collect::<HashSet<_>>()
         .len() as i32
+}
+
+/// 06
+pub fn reinitialize_permutation(n: i32) -> i32 {
+    let (mut cnt, mut idx) = (1, n / 2);
+    while idx != 1 {
+        idx = if idx & 1 == 1 {
+            n / 2 + (idx - 1) / 2
+        } else {
+            idx / 2
+        };
+        cnt += 1;
+    }
+    cnt
+}
+
+/// 07
+pub fn evaluate(s: String, knowledge: Vec<Vec<String>>) -> String {
+    let map: HashMap<&str, &str> = knowledge
+        .iter()
+        .map(|v| (v[0].as_str(), v[1].as_str()))
+        .collect();
+    let mut s = s;
+    s.push('(');
+    let (mut l, mut r) = (0, 0);
+    let mut ans = String::with_capacity(s.len());
+    for c in s.bytes() {
+        match c {
+            b'(' => {
+                ans.push_str(&s[l..r]);
+                r += 1;
+                l = r;
+            }
+            b')' => {
+                if let Some(x) = map.get(&s[l..r]) {
+                    ans.push_str(x);
+                } else {
+                    ans.push_str("?");
+                }
+                r += 1;
+                l = r;
+            }
+            _ => r += 1,
+        }
+    }
+    ans
 }
