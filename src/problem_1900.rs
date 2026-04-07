@@ -220,3 +220,16 @@ pub fn evaluate(s: String, knowledge: Vec<Vec<String>>) -> String {
     }
     ans
 }
+
+/// 13
+pub fn square_is_white(coordinates: String) -> bool {
+    let chars = coordinates.chars().collect::<Vec<char>>();
+    let num = chars[1].to_digit(10).unwrap();
+    match (num % 2, (chars[0] as u8 - b'a') % 2) {
+        (0, 0) => true,
+        (1, 0) => false,
+        (0, 1) => false,
+        (1, 1) => true,
+        _ => false,
+    }
+}
