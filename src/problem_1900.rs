@@ -316,3 +316,80 @@ pub fn max_happy_groups(batch_size: i32, groups: Vec<i32>) -> i32 {
     tab.entry(0).or_insert(0);
     dfs(&mut tab, batch_size as i64, start) + cnt[0] as i32
 }
+
+/// 16
+pub fn truncate_sentence(s: String, k: i32) -> String {
+    let (words, mut ans) = (s.split(" ").collect::<Vec<&str>>(), "".to_string());
+    for i in 1..=k as usize {
+        if i != 1 {
+            ans = ans + &" ";
+        }
+        ans = ans + words[i - 1];
+    }
+    ans
+}
+
+/// 17
+pub fn finding_users_active_minutes(logs: Vec<Vec<i32>>, k: i32) -> Vec<i32> {
+    let (mut ret, mut cnt) = (vec![0; k as usize], HashMap::new());
+    for log in logs {
+        cnt.entry(log[0]).or_insert(HashSet::new()).insert(log[1]);
+    }
+    for curr in cnt.values() {
+        ret[curr.len() - 1] += 1;
+    }
+    ret
+}
+
+/// 18
+pub fn min_absolute_sum_diff(nums1: Vec<i32>, nums2: Vec<i32>) -> i32 {
+    let n = nums1.len();
+    let mut cloned = nums1.clone();
+    cloned.sort();
+    let mut sum = 0;
+    let mut max = 0;
+    for i in 0..n {
+        let diff = (nums1[i] - nums2[i]).abs();
+        sum += diff as i64;
+        let j = cloned.binary_search(&nums2[i]).unwrap_or_else(|x| x);
+        if j > 0 {
+            max = max.max(diff - (nums2[i] - cloned[j - 1]));
+        }
+        if j < n {
+            max = max.max(diff - (cloned[j] - nums2[i]));
+        }
+    }
+    sum -= max as i64;
+    (sum % 1000000007) as i32
+}
+
+/// 19
+pub fn count_different_subsequence_gc_ds(nums: Vec<i32>) -> i32 {
+    let max_num = *nums.iter().max().unwrap();
+    let mut vec = vec![false; max_num as usize + 1];
+    for num in nums {
+        vec[num as usize] = true;
+    }
+
+    fn gcd(a: i32, b: i32) -> i32 {
+        if b == 0 {
+            return a;
+        }
+        gcd(b, a % b)
+    }
+
+    let mut ans = 0;
+    for i in 1..=max_num {
+        let mut v = 0;
+        for j in (i..=max_num).step_by(i as usize) {
+            if vec[j as usize] {
+                v = gcd(v, j);
+            }
+        }
+        if v == i {
+            ans += 1;
+        }
+    }
+
+    ans
+}
