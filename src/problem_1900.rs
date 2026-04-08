@@ -393,3 +393,18 @@ pub fn count_different_subsequence_gc_ds(nums: Vec<i32>) -> i32 {
 
     ans
 }
+
+/// 22
+pub fn array_sign(nums: Vec<i32>) -> i32 {
+    let mut res = 1;
+    for n in nums {
+        if n > 0 {
+            continue;
+        } else if n == 0 {
+            return 0;
+        } else {
+            res = -res;
+        }
+    }
+    res
+}
