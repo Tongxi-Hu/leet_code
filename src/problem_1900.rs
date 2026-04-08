@@ -221,7 +221,7 @@ pub fn evaluate(s: String, knowledge: Vec<Vec<String>>) -> String {
     ans
 }
 
-/// 13
+/// 12
 pub fn square_is_white(coordinates: String) -> bool {
     let chars = coordinates.chars().collect::<Vec<char>>();
     let num = chars[1].to_digit(10).unwrap();
@@ -232,4 +232,87 @@ pub fn square_is_white(coordinates: String) -> bool {
         (1, 1) => true,
         _ => false,
     }
+}
+
+/// 13
+pub fn are_sentences_similar(sentence1: String, sentence2: String) -> bool {
+    let (words_1, words_2) = (
+        sentence1.split(" ").collect::<Vec<&str>>(),
+        sentence2.split(" ").collect::<Vec<&str>>(),
+    );
+    let (mut i, mut j) = (0, 0);
+    while i < words_1.len() && i < words_2.len() && words_1[i] == words_2[i] {
+        i += 1;
+    }
+    while j < words_1.len() - i
+        && j < words_2.len() - i
+        && words_1[words_1.len() - j - 1] == words_2[words_2.len() - j - 1]
+    {
+        j += 1;
+    }
+    i + j == words_1.len().min(words_2.len())
+}
+
+/// 14
+pub fn count_nice_pairs(nums: Vec<i32>) -> i32 {
+    fn reverse(mut n: i32) -> i32 {
+        let mut cur = 0;
+        while n > 0 {
+            cur = cur * 10 + n % 10;
+            n = n / 10;
+        }
+        cur
+    }
+    nums.iter()
+        .fold((HashMap::new(), 0), |mut a, c| {
+            let v = c - reverse(*c);
+            let cnt = *a.0.entry(v).or_insert(0);
+            a.0.insert(v, cnt + 1);
+            a.1 = (a.1 + cnt) % 1000000007;
+            a
+        })
+        .1
+}
+
+/// 15
+pub fn max_happy_groups(batch_size: i32, groups: Vec<i32>) -> i32 {
+    const KWIDTH: i64 = 5;
+    const KWIDTH_MASK: i64 = (1 << KWIDTH) - 1;
+    fn dfs(tab: &mut HashMap<i64, i32>, batch_size: i64, mask: i64) -> i32 {
+        if let Some(x) = tab.get(&mask) {
+            return *x;
+        }
+        let total = (1..batch_size).fold(0, |total, i| {
+            let amount = mask.overflowing_shr(((i - 1) * KWIDTH) as u32).0 & KWIDTH_MASK;
+            total + i * amount
+        });
+        let best = (1..batch_size).fold(0, |best, i| {
+            let amount = mask.overflowing_shr(((i - 1) * KWIDTH) as u32).0 & KWIDTH_MASK;
+            if amount > 0 {
+                let mut result = dfs(
+                    tab,
+                    batch_size,
+                    mask - 1i64.overflowing_shl(((i - 1) * KWIDTH) as u32).0,
+                );
+                if (total - i) % batch_size == 0 {
+                    result += 1;
+                }
+                best.max(result)
+            } else {
+                best
+            }
+        });
+        tab.entry(mask).or_insert(best);
+        best
+    }
+    let mut tab = HashMap::with_capacity(1 << 16);
+    let mut cnt = vec![0; batch_size as usize];
+    groups
+        .into_iter()
+        .for_each(|i| cnt[(i % batch_size) as usize] += 1);
+    let start = (1..batch_size)
+        .rev()
+        .fold(0, |start, i| (start << KWIDTH) | cnt[i as usize]);
+    tab.entry(0).or_insert(0);
+    dfs(&mut tab, batch_size as i64, start) + cnt[0] as i32
 }
