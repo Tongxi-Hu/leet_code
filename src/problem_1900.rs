@@ -574,3 +574,61 @@ impl MKAverage {
         }
     }
 }
+
+/// 27
+pub fn min_operations(mut nums: Vec<i32>) -> i32 {
+    let mut step = 0;
+    for i in 0..nums.len() - 1 {
+        if nums[i + 1] > nums[i] {
+            continue;
+        } else {
+            step += nums[i] + 1 - nums[i + 1];
+            nums[i + 1] = nums[i] + 1;
+        }
+    }
+    step
+}
+
+/// 28
+pub fn count_points(points: Vec<Vec<i32>>, queries: Vec<Vec<i32>>) -> Vec<i32> {
+    fn dis_sq(a: &Vec<i32>, b: &Vec<i32>) -> i32 {
+        (a[0] - b[0]).pow(2) + (a[1] - b[1]).pow(2)
+    }
+    queries
+        .iter()
+        .map(|q| {
+            let mut ans = 0;
+            for p in points.iter() {
+                if dis_sq(p, &vec![q[0], q[1]]) <= q[2].pow(2) {
+                    ans += 1;
+                }
+            }
+            ans
+        })
+        .collect()
+}
+
+/// 29
+pub fn get_maximum_xor(nums: Vec<i32>, maximum_bit: i32) -> Vec<i32> {
+    let mask = (1 << maximum_bit) - 1;
+    let mut acc = 0;
+    let mut ans = Vec::with_capacity(nums.len());
+    for val in nums {
+        acc ^= val;
+        ans.push(acc ^ mask);
+    }
+    ans.reverse();
+    ans
+}
+
+/// 32
+pub fn check_if_pangram(sentence: String) -> bool {
+    sentence
+        .chars()
+        .fold(HashSet::new(), |mut acc, cur| {
+            acc.insert(cur);
+            acc
+        })
+        .len()
+        == 26
+}
