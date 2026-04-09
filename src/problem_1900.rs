@@ -679,3 +679,13 @@ pub fn get_xor_sum(arr1: Vec<i32>, arr2: Vec<i32>) -> i32 {
     let xor2 = arr2.iter().fold(0, |a, &b| a ^ b);
     xor1 & xor2
 }
+
+/// 37
+pub fn sum_base(mut n: i32, k: i32) -> i32 {
+    let mut ans = 0;
+    while n > 0 {
+        ans += n % k;
+        n = n / k;
+    }
+    ans
+}
