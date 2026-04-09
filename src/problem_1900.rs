@@ -632,3 +632,50 @@ pub fn check_if_pangram(sentence: String) -> bool {
         .len()
         == 26
 }
+
+/// 33
+pub fn max_ice_cream(mut costs: Vec<i32>, mut coins: i32) -> i32 {
+    let mut cnt = 0;
+    costs.sort();
+    for c in costs {
+        if coins >= c {
+            coins -= c;
+            cnt += 1;
+        } else {
+            break;
+        }
+    }
+    cnt
+}
+
+/// 34
+pub fn get_order(tasks: Vec<Vec<i32>>) -> Vec<i32> {
+    let (mut i, mut s, n) = (0, 0, tasks.len());
+    let mut id: Vec<usize> = (0..n).collect();
+    id.sort_by(|&a, &b| tasks[a][0].cmp(&tasks[b][0]));
+    let mut h = BinaryHeap::new();
+    let mut ans = vec![];
+    loop {
+        if h.is_empty() && i < n && s < tasks[id[i]][0] {
+            s = tasks[id[i]][0];
+        }
+        while i < n && tasks[id[i]][0] <= s {
+            let j = id[i];
+            h.push((-tasks[j][1], -(j as i32)));
+            i += 1;
+        }
+        if let Some((t, j)) = h.pop() {
+            ans.push(-j);
+            s += -t;
+        } else {
+            break ans;
+        }
+    }
+}
+
+/// 35
+pub fn get_xor_sum(arr1: Vec<i32>, arr2: Vec<i32>) -> i32 {
+    let xor1 = arr1.iter().fold(0, |a, &b| a ^ b);
+    let xor2 = arr2.iter().fold(0, |a, &b| a ^ b);
+    xor1 & xor2
+}
