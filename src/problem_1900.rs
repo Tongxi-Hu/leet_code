@@ -780,3 +780,40 @@ pub fn max_building(n: i32, restrictions: Vec<Vec<i32>>) -> i32 {
     }
     ans
 }
+
+/// 44
+pub fn replace_digits(s: String) -> String {
+    s.chars()
+        .collect::<Vec<char>>()
+        .chunks(2)
+        .fold(String::new(), |mut a, c| {
+            a.push(c[0]);
+            if c.len() == 2 {
+                a.push((c[0] as u8 + c[1] as u8 - b'0') as char);
+            }
+            a
+        })
+}
+
+/// 45
+struct SeatManager {
+    seats: BinaryHeap<Reverse<i32>>,
+}
+
+impl SeatManager {
+    fn new(n: i32) -> Self {
+        let mut seats = BinaryHeap::new();
+        (1..=n).for_each(|v| {
+            seats.push(Reverse(v));
+        });
+        Self { seats }
+    }
+
+    fn reserve(&mut self) -> i32 {
+        self.seats.pop().unwrap().0
+    }
+
+    fn unreserve(&mut self, seat_number: i32) {
+        self.seats.push(Reverse(seat_number));
+    }
+}
