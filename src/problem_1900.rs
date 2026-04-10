@@ -1,6 +1,6 @@
 use std::{
     cmp::{Ordering, Reverse},
-    collections::{BTreeMap, BinaryHeap, HashMap, HashSet, VecDeque},
+    collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet, VecDeque},
     i32,
 };
 
@@ -816,4 +816,188 @@ impl SeatManager {
     fn unreserve(&mut self, seat_number: i32) {
         self.seats.push(Reverse(seat_number));
     }
+}
+
+/// 46
+pub fn maximum_element_after_decrementing_and_rearranging(mut arr: Vec<i32>) -> i32 {
+    arr.sort();
+    arr[0] = 1;
+    for i in 1..arr.len() {
+        arr[i] = arr[i].min(arr[i - 1] + 1);
+    }
+    arr[arr.len() - 1]
+}
+
+/// 47
+#[derive(Debug)]
+struct Event {
+    event_type: i32,
+    size: i32,
+    id: i32,
+    origin: usize,
+}
+
+impl Event {
+    fn new(event_type: i32, size: i32, id: i32, origin: usize) -> Self {
+        Event {
+            event_type,
+            size,
+            id,
+            origin,
+        }
+    }
+}
+
+impl PartialEq for Event {
+    fn eq(&self, other: &Self) -> bool {
+        self.size == other.size && self.event_type == other.event_type
+    }
+}
+
+impl Eq for Event {}
+
+impl PartialOrd for Event {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Event {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        other
+            .size
+            .cmp(&self.size)
+            .then(self.event_type.cmp(&other.event_type))
+    }
+}
+
+pub fn closest_room(rooms: Vec<Vec<i32>>, queries: Vec<Vec<i32>>) -> Vec<i32> {
+    let mut events = Vec::new();
+    for (i, room) in rooms.iter().enumerate() {
+        events.push(Event::new(0, room[1], room[0], i));
+    }
+    for (i, query) in queries.iter().enumerate() {
+        events.push(Event::new(1, query[1], query[0], i));
+    }
+
+    events.sort();
+    let mut valid_rooms = BTreeSet::new();
+    let mut ans = vec![-1; queries.len()];
+    for event in events {
+        if event.event_type == 0 {
+            valid_rooms.insert(event.id);
+        } else {
+            let mut dist = i32::MAX;
+            if let Some(&ceiling) = valid_rooms.range(event.id..).next() {
+                if ceiling - event.id < dist {
+                    dist = ceiling - event.id;
+                    ans[event.origin] = ceiling;
+                }
+            }
+
+            if let Some(&floor) = valid_rooms.range(..event.id).next_back() {
+                if event.id - floor <= dist {
+                    ans[event.origin] = floor;
+                }
+            }
+        }
+    }
+    ans
+}
+
+/// 48
+pub fn get_min_distance(nums: Vec<i32>, target: i32, start: i32) -> i32 {
+    nums.iter().enumerate().fold(i32::MAX, |mut a, (i, &v)| {
+        if v == target {
+            a = a.min((i as i32 - start).abs())
+        }
+        a
+    })
+}
+
+/// 49
+pub fn split_string(s: String) -> bool {
+    let s = s.as_bytes();
+    let n = s.len();
+    let mut dp: Vec<Vec<i64>> = vec![vec![-1; n]; n];
+    fn bt(dp: &mut Vec<Vec<i64>>, s: &[u8], i: usize, last_num: i64) -> bool {
+        if i >= dp.len() {
+            return true;
+        }
+        dp[i][i] = (s[i] - b'0') as i64;
+        if i == 0 {
+            for j in i..(dp.len() - 1) {
+                if dp[i][j] == -1 {
+                    dp[i][j] = dp[i][j - 1] * 10 + (s[j] - b'0') as i64;
+                }
+                if bt(dp, s, j + 1, dp[i][j]) {
+                    return true;
+                }
+            }
+        } else {
+            for j in i..dp.len() {
+                if dp[i][j] == -1 {
+                    dp[i][j] = dp[i][j - 1] * 10 + (s[j] - b'0') as i64;
+                }
+                if dp[i][j] >= last_num {
+                    break;
+                } else if dp[i][j] == last_num - 1 {
+                    if bt(dp, s, j + 1, dp[i][j]) {
+                        return true;
+                    }
+                }
+            }
+        }
+        false
+    }
+    bt(&mut dp, &s, 0, 0)
+}
+
+/// 50
+pub fn get_min_swaps(num: String, k: i32) -> i32 {
+    fn next_permutation(nums: &mut Vec<i32>) {
+        let n = nums.len();
+        if n < 2 {
+            return;
+        }
+        let mut i = n as i32 - 2;
+        while i >= 0 && nums[i as usize] >= nums[i as usize + 1] {
+            i -= 1;
+        }
+        if i >= 0 {
+            let mut k = n - 1;
+            while k > i as usize && nums[i as usize] >= nums[k] {
+                k -= 1;
+            }
+            nums.swap(i as usize, k);
+        }
+        nums[(i + 1) as usize..].reverse()
+    }
+
+    let n = num.len();
+    let cs = num.chars().collect::<Vec<char>>();
+    let mut nums: Vec<i32> = vec![0; n];
+    let mut k_nums = vec![0i32; n];
+    (0..n).for_each(|i| {
+        nums[i] = (cs[i] as u8 - '0' as u8) as i32;
+        k_nums[i] = (cs[i] as u8 - '0' as u8) as i32;
+    });
+    for _ in 0..k as usize {
+        next_permutation(&mut nums);
+    }
+    let mut res = 0i32;
+    for i in 0..n {
+        if nums[i] != k_nums[i] {
+            let mut j = i + 1;
+            while nums[j] != k_nums[i] {
+                j += 1;
+            }
+            while j != i {
+                nums.swap(j - 1, j);
+                res += 1;
+                j -= 1;
+            }
+        }
+    }
+    res
 }
