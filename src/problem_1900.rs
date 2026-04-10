@@ -689,3 +689,94 @@ pub fn sum_base(mut n: i32, k: i32) -> i32 {
     }
     ans
 }
+
+/// 38
+pub fn max_frequency(mut nums: Vec<i32>, k: i32) -> i32 {
+    nums.sort();
+    let (mut l, mut ans, mut diff) = (0, 1, 0);
+    for r in 1..nums.len() {
+        diff += (nums[r] - nums[r - 1]) as i64 * (r - l) as i64;
+        while diff > k as i64 {
+            diff -= (nums[r] - nums[l]) as i64;
+            l += 1;
+        }
+        ans = ans.max(r - l + 1);
+    }
+    ans as i32
+}
+
+/// 39
+pub fn longest_beautiful_substring(word: String) -> i32 {
+    let mut ret: usize = 0;
+    let bytes = word.as_bytes();
+    fn is_next(a: u8, b: u8) -> bool {
+        matches!(
+            (a, b),
+            (b'a', b'e') | (b'e', b'i') | (b'i', b'o') | (b'o', b'u')
+        )
+    }
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] != b'a' {
+            i += 1;
+            continue;
+        }
+
+        let start = i;
+        i += 1;
+        while i < bytes.len() && (bytes[i] == bytes[i - 1] || is_next(bytes[i - 1], bytes[i])) {
+            i += 1;
+        }
+        if bytes[i - 1] == b'u' {
+            ret = ret.max(i - start);
+        }
+    }
+
+    ret as i32
+}
+
+/// 40
+pub fn max_building(n: i32, restrictions: Vec<Vec<i32>>) -> i32 {
+    let mut restrictions = restrictions;
+    restrictions.sort_by(|a, b| {
+        if a[0] < b[0] {
+            Ordering::Less
+        } else {
+            Ordering::Greater
+        }
+    });
+    let mut new_restrictions: Vec<Vec<i32>> = Vec::new();
+    new_restrictions.push(vec![1, 0]);
+    for restriction in restrictions {
+        loop {
+            if let Some(back) = new_restrictions.iter().next_back() {
+                let back = back.clone();
+                let gap = restriction[0] - back[0];
+                if back[1] + gap <= restriction[1] {
+                    break;
+                }
+                if back[1] >= restriction[1] + gap {
+                    new_restrictions.pop();
+                } else {
+                    new_restrictions.push(restriction);
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+    }
+    let mut ans = 0;
+
+    for i in 1..new_restrictions.len() {
+        ans = ans.max(
+            new_restrictions[i][1] + new_restrictions[i - 1][1] + new_restrictions[i][0]
+                - new_restrictions[i - 1][0],
+        ) / 2
+    }
+    if let Some(last) = new_restrictions.iter().next_back() {
+        let b = last.clone();
+        ans = ans.max(n - b[0] + b[1]);
+    }
+    ans
+}
