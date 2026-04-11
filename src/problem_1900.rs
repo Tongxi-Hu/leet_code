@@ -1079,3 +1079,135 @@ pub fn max_distance(nums1: Vec<i32>, nums2: Vec<i32>) -> i32 {
 
     res
 }
+
+/// 56
+pub fn max_sum_min_product(nums: Vec<i32>) -> i32 {
+    let len = nums.len();
+    let mut pre: Vec<i64> = vec![0; len];
+    pre[0] = nums[0] as i64;
+    for i in 1..len {
+        pre[i] = pre[i - 1] + nums[i] as i64;
+    }
+    const MOD: i64 = 10_0000_0007;
+    let mut st: VecDeque<(i32, usize)> = VecDeque::new();
+    let (mut left, mut right) = (vec![0usize; len], vec![len - 1; len]);
+    for (i, &num) in nums.iter().enumerate() {
+        while let Some((top, id)) = st.pop_back() {
+            if top < num {
+                st.push_back((top, id));
+                left[i] = id + 1;
+                break;
+            }
+            right[id] = i - if top == num { 0 } else { 1 };
+        }
+
+        st.push_back((num, i));
+    }
+
+    let mut ans = 0;
+    for i in 0..len {
+        ans = ans
+            .max(nums[i] as i64 * (pre[right[i]] - if left[i] > 0 { pre[left[i] - 1] } else { 0 }));
+    }
+    (ans % MOD) as i32
+}
+
+/// 57
+pub fn largest_path_value(colors: String, edges: Vec<Vec<i32>>) -> i32 {
+    let n = colors.len();
+    let mut g = vec![vec![]; n];
+    let mut indeg = vec![0; n];
+    for edge in edges {
+        indeg[edge[1] as usize] += 1;
+        g[edge[0] as usize].push(edge[1] as usize);
+    }
+    let mut found = 0;
+    let mut f = vec![vec![0; 26]; n];
+    let mut q = VecDeque::new();
+    for i in 0..n {
+        if indeg[i] == 0 {
+            q.push_back(i);
+        }
+    }
+    while let Some(u) = q.pop_front() {
+        found += 1;
+        f[u][colors.as_bytes()[u] as usize - b'a' as usize] += 1;
+        for &v in &g[u] {
+            indeg[v] -= 1;
+            for c in 0..26 {
+                f[v][c] = f[v][c].max(f[u][c]);
+            }
+            if indeg[v] == 0 {
+                q.push_back(v);
+            }
+        }
+    }
+    if found != n {
+        return -1;
+    }
+    let mut ans = 0;
+    for i in 0..n {
+        ans = ans.max(*f[i].iter().max().unwrap());
+    }
+    ans
+}
+
+/// 59
+pub fn sort_sentence(s: String) -> String {
+    let vec: Vec<&str> = s.split(' ').collect();
+    let mut sv = Vec::new();
+    let mut nv = Vec::new();
+    for c in vec {
+        let cv: Vec<char> = c.chars().collect();
+        let mut s = String::new();
+        let mut t = String::new();
+        for ch in cv {
+            if ch.is_digit(10) {
+                t.push(ch);
+            } else {
+                s.push(ch);
+            }
+        }
+        sv.push(s);
+        nv.push(t.parse::<i32>().unwrap());
+    }
+    for i in 0..(nv.len() - 1) {
+        let mut p = i;
+        for j in i + 1..nv.len() {
+            if nv[j] < nv[p] {
+                p = j;
+            }
+        }
+        nv.swap(i, p);
+        sv.swap(i, p);
+    }
+    let mut ret = String::new();
+    let mut i = 0;
+    let l = sv.len();
+    for s in sv {
+        ret.push_str(&s);
+        if i != (l - 1) {
+            ret.push(' ');
+        }
+        i += 1;
+    }
+    ret
+}
+
+/// 60
+pub fn mem_leak(mut memory1: i32, mut memory2: i32) -> Vec<i32> {
+    let mut time = 1;
+    loop {
+        let t = memory1.max(memory2);
+        if t < time {
+            break;
+        }
+        if memory1 == t {
+            memory1 -= time;
+        } else {
+            memory2 -= time;
+        }
+        time += 1;
+    }
+    vec![time, memory1, memory2]
+}
