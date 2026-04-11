@@ -1001,3 +1001,81 @@ pub fn get_min_swaps(num: String, k: i32) -> i32 {
     }
     res
 }
+
+/// 51
+pub fn min_interval(mut intervals: Vec<Vec<i32>>, queries: Vec<i32>) -> Vec<i32> {
+    use std::collections::BinaryHeap;
+    intervals.sort_unstable_by(|a, b| a[0].cmp(&b[0]));
+    let (mut queue, mut ret, mut queries, mut j) = (
+        BinaryHeap::new(),
+        vec![-1; queries.len()],
+        queries.into_iter().enumerate().collect::<Vec<_>>(),
+        0,
+    );
+    queries.sort_unstable_by(|a, b| a.1.cmp(&b.1));
+
+    for (idx, val) in queries {
+        while j < intervals.len() && intervals[j][0] <= val {
+            queue.push((
+                Reverse(intervals[j][1] - intervals[j][0] + 1),
+                Reverse(intervals[j][1]),
+            ));
+            j += 1;
+        }
+        while let Some((_, Reverse(curr))) = queue.peek() {
+            if *curr < val {
+                queue.pop();
+            } else {
+                break;
+            }
+        }
+        if let Some((Reverse(curr), _)) = queue.peek() {
+            ret[idx as usize] = *curr
+        };
+    }
+    ret
+}
+
+/// 54
+pub fn maximum_population(logs: Vec<Vec<i32>>) -> i32 {
+    let mut record = logs.iter().fold(Vec::new(), |mut a, c| {
+        a.push((c[0], 1));
+        a.push((c[1], -1));
+        a
+    });
+    record.sort();
+    record
+        .iter()
+        .fold((0, 0, 0), |mut a, c| {
+            if c.1 == -1 {
+                a.2 -= 1;
+            } else {
+                a.2 += 1;
+            }
+            if a.2 > a.1 {
+                a.1 = a.2;
+                a.0 = c.0;
+            }
+            a
+        })
+        .0
+}
+
+/// 55
+pub fn max_distance(nums1: Vec<i32>, nums2: Vec<i32>) -> i32 {
+    let n1 = nums1.len();
+    let n2 = nums2.len();
+    let mut i = 0;
+    let mut res = 0;
+
+    for j in 0..n2 {
+        while i < n1 && nums1[i] > nums2[j] {
+            i += 1;
+        }
+        if i < n1 {
+            res = res.max((j as i32) - (i as i32));
+        }
+    }
+
+    res
+}
