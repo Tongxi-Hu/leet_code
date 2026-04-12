@@ -1211,3 +1211,125 @@ pub fn mem_leak(mut memory1: i32, mut memory2: i32) -> Vec<i32> {
     }
     vec![time, memory1, memory2]
 }
+
+/// 61
+pub fn rotate_the_box(mut map: Vec<Vec<char>>) -> Vec<Vec<char>> {
+    let (n, m) = (map.len(), map[0].len());
+    let mut fifo = std::collections::VecDeque::with_capacity(m);
+    for t in map.iter_mut() {
+        for i in (0..t.len()).rev() {
+            match t[i] {
+                '*' => fifo.clear(),
+                '.' => fifo.push_back(i),
+                _ => {
+                    if let Some(j) = fifo.pop_front() {
+                        t[j] = '#';
+                        t[i] = '.';
+                        fifo.push_back(i);
+                    }
+                }
+            }
+        }
+        fifo.clear();
+    }
+    let mut ans = Vec::with_capacity(m);
+    for j in 0..m {
+        let mut t = Vec::with_capacity(n);
+        for i in (0..n).rev() {
+            t.push(map[i][j]);
+        }
+        ans.push(t);
+    }
+    ans
+}
+
+/// 62
+pub fn sum_of_floored_pairs(nums: Vec<i32>) -> i32 {
+    let max = *nums.iter().max().unwrap();
+    let mut cnt = vec![0; max as usize + 1];
+    const MOD: usize = 10_0000_0007;
+
+    for &num in nums.iter() {
+        cnt[num as usize] += 1;
+    }
+
+    for i in 1..(max as usize + 1) {
+        cnt[i] += cnt[i - 1];
+    }
+    let pre = cnt;
+
+    let mut ans = 0;
+    for i in 1..(max as usize + 1) {
+        if pre[i] - pre[i - 1] > 0 {
+            let cnt = pre[i] - pre[i - 1];
+
+            let mut j = 1;
+            loop {
+                let l = i * j - 1;
+                let r = i * (j + 1) - 1;
+
+                ans = (ans
+                    + (((pre[(max as usize).min(r)] - pre[l]) % MOD) * (cnt % MOD) % MOD)
+                        * (j % MOD)
+                        % MOD)
+                    % MOD;
+                if r >= max as usize {
+                    break;
+                }
+                j += 1;
+            }
+        }
+    }
+
+    ans as i32
+}
+
+/// 63
+pub fn subset_xor_sum(nums: Vec<i32>) -> i32 {
+    fn dfs(val: i32, idx: usize, nums: &[i32]) -> i32 {
+        if idx == nums.len() {
+            return val;
+        }
+        dfs(val ^ nums[idx], idx + 1, nums) + dfs(val, idx + 1, nums)
+    }
+    dfs(0, 0, &nums)
+}
+
+/// 64
+pub fn min_swaps(s: String) -> i32 {
+    let n = s.len();
+    let m = s
+        .bytes()
+        .map(|v| if v == b'1' { 1 } else { -1 })
+        .sum::<i32>();
+
+    if m.abs() > 1 {
+        return -1;
+    }
+
+    let mut ans = i32::MAX;
+
+    if m <= 0 {
+        let t = "01".repeat(n / 2) + &"0".repeat(n % 2);
+        ans = ans.min(
+            t.bytes()
+                .zip(s.bytes())
+                .map(|(u, v)| if u == v { 0 } else { 1 })
+                .sum::<i32>()
+                / 2,
+        );
+    }
+
+    if m >= 0 {
+        let t = "10".repeat(n / 2) + &"1".repeat(n % 2);
+        ans = ans.min(
+            t.bytes()
+                .zip(s.bytes())
+                .map(|(u, v)| if u == v { 0 } else { 1 })
+                .sum::<i32>()
+                / 2,
+        );
+    }
+
+    ans
+}
