@@ -1416,3 +1416,27 @@ pub fn min_speed_on_time(dist: Vec<i32>, hour: f64) -> i32 {
     }
     l
 }
+
+/// 71
+pub fn can_reach(s: String, min_jump: i32, max_jump: i32) -> bool {
+    let s = s.into_bytes();
+    let mut dp = Vec::with_capacity(s.len());
+    let mut can_jump_cnt = 0;
+    dp.push(true);
+    for j in 1..s.len() {
+        let a = j as i32 - max_jump;
+        if a > 0 {
+            can_jump_cnt -= dp[a as usize - 1] as i32;
+        }
+        let b = j as i32 - min_jump;
+        if b >= 0 {
+            can_jump_cnt += dp[b as usize] as i32;
+        }
+        if s[j] == b'1' || b < 0 {
+            dp.push(false);
+        } else {
+            dp.push(can_jump_cnt > 0);
+        }
+    }
+    *dp.last().unwrap()
+}
