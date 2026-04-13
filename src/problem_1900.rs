@@ -1367,3 +1367,52 @@ impl FindSumPairs {
         ans
     }
 }
+
+/// 66
+pub fn rearrange_sticks(n: i32, k: i32) -> i32 {
+    let mut dp = vec![vec![0 as i64; 1001]; 1001];
+    dp[0][0] = 1;
+    for i in 1..=1000 {
+        for j in 1..=i {
+            dp[i][j] = (dp[i - 1][j - 1] + (i - 1) as i64 * dp[i - 1][j]) % 1000000007;
+        }
+    }
+    dp[n as usize][k as usize] as i32
+}
+
+/// 69
+pub fn check_zero_ones(s: String) -> bool {
+    let chars = s.chars().collect::<Vec<char>>();
+    let (_, max_ones, _, max_zeros) = chars.iter().fold((0, 0, 0, 0), |acc, cur| match cur {
+        '1' => (acc.0 + 1, acc.1.max(acc.0 + 1), 0, acc.3),
+        '0' => (0, acc.1, acc.2 + 1, acc.3.max(acc.2 + 1)),
+        _ => acc,
+    });
+    max_ones > max_zeros
+}
+
+/// 70
+pub fn min_speed_on_time(dist: Vec<i32>, hour: f64) -> i32 {
+    let n = dist.len();
+    let hr = (hour * 100.0).round() as i64;
+    if hr <= ((n as i64 - 1) * 100) {
+        return -1;
+    }
+    let mut l = 1;
+    let mut r = 10_000_000;
+    while l < r {
+        let mid = l + (r - l) / 2;
+        let mut t = 0i64;
+        for i in 0..n - 1 {
+            t += (dist[i] as i64 - 1) / mid as i64 + 1;
+        }
+        t *= mid as i64;
+        t += dist[n - 1] as i64;
+        if t * 100 <= hr * mid as i64 {
+            r = mid;
+        } else {
+            l = mid + 1;
+        }
+    }
+    l
+}
